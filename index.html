@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STARTUP UP - จุดเริ่มต้นของคนอยากมีบ้าน</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Babel for JSX compilation in browser -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Google Fonts: Prompt for modern Thai typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Import Map for ES Modules -->
+    <script type="importmap">
+    {
+        "imports": {
+            "react": "https://esm.sh/react@18.2.0",
+            "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+            "firebase/app": "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js",
+            "firebase/auth": "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js",
+            "firebase/storage": "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js",
+            "firebase/firestore": "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js",
+            "lucide-react": "https://esm.sh/lucide-react@0.292.0"
+        }
+    }
+    </script>
+
+    <!-- Tailwind Config for Custom Colors and Fonts -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            green: '#0b3d1b',
+                            light: '#eef3f0',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Prompt', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'soft': '0 20px 50px -12px rgba(11, 61, 27, 0.15)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Prompt', sans-serif;
+            background-color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        /* Forms & Inputs styling */
+        .input-modern {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            background-color: white;
+            transition: all 0.2s;
+            outline: none;
+            font-family: 'Prompt', sans-serif;
+        }
+        .input-modern:focus {
+            border-color: #0b3d1b;
+            box-shadow: 0 0 0 2px rgba(11, 61, 27, 0.1);
+            background-color: #f8faf9;
+        }
+        .label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 400;
+            color: #4a5568;
+            font-size: 0.9rem;
+        }
+        .btn-primary {
+            background-color: #0b3d1b;
+            color: white;
+            font-weight: 500;
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px; /* Pill shape */
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .btn-primary:hover {
+            background-color: transparent;
+            color: #0b3d1b;
+            box-shadow: 0 0 0 1px #0b3d1b;
+        }
+
+        /* Grid Image Hover Effects (Day to Night with Warm Light) */
+        .house-card {
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+            background: #000;
+            border-radius: 1rem;
+        }
+
+        .house-img {
+            transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* On hover: Darken image to simulate night and slightly zoom */
+        .house-card:hover .house-img {
+            filter: brightness(0.25) contrast(1.2) saturate(0.8);
+            transform: scale(1.05);
+        }
+
+        /* Warm light layer (Hidden by default) */
+        .warm-light-overlay {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            transition: opacity 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+            background: radial-gradient(circle at 50% 70%, rgba(255, 165, 0, 0.45) 0%, rgba(255, 100, 0, 0.15) 40%, transparent 70%);
+            mix-blend-mode: color-dodge;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .house-card:hover .warm-light-overlay {
+            opacity: 1;
+        }
+
+        /* Additional window glow accents */
+        .window-glow {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            transition: opacity 0.8s ease-in-out;
+            background: radial-gradient(ellipse at 50% 50%, rgba(255, 220, 130, 0.3) 0%, transparent 50%);
+            mix-blend-mode: screen;
+            z-index: 11;
+            pointer-events: none;
+        }
+
+        .house-card:hover .window-glow {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="text-gray-800 antialiased selection:bg-brand-green selection:text-white">
+    <!-- Root element for React -->
+    <div id="root"></div>
+
+    <script type="text/babel" data-type="module">
+        import { createRoot } from 'react-dom/client';
+        import React, { useState, useEffect } from 'react';
+        import { initializeApp } from 'firebase/app';
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from 'firebase/auth';
+        import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+        import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, query, serverTimestamp, setDoc, getDoc, orderBy } from 'firebase/firestore';
+        import { Home, MapPin, Bed, Bath, Car, Maximize, Phone, MessageCircle, Menu, X, Plus, Trash2, ShieldCheck, CheckCircle, Calculator, Users, FileText, Settings, Edit, Save, Image as ImageIcon, Layout, ChevronLeft, ChevronRight, Upload, Briefcase, XCircle, Tag, Youtube, Loader, Facebook, Instagram, Video, Check, Calendar, FolderPlus, Map } from 'lucide-react';
+
+        // --- Firebase Configuration ---
+        const getFirebaseConfig = () => {
+          if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+            return JSON.parse(__firebase_config);
+          }
+          // เปลี่ยนเป็น Config ของคุณ
+          return {
+            apiKey: "AIzaSyBzjvRSnUcaRRNG_nxoo2b_FRS81MhU_Bo",
+            authDomain: "startup-up.firebaseapp.com",
+            projectId: "startup-up",
+            storageBucket: "startup-up.firebasestorage.app",
+            messagingSenderId: "818763745889",
+            appId: "1:818763745889:web:e389dd8f74e9e1d5517820",
+            measurementId: "G-57JMSN6MLJ"
+          };
+        };
+
+        const firebaseConfig = getFirebaseConfig();
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'startup-up-realestate';
+
+        // --- Constants ---
+        const HOST_EMAIL = 'pepetchpunk@gmail.com';
+
+        const DEFAULT_COMPANY_INFO = {
+          name: 'STARTUP UP',
+          address: '39/43 หมู่ 5 ต.คลองสาม อ.คลองหลวง จ.ปทุมธานี 12120',
+          phone: '0624782426',
+          email: 'startup.up.real.estate@gmail.com',
+          line: 'https://line.me/R/ti/p/@SURE141',
+          facebook: 'https://www.facebook.com/startupuprealestate/',
+          description: 'จุดเริ่มต้นของคนอยากมีบ้าน',
+          logoUrl: 'https://lh3.googleusercontent.com/d/1EEAbI2a89rG4ii0Um0cfWdXLtcb6I_RU',
+          portfolio_years: []
+        };
+
+        const CATEGORIES = ['ทาวน์เฮาส์', 'ทาวน์เฮาส์ชั้นเดียว', 'ทาวน์เฮาส์หลังริม', 'บ้านแฝด', 'บ้านเดี่ยว'];
+        const BADGES = [
+          { value: '', label: '- ปกติ (ขายทั่วไป) -' },
+          { value: 'Promotion', label: 'Promotion (โปรโมชั่น)' },
+          { value: 'New', label: 'New (มาใหม่)' },
+          { value: 'Sold Out', label: 'Sold Out (ขายแล้ว/ย้ายไปผลงาน)' }
+        ];
+        const DIRECTIONS = ['เหนือ', 'ใต้', 'ตะวันออก', 'ตะวันตก', 'ตะวันออกเฉียงเหนือ', 'ตะวันออกเฉียงใต้', 'ตะวันตกเฉียงเหนือ', 'ตะวันตกเฉียงใต้'];
+        const COMMON_FACILITIES = ["รปภ. 24 ชม.", "สระว่ายน้ำ", "ฟิตเนส", "สวนสาธารณะ", "กล้อง CCTV", "เข้า-ออก ระบบคีย์การ์ด", "คลับเฮาส์", "สนามเด็กเล่น", "ใกล้ทางด่วน", "ใกล้รถไฟฟ้า", "ใกล้ห้างสรรพสินค้า", "ใกล้โรงเรียน", "ใกล้โรงพยาบาล", "ที่จอดรถส่วนตัว", "ถนนกว้าง", "รีโนเวทใหม่", "พร้อมอยู่"];
+
+        const LOCATIONS_DATA = [
+          { area: 'ลำลูกกา', sub_areas: ['ลำลูกกา คลอง 2', 'ลำลูกกา คลอง 3', 'ลำลูกกา คลอง 4', 'ลำลูกกา คลอง 7'], img: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
+          { area: 'คลองหลวง', sub_areas: ['คลองหลวง คลอง 1', 'คลองหลวง คลอง 2', 'คลองหลวง คลอง 3', 'คลองหลวง คลอง 4'], img: 'https://images.unsplash.com/photo-1592595896551-12b371d546d5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
+          { area: 'ธัญบุรี', sub_areas: ['ธัญญะ คลอง 2', 'ธัญญะ คลอง 3', 'ธัญบุรี คลอง 4', 'ธัญบุรี คลอง 8'], img: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
+          { area: 'เมืองปทุมธานี / อยุธยา', sub_areas: ['บ้านใหม่', 'บางพูน', 'บางกะดี', 'อ.วังน้อย อยุธยา', 'พยอม'], img: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
+          { area: 'กรุงเทพมหานคร', sub_areas: ['ดอนเมือง', 'บางเขน', 'พหลโยธิน 48', 'พหลโยธิน 52', 'สายไหม'], img: 'https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
+          { area: 'นนทบุรี', sub_areas: ['บางบัวทอง', 'ปากเกร็ด', 'ติวานนท์'], img: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b91d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' }
+        ];
+
+        const THAI_ADDRESS_DB = {
+          '12120': [{ subdistrict: 'คลองสาม', district: 'คลองหลวง', province: 'ปทุมธานี' }, { subdistrict: 'คลองสี่', district: 'คลองหลวง', province: 'ปทุมธานี' }, { subdistrict: 'คลองหนึ่ง', district: 'คลองหลวง', province: 'ปทุมธานี' }, { subdistrict: 'คลองสอง', district: 'คลองหลวง', province: 'ปทุมธานี' }],
+          '12110': [{ subdistrict: 'บางคูวัด', district: 'เมืองปทุมธานี', province: 'ปทุมธานี' }, { subdistrict: 'บางขะแยง', district: 'เมืองปทุมธานี', province: 'ปทุมธานี' }],
+          '12130': [{ subdistrict: 'ประชาธิปัตย์', district: 'ธัญบุรี', province: 'ปทุมธานี' }, { subdistrict: 'บึงยี่โถ', district: 'ธัญบุรี', province: 'ปทุมธานี' }, { subdistrict: 'รังสิต', district: 'ธัญบุรี', province: 'ปทุมธานี' }], 
+          '12150': [{ subdistrict: 'คูคต', district: 'ลำลูกกา', province: 'ปทุมธานี' }, { subdistrict: 'ลาดสวาย', district: 'ลำลูกกา', province: 'ปทุมธานี' }, { subdistrict: 'บึงคำพร้อย', district: 'ลำลูกกา', province: 'ปทุมธานี' }, { subdistrict: 'ลำลูกกา', district: 'ลำลูกกา', province: 'ปทุมธานี' }],
+          // Truncated for brevity, assuming standard data handling
+        };
+
+        // --- Helper Functions ---
+        const resizeImage = (file) => {
+          return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+              const img = new Image();
+              img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const MAX_WIDTH = 1000; const MAX_HEIGHT = 1000;
+                let width = img.width; let height = img.height;
+                if (width > height) { if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; } } 
+                else { if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; } }
+                canvas.width = width; canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                resolve(canvas.toDataURL('image/jpeg', 0.8)); 
+              };
+              img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+          });
+        };
+
+        const uploadBase64ToStorage = async (base64String) => {
+          if (!base64String || base64String.startsWith('http')) return base64String;
+          const arr = base64String.split(',');
+          const mime = arr[0].match(/:(.*?);/)[1];
+          const bstr = atob(arr[1]);
+          let n = bstr.length;
+          const u8arr = new Uint8Array(n);
+          while(n--){ u8arr[n] = bstr.charCodeAt(n); }
+          const blob = new Blob([u8arr], {type:mime});
+          const fileName = `images/${Date.now()}_${Math.random().toString(36).substr(2, 9)}.jpg`;
+          const storageRef = ref(storage, fileName);
+          await uploadBytes(storageRef, blob);
+          return await getDownloadURL(storageRef);
+        };
+
+        const getYoutubeId = (url) => {
+          if (!url) return null;
+          const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/)([^#&?]*).*/;
+          const match = url.match(regExp);
+          return (match && match[2].length === 11) ? match[2] : null;
+        };
+
+        // --- Intro Overlay Component (Slides up on scroll) ---
+        function IntroOverlay() {
+            const [showIntro, setShowIntro] = useState(true);
+
+            useEffect(() => {
+                const handleScroll = () => {
+                    // หากเลื่อนกลับมาบนสุด (ระยะน้อยกว่า 10px) ให้รูปหน้าปกสไลด์ลงมาใหม่
+                    if (window.scrollY < 10) {
+                        setShowIntro(true);
+                    } else {
+                        setShowIntro(false);
+                    }
+                };
+
+                // Add listeners
+                window.addEventListener('scroll', handleScroll, { passive: true });
+                window.addEventListener('touchmove', handleScroll, { passive: true });
+
+                // If already scrolled down slightly on load, hide immediately
+                if (window.scrollY > 10) {
+                    setShowIntro(false);
+                }
+
+                return () => {
+                    window.removeEventListener('scroll', handleScroll);
+                    window.removeEventListener('touchmove', handleScroll);
+                };
+            }, []);
+
+            return (
+                <div 
+                    className={`fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center ${showIntro ? 'pointer-events-auto' : 'pointer-events-none'}`}
+                    style={{
+                        transition: 'transform 1.2s cubic-bezier(0.77, 0, 0.175, 1), border-radius 1.2s ease',
+                        transformOrigin: 'top center',
+                        transform: showIntro ? 'translateY(0)' : 'translateY(-100%)',
+                        borderBottomLeftRadius: showIntro ? '0' : '50%',
+                        borderBottomRightRadius: showIntro ? '0' : '50%'
+                    }}
+                >
+                    <div className="absolute inset-0 w-full h-full">
+                        <img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80" alt="Modern House" className="w-full h-full object-cover opacity-60" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80"></div>
+                    </div>
+                    <div className="relative z-10 text-center">
+                        <h1 className="text-5xl md:text-7xl font-light text-white tracking-wide mb-4">STARTUP UP</h1>
+                        <p className="text-gray-300 font-light tracking-[0.2em] uppercase text-sm">จุดเริ่มต้นของคนอยากมีบ้าน</p>
+                    </div>
+                    <div className={`absolute bottom-10 text-white/50 text-xs tracking-widest uppercase flex flex-col items-center gap-2 transition-opacity duration-500 ${showIntro ? 'opacity-100 animate-pulse' : 'opacity-0'}`}>
+                        <span>Scroll Down</span>
+                        <ChevronDown size={16} />
+                    </div>
+                </div>
+            );
+        }
+        function ChevronDown({size}) {
+            return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        }
+
+        // --- Main Application Component ---
+        export default function App() {
+          const [user, setUser] = useState(null);
+          const [userRole, setUserRole] = useState(null); 
+          const [userEmail, setUserEmail] = useState('');
+          const [properties, setProperties] = useState([]);
+          const [companyInfo, setCompanyInfo] = useState(DEFAULT_COMPANY_INFO);
+          const [authorizedUsers, setAuthorizedUsers] = useState([]);
+          const [loading, setLoading] = useState(true);
+            
+          const [isMenuOpen, setIsMenuOpen] = useState(false);
+          const [activeTab, setActiveTab] = useState('home'); 
+          const [searchParams, setSearchParams] = useState({ type: 'all', value: '' }); 
+          const [selectedProperty, setSelectedProperty] = useState(null);
+          const [showLoginModal, setShowLoginModal] = useState(false);
+          const [showAdminPanel, setShowAdminPanel] = useState(false);
+
+          // Firebase Auth & Data Load
+          useEffect(() => {
+            const storedEmail = localStorage.getItem('adminEmail');
+            const storedRole = localStorage.getItem('adminRole');
+            if (storedEmail && storedRole) { setUserEmail(storedEmail); setUserRole(storedRole); }
+
+            const initAuth = async () => {
+              try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                  await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                  await signInAnonymously(auth);
+                }
+              } catch (error) { console.error("Auth init error:", error); }
+            };
+            initAuth();
+            return onAuthStateChanged(auth, setUser);
+          }, []);
+
+          useEffect(() => {
+            if (!user) return;
+            const qProps = query(collection(db, 'artifacts', appId, 'public', 'data', 'properties'));
+            const unsubProps = onSnapshot(qProps, (snapshot) => {
+              const props = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+              props.sort((a, b) => {
+                 if (a.badge === 'Sold Out' && b.badge !== 'Sold Out') return 1;
+                 if (a.badge !== 'Sold Out' && b.badge === 'Sold Out') return -1;
+                 return (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0);
+              });
+              setProperties(props);
+              setLoading(false);
+            }, (error) => console.warn(error));
+
+            const unsubCompany = onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'company_info', 'main'), (docSnap) => {
+              if (docSnap.exists()) setCompanyInfo({ ...DEFAULT_COMPANY_INFO, ...docSnap.data() });
+              else setDoc(docSnap.ref, DEFAULT_COMPANY_INFO).catch(e => console.warn(e));
+            }, (error) => console.warn(error));
+
+            let unsubUsers = () => {};
+            if (userRole === 'host' || userRole === 'admin') {
+               const qUsers = query(collection(db, 'artifacts', appId, 'public', 'data', 'users'));
+               unsubUsers = onSnapshot(qUsers, (snapshot) => {
+                 const users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                 setAuthorizedUsers(users);
+                 if (!users.some(u => u.email === HOST_EMAIL) && users.length === 0) {
+                    setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', 'host_init'), { email: HOST_EMAIL, role: 'host', name: 'Main Host', createdAt: serverTimestamp() }).catch(e=>console.warn(e));
+                 }
+               }, (error) => console.warn(error));
+            }
+            return () => { unsubProps(); unsubCompany(); unsubUsers(); };
+          }, [user, userRole]);
+
+          const handleLogout = async () => {
+            setUserRole(null); setUserEmail('');
+            localStorage.removeItem('adminEmail'); localStorage.removeItem('adminRole');
+            setShowAdminPanel(false); setActiveTab('home');
+          };
+
+          const handleEmailSignup = async (email, password) => {
+            try {
+              if (!auth.currentUser) await signInAnonymously(auth);
+              const emailLower = email.toLowerCase().trim();
+              if (emailLower === HOST_EMAIL.toLowerCase()) throw new Error('อีเมลนี้เป็นของ Host');
+              if (password.length < 6) throw new Error('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร');
+
+              const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', emailLower);
+              const userDocSnap = await getDoc(userDocRef);
+              if (userDocSnap.exists()) throw new Error('อีเมลนี้ถูกใช้งานไปแล้ว');
+              
+              await setDoc(userDocRef, { email: emailLower, password: password, role: 'pending', createdAt: serverTimestamp() });
+              return 'สมัครสมาชิกสำเร็จ! กรุณารอ Host อนุมัติสิทธิ์การใช้งาน';
+            } catch (error) { throw new Error(error.message || 'เกิดข้อผิดพลาด'); }
+          };
+
+          const handleEmailLogin = async (email, password) => {
+            try {
+              const emailLower = email.toLowerCase().trim();
+              if (emailLower === HOST_EMAIL.toLowerCase() && password === '097918785') {
+                 setUserRole('host'); setUserEmail(emailLower);
+                 localStorage.setItem('adminEmail', emailLower); localStorage.setItem('adminRole', 'host');
+                 setShowLoginModal(false); setShowAdminPanel(true);
+                 if (!auth.currentUser) await signInAnonymously(auth);
+                 try { await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', emailLower), { email: emailLower, role: 'host', name: 'Main Host', createdAt: serverTimestamp() }, { merge: true }); } catch (e) {}
+                 return;
+              }
+
+              if (!auth.currentUser) await signInAnonymously(auth);
+              const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', emailLower);
+              const userDocSnap = await getDoc(userDocRef);
+              if (!userDocSnap.exists()) throw new Error('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
+              
+              const userData = userDocSnap.data();
+              if (userData.password !== password) throw new Error('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
+
+              const finalRole = userData.role || 'pending';
+              if (finalRole === 'admin' || finalRole === 'host') {
+                setUserRole(finalRole); setUserEmail(emailLower);
+                localStorage.setItem('adminEmail', emailLower); localStorage.setItem('adminRole', finalRole);
+                setShowLoginModal(false); setShowAdminPanel(true);
+              } else {
+                throw new Error('บัญชีของคุณอยู่ระหว่างรออนุมัติ');
+              }
+            } catch (error) { throw error; }
+          };
+
+          const handleLocationSelect = (type, value) => {
+            setSearchParams({ type, value });
+            setActiveTab('search_result');
+            setSelectedProperty(null);
+          };
+
+          return (
+            <div className="text-gray-800 bg-white min-h-screen flex flex-col font-sans relative">
+              <IntroOverlay />
+              
+              {/* Elegant Navbar */}
+              <nav className="fixed w-full top-0 z-40 bg-white/90 backdrop-blur-md shadow-sm transition-all duration-300">
+                <div className="max-w-7xl mx-auto px-6 lg:px-12">
+                  <div className="flex justify-between items-center h-20">
+                    
+                    {/* Left side links (Desktop) */}
+                    <div className="hidden lg:flex items-center space-x-6 w-1/3">
+                      <NavButton active={activeTab === 'home'} onClick={() => {setActiveTab('home'); setSelectedProperty(null);}}>หน้าหลัก</NavButton>
+                      <NavButton active={activeTab === 'promo'} onClick={() => {setActiveTab('promo'); setSelectedProperty(null);}}>โปรโมชั่น</NavButton>
+                      <NavButton active={activeTab === 'location'} onClick={() => {setActiveTab('location'); setSelectedProperty(null);}}>ทำเล</NavButton>
+                      <NavButton active={activeTab === 'calculator'} onClick={() => {setActiveTab('calculator'); setSelectedProperty(null);}}>สินเชื่อ</NavButton>
+                    </div>
+
+                    {/* Mobile Hamburger */}
+                    <div className="lg:hidden flex w-1/3">
+                      <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-gray-800 hover:text-brand-green focus:outline-none p-2">
+                          {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                      </button>
+                    </div>
+
+                    {/* Center Logo */}
+                    <div className="w-1/3 flex justify-center cursor-pointer" onClick={() => {setActiveTab('home'); setSelectedProperty(null);}}>
+                        <a className="text-xl md:text-2xl font-light tracking-[0.2em] text-brand-green uppercase whitespace-nowrap">
+                            Startup Up
+                        </a>
+                    </div>
+
+                    {/* Right side icons / links */}
+                    <div className="hidden lg:flex items-center justify-end space-x-6 w-1/3">
+                      <NavButton active={activeTab === 'portfolio'} onClick={() => {setActiveTab('portfolio'); setSelectedProperty(null);}}>ผลงาน</NavButton>
+                      {userRole ? (
+                         <button onClick={() => setShowAdminPanel(true)} className="flex items-center gap-2 px-4 py-1.5 border border-brand-green text-brand-green rounded-full hover:bg-brand-green hover:text-white transition-all text-sm font-medium">
+                          <Settings size={14} /> ระบบจัดการ
+                        </button>
+                      ) : (
+                        <button onClick={() => setShowLoginModal(true)} className="text-gray-400 hover:text-brand-green transition-colors duration-300 p-1">
+                          <ShieldCheck size={20} />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Mobile Menu */}
+                {isMenuOpen && (
+                  <div className="lg:hidden bg-white border-t border-gray-100 py-4 absolute w-full shadow-lg">
+                    <div className="px-6 space-y-4 flex flex-col">
+                      <MobileNavBtn onClick={() => {setActiveTab('home'); setSelectedProperty(null); setIsMenuOpen(false)}}>หน้าหลัก</MobileNavBtn>
+                      <MobileNavBtn onClick={() => {setActiveTab('promo'); setSelectedProperty(null); setIsMenuOpen(false)}}>บ้านจัดโปรโมชั่น</MobileNavBtn>
+                      <MobileNavBtn onClick={() => {setActiveTab('location'); setSelectedProperty(null); setIsMenuOpen(false)}}>ทำเล</MobileNavBtn>
+                      <MobileNavBtn onClick={() => {setActiveTab('calculator'); setSelectedProperty(null); setIsMenuOpen(false)}}>คำนวณสินเชื่อ</MobileNavBtn>
+                      <MobileNavBtn onClick={() => {setActiveTab('portfolio'); setSelectedProperty(null); setIsMenuOpen(false)}}>ผลงาน</MobileNavBtn>
+                      <div className="h-px bg-gray-100 my-2"></div>
+                      {userRole ? (
+                        <button onClick={() => {setShowAdminPanel(true); setIsMenuOpen(false)}} className="w-full text-left py-2 text-brand-green font-medium">เข้าสู่ระบบหลังบ้าน</button>
+                      ) : (
+                        <button onClick={() => {setShowLoginModal(true); setIsMenuOpen(false)}} className="w-full text-left py-2 text-gray-400 font-medium">Admin Login</button>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </nav>
+
+              {/* Main Content Area (padding top for navbar) */}
+              <div className="flex-grow pt-20">
+                {selectedProperty ? (
+                  <SalePage property={selectedProperty} companyInfo={companyInfo} onBack={() => setSelectedProperty(null)} />
+                ) : (
+                  <>
+                    {activeTab === 'home' && <HomeSection properties={properties} loading={loading} onSelectProp={setSelectedProperty} setActiveTab={setActiveTab} />}
+                    {activeTab === 'promo' && <PropertiesList properties={properties} searchParams={{ type: 'promo' }} onSelectProp={setSelectedProperty} />}
+                    {activeTab === 'search_result' && <PropertiesList properties={properties} searchParams={searchParams} onSelectProp={setSelectedProperty} />}
+                    {activeTab === 'location' && <LocationSection onSelectLocation={handleLocationSelect} />}
+                    {activeTab === 'calculator' && <div className="py-16 bg-gray-50"><CalculatorSection /></div>}
+                    {activeTab === 'portfolio' && <PortfolioSection companyInfo={companyInfo} properties={properties} />}
+                  </>
+                )}
+              </div>
+
+              {/* Minimalist Footer */}
+              <footer className="bg-brand-green text-brand-light py-12">
+                <div className="max-w-7xl mx-auto px-6 lg:px-12">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 font-light">
+                    <div>
+                      <div className="flex items-center gap-3 mb-4">
+                        <span className="text-2xl tracking-[0.2em] font-light uppercase">{companyInfo?.name || 'STARTUP UP'}</span>
+                      </div>
+                      <p className="text-sm leading-relaxed opacity-80">{companyInfo?.description || 'จุดเริ่มต้นของคนอยากมีบ้าน'}</p>
+                    </div>
+                    <div>
+                      <h4 className="font-normal mb-4 tracking-wider uppercase text-sm">ติดต่อเรา</h4>
+                      <p className="mb-2 text-sm opacity-80">{companyInfo?.address}</p>
+                      <p className="mb-2 text-lg"><a href={`tel:${companyInfo?.phone}`}>โทร: {companyInfo?.phone}</a></p>
+                      <p className="text-sm opacity-80">Email: {companyInfo?.email}</p>
+                    </div>
+                    <div>
+                       <h4 className="font-normal mb-4 tracking-wider uppercase text-sm">ติดตามเรา</h4>
+                       <div className="flex gap-4">
+                         <a href={companyInfo?.facebook} target="_blank" className="hover:text-white opacity-80 transition"><Facebook size={20}/></a>
+                         <a href={companyInfo?.line} target="_blank" className="hover:text-white opacity-80 transition"><MessageCircle size={20}/></a>
+                         <a href="https://www.instagram.com/startupuprealestate/" target="_blank" className="hover:text-white opacity-80 transition"><Instagram size={20}/></a>
+                         <a href="https://www.tiktok.com/@startupupofficial" target="_blank" className="hover:text-white opacity-80 transition"><Video size={20}/></a>
+                       </div>
+                    </div>
+                  </div>
+                  <div className="border-t border-white/20 pt-8 text-center text-xs opacity-60 font-light tracking-wide">
+                    © {new Date().getFullYear()} {companyInfo?.name || 'Startup Up Real Estate'}. All Rights Reserved.
+                  </div>
+                </div>
+              </footer>
+
+              {/* Modals */}
+              {showLoginModal && <LoginModal onClose={() => setShowLoginModal(false)} onLogin={handleEmailLogin} onSignup={handleEmailSignup} />}
+              {showAdminPanel && (
+                <AdminPanel userRole={userRole} userEmail={userEmail} properties={properties} users={authorizedUsers} companyInfo={companyInfo} onClose={() => setShowAdminPanel(false)} onLogout={handleLogout} appId={appId} db={db} />
+              )}
+            </div>
+          );
+        }
+
+        // --- Elegant Home Section (Grid with Day-to-Night effect) ---
+        function HomeSection({ properties, loading, onSelectProp, setActiveTab }) {
+          const availableProps = properties.filter(p => p.badge !== 'Sold Out');
+          
+          if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader className="animate-spin text-brand-green" size={48} /></div>;
+
+          return (
+            <main className="py-16 px-4 md:px-6 max-w-screen-2xl mx-auto min-h-screen">
+                <div className="text-center mb-16">
+                    <h2 className="text-3xl font-light text-brand-green mb-4">ค้นพบบ้านที่ใช่สำหรับคุณ</h2>
+                    <p className="text-gray-500 font-light text-sm tracking-wide">โซนรังสิต - ปทุมธานี</p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                    {availableProps.slice(0, 12).map((p, index) => (
+                        <div 
+                            key={p.id} 
+                            onClick={() => onSelectProp(p)}
+                            className="house-card aspect-[4/5] shadow-sm"
+                            style={{ animation: `fadeUpAnim 0.8s ease forwards ${index * 50}ms`, opacity: 0, transform: 'translateY(20px)' }}
+                        >
+                            <img src={p.images?.[0] || p.imageUrl || "https://placehold.co/600x800"} alt={p.project_name} className="house-img" />
+                            
+                            {/* Hover Lights */}
+                            <div className="warm-light-overlay"></div>
+                            <div className="window-glow"></div>
+
+                            {/* Badges */}
+                            {p.badge && (
+                                <div className={`absolute top-4 left-4 px-3 py-1 rounded font-medium text-xs text-white z-20 ${p.badge === 'Promotion' ? 'bg-[#c8ff00] text-black' : 'bg-red-500'}`}>
+                                    {p.badge}
+                                </div>
+                            )}
+
+                            {/* Details Overlay */}
+                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-6 z-20 pointer-events-none transition-transform duration-500">
+                                <p className="text-white text-lg font-light tracking-wide truncate">{p.project_name}</p>
+                                <div className="flex justify-between items-end mt-2">
+                                    <p className="text-gray-300 text-xs font-light">{p.category} • {p.subdistrict === 'คูคต' ? 'ลำลูกกา' : p.subdistrict}</p>
+                                    <p className="text-[#c8ff00] text-sm font-medium">{Number(p.price).toLocaleString()} ฿</p>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+                
+                {availableProps.length > 12 && (
+                    <div className="text-center mt-16">
+                        <button onClick={() => setActiveTab('search_result')} className="btn-primary">
+                            ดูทั้งหมด
+                        </button>
+                    </div>
+                )}
+            </main>
+          );
+        }
+
+        // --- Sale Page (Property Detail) ---
+        function SalePage({ property, companyInfo, onBack }) {
+          const [activeImg, setActiveImg] = useState(0);
+          const images = property.images && property.images.length > 0 ? property.images : [property.imageUrl || "https://placehold.co/600x400"];
+          const youtubeId = getYoutubeId(property.youtubeUrl);
+
+          return (
+            <div className="bg-gray-50 min-h-screen pb-12 animate-in fade-in duration-300">
+              <div className="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+                 
+                 {/* Left Column - Images & Details */}
+                 <div className="lg:col-span-2 space-y-8">
+                    <button onClick={onBack} className="flex items-center gap-2 text-gray-500 hover:text-brand-green transition-colors text-sm uppercase tracking-wide">
+                       <ChevronLeft size={16} /> ย้อนกลับ
+                    </button>
+
+                    <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+                       <div className="h-[400px] md:h-[600px] bg-gray-100 rounded-xl overflow-hidden mb-4 relative group">
+                          <img src={images[activeImg]} className="w-full h-full object-cover transition duration-500" alt="Main" />
+                          {images.length > 1 && (
+                            <>
+                              <button onClick={() => setActiveImg(prev => (prev === 0 ? images.length - 1 : prev - 1))} className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 text-brand-green p-2 rounded-full hover:bg-white transition"><ChevronLeft /></button>
+                              <button onClick={() => setActiveImg(prev => (prev === images.length - 1 ? 0 : prev + 1))} className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 text-brand-green p-2 rounded-full hover:bg-white transition"><ChevronRight /></button>
+                            </>
+                          )}
+                          {property.badge && <div className="absolute top-4 left-4 px-4 py-1.5 rounded-full font-medium text-xs shadow-lg z-10 text-white bg-red-600">{property.badge}</div>}
+                       </div>
+                       <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                          {images.map((img, idx) => (
+                            <button key={idx} onClick={() => setActiveImg(idx)} className={`w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all ${activeImg === idx ? 'border-brand-green opacity-100' : 'border-transparent opacity-60 hover:opacity-100'}`}>
+                               <img src={img} className="w-full h-full object-cover" alt={`Thumb ${idx}`} />
+                            </button>
+                          ))}
+                       </div>
+                    </div>
+
+                    <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+                          <div>
+                            <span className="text-gray-500 text-sm font-light tracking-wide">{property.category}</span>
+                            <h1 className="text-3xl md:text-4xl font-light text-brand-green mt-1">{property.project_name}</h1>
+                          </div>
+                          <div className="text-right">
+                            <span className="block text-sm text-gray-400 font-light mb-1">ราคาขาย</span>
+                            <span className="text-3xl font-medium text-brand-green">{Number(property.price).toLocaleString()} <span className="text-lg">฿</span></span>
+                          </div>
+                       </div>
+                       
+                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 py-6 border-y border-gray-100">
+                           <div className="text-center"><Maximize className="mx-auto text-gray-300 mb-2 stroke-1" size={28} /><span className="block font-medium text-lg">{property.area_wah}</span><span className="text-xs text-gray-400 font-light">ตร.ว.</span></div>
+                           <div className="text-center"><Bed className="mx-auto text-gray-300 mb-2 stroke-1" size={28} /><span className="block font-medium text-lg">{property.bedrooms}</span><span className="text-xs text-gray-400 font-light">ห้องนอน</span></div>
+                           <div className="text-center"><Bath className="mx-auto text-gray-300 mb-2 stroke-1" size={28} /><span className="block font-medium text-lg">{property.bathrooms}</span><span className="text-xs text-gray-400 font-light">ห้องน้ำ</span></div>
+                           <div className="text-center"><Car className="mx-auto text-gray-300 mb-2 stroke-1" size={28} /><span className="block font-medium text-lg">{property.parking}</span><span className="text-xs text-gray-400 font-light">ที่จอดรถ</span></div>
+                       </div>
+
+                       <h3 className="text-lg font-medium text-brand-green mb-4">รายละเอียด</h3>
+                       <p className="text-gray-600 leading-relaxed font-light whitespace-pre-line mb-8">{property.highlights || 'ไม่มีรายละเอียดเพิ่มเติม'}</p>
+
+                       {property.facilitiesList && property.facilitiesList.length > 0 && (
+                           <>
+                           <h3 className="text-lg font-medium text-brand-green mb-4">สิ่งอำนวยความสะดวก</h3>
+                           <div className="flex flex-wrap gap-2 mb-8">
+                               {property.facilitiesList.map((fac, i) => (
+                                 <span key={i} className="bg-gray-50 text-gray-600 px-4 py-2 rounded-full text-sm font-light border border-gray-100">{fac}</span>
+                               ))}
+                           </div>
+                           </>
+                       )}
+
+                       {youtubeId && (
+                         <div className="mb-8">
+                            <h3 className="text-lg font-medium text-brand-green mb-4">วิดีโอแนะนำ</h3>
+                            <div className="aspect-video rounded-xl overflow-hidden bg-black">
+                               <iframe width="100%" height="100%" src={`https://www.youtube.com/embed/${youtubeId}?origin=${window.location.origin}`} title="YouTube video player" frameBorder="0" allowFullScreen></iframe>
+                            </div>
+                         </div>
+                       )}
+                    </div>
+                 </div>
+
+                 {/* Right Column - Contact & Calc */}
+                 <div className="space-y-6">
+                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 sticky top-24">
+                       <h3 className="font-medium text-lg mb-6">สนใจติดต่อ</h3>
+                       <div className="space-y-3 mb-8">
+                          <a href={`tel:${companyInfo?.phone}`} className="flex items-center justify-center gap-2 w-full bg-brand-green text-white py-3.5 rounded-full font-light hover:bg-opacity-90 transition">
+                              <Phone size={18} /> {companyInfo?.phone}
+                          </a>
+                          <a href={companyInfo?.line} target="_blank" className="flex items-center justify-center gap-2 w-full bg-[#06C755] text-white py-3.5 rounded-full font-light hover:bg-opacity-90 transition">
+                              <MessageCircle size={18} /> ทักไลน์
+                          </a>
+                       </div>
+                       <div className="border-t border-gray-100 pt-6">
+                         <CalculatorSection defaultPrice={property.price} minimalist={true} />
+                       </div>
+                    </div>
+                 </div>
+              </div>
+            </div>
+          );
+        }
+
+        // --- Properties List (Promo / Search) ---
+        function PropertiesList({ properties, searchParams, onSelectProp }) {
+          let displayProps = properties.filter(p => p.badge !== 'Sold Out');
+          let title = 'รายการทั้งหมด';
+
+          if (searchParams?.type === 'promo') {
+              displayProps = properties.filter(p => p.badge === 'Promotion');
+              title = 'โปรโมชั่นพิเศษ';
+          } else if (searchParams?.type === 'district') {
+              displayProps = properties.filter(p => p.district === searchParams.value || (p.subdistrict === 'คูคต' && searchParams.value === 'ลำลูกกา'));
+              title = `ทำเล: ${searchParams.value}`;
+          } else if (searchParams?.type === 'subdistrict') {
+              const keyword = searchParams.value.trim().toLowerCase(); 
+              displayProps = properties.filter(p => `${p.district} ${p.subdistrict} ${p.project_name} ${p.soi}`.toLowerCase().includes(keyword) || p.highlights?.toLowerCase().includes(keyword));
+              title = `ผลการค้นหา: ${searchParams.value}`;
+          }
+
+          return (
+            <div className="max-w-7xl mx-auto px-4 py-16 min-h-screen">
+              <h2 className="text-2xl font-light text-brand-green mb-10">{title}</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {displayProps.length > 0 ? displayProps.map(p => (
+                   <div key={p.id} onClick={() => onSelectProp(p)} className="house-card aspect-[4/5] shadow-sm">
+                       <img src={p.images?.[0] || p.imageUrl || "https://placehold.co/600x800"} className="house-img" />
+                       <div className="warm-light-overlay"></div>
+                       <div className="window-glow"></div>
+                       {p.badge && <div className="absolute top-4 left-4 px-3 py-1 rounded font-medium text-xs text-white z-20 bg-brand-green">{p.badge}</div>}
+                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-5 z-20 pointer-events-none">
+                           <p className="text-white font-light truncate">{p.project_name}</p>
+                           <p className="text-gray-300 text-xs mt-1">{Number(p.price).toLocaleString()} ฿</p>
+                       </div>
+                   </div>
+                )) : <p className="text-gray-400 col-span-full text-center py-20 font-light">ไม่พบรายการในหมวดหมู่นี้</p>}
+              </div>
+            </div>
+          );
+        }
+
+        // --- Location Section ---
+        function LocationSection({ onSelectLocation }) {
+          return (
+            <div className="max-w-7xl mx-auto px-4 py-16">
+              <h2 className="text-3xl font-light text-center text-brand-green mb-12">ทำเลยอดนิยม</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {LOCATIONS_DATA.map((loc, idx) => (
+                  <div key={idx} onClick={() => onSelectLocation && onSelectLocation('district', loc.area)} className="group cursor-pointer">
+                    <div className="h-64 rounded-2xl overflow-hidden relative mb-4">
+                       <img src={loc.img} className="w-full h-full object-cover group-hover:scale-105 transition duration-700" alt={loc.area} />
+                       <div className="absolute inset-0 bg-black/30 flex items-center justify-center transition group-hover:bg-black/40">
+                          <h3 className="text-2xl font-light tracking-wider text-white">{loc.area}</h3>
+                       </div>
+                    </div>
+                    <div className="flex flex-wrap gap-2 px-2">
+                       {loc.sub_areas.map((sub, i) => (
+                           <span key={i} onClick={(e) => { e.stopPropagation(); onSelectLocation && onSelectLocation('subdistrict', sub); }} className="text-xs border border-gray-200 text-gray-500 px-3 py-1.5 rounded-full hover:border-brand-green hover:text-brand-green transition font-light">
+                             {sub}
+                           </span>
+                       ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        }
+
+        // --- Calculator Section ---
+        function CalculatorSection({ defaultPrice, minimalist = false }) {
+          const [loanAmount, setLoanAmount] = useState(defaultPrice || '');
+          const [interest, setInterest] = useState(3);
+          const [age, setAge] = useState('');
+          const [years, setYears] = useState(0);
+          const [monthlyPayment, setMonthlyPayment] = useState(null);
+
+          useEffect(() => { if (defaultPrice) setLoanAmount(defaultPrice); }, [defaultPrice]);
+          useEffect(() => { setYears(age ? Math.max(0, Math.min(40, 70 - parseInt(age))) : 0); }, [age]);
+            
+          const handleCalculate = () => {
+            if (years <= 0 || !loanAmount) { setMonthlyPayment(0); return; }
+            const r = interest / 100 / 12; const n = years * 12;
+            const payment = (Number(loanAmount) * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+            setMonthlyPayment(isNaN(payment) ? 0 : payment.toFixed(0));
+          };
+
+          return (
+            <div className={minimalist ? "" : "max-w-3xl mx-auto bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-gray-100"}>
+              {!minimalist && <h2 className="text-2xl font-light text-center text-brand-green mb-8">คำนวณสินเชื่อเบื้องต้น</h2>}
+              <div className="space-y-5">
+                 <div className={minimalist ? "space-y-4" : "grid grid-cols-2 gap-6"}>
+                     <div><label className="label">วงเงินกู้ (บาท)</label><input type="number" value={loanAmount} onChange={e=>setLoanAmount(e.target.value)} className="input-modern"/></div>
+                     <div className={minimalist ? "grid grid-cols-2 gap-4" : ""} >
+                        <div><label className="label">ดอกเบี้ย (%)</label><input type="number" step="0.1" value={interest} onChange={e=>setInterest(Number(e.target.value))} className="input-modern"/></div>
+                        {!minimalist && <div></div> /* spacing */}
+                     </div>
+                 </div>
+                 
+                 <div className="grid grid-cols-2 gap-4">
+                     <div><label className="label">อายุผู้กู้ (ปี)</label><input type="number" min="20" max="70" value={age} onChange={e=>setAge(e.target.value)} className="input-modern"/></div>
+                     <div><label className="label">ระยะเวลา (ปี)</label><div className="input-modern bg-gray-50 text-gray-500 border-transparent">{years > 0 ? `${years} ปี` : '-'}</div></div>
+                 </div>
+
+                 <button onClick={handleCalculate} className="w-full bg-brand-green text-white py-3.5 rounded-full font-light mt-4 hover:bg-opacity-90 transition">คำนวณ</button>
+
+                 {monthlyPayment !== null && (
+                    <div className="mt-6 text-center p-6 bg-brand-light/30 rounded-2xl">
+                       <p className="text-gray-500 text-sm font-light mb-1">ยอดผ่อนชำระต่อเดือนโดยประมาณ</p>
+                       <p className="text-3xl font-medium text-brand-green">{Number(monthlyPayment).toLocaleString()} <span className="text-lg">฿</span></p>
+                    </div>
+                 )}
+              </div>
+            </div>
+          );
+        }
+
+        // --- Portfolio Section ---
+        function PortfolioSection({ companyInfo, properties }) {
+          const soldOutProperties = properties.filter(p => p.badge === 'Sold Out');
+          const portfolioYears = companyInfo?.portfolio_years || [];
+
+          return (
+            <div className="max-w-7xl mx-auto px-4 py-16">
+              <h2 className="text-3xl font-light text-center text-brand-green mb-16">ผลงานของเรา</h2>
+                
+              {soldOutProperties.length === 0 && portfolioYears.length === 0 && (
+                 <p className="text-center text-gray-400 font-light py-20">ยังไม่มีรายการผลงานในขณะนี้</p>
+              )}
+
+              {soldOutProperties.length > 0 && (
+                <div className="mb-16">
+                   <h3 className="text-xl font-light text-gray-500 mb-6 uppercase tracking-widest border-b pb-2">Sold Out</h3>
+                   <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                      {soldOutProperties.map(p => (
+                        <div key={p.id} className="group relative aspect-[4/5] rounded-xl overflow-hidden bg-gray-100">
+                           <img src={p.images?.[0] || p.imageUrl} className="w-full h-full object-cover grayscale opacity-70 group-hover:grayscale-0 transition duration-500"/>
+                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-4">
+                              <span className="text-white text-xs tracking-wider mb-1 opacity-70">SOLD</span>
+                              <p className="text-white text-sm font-light truncate">{p.project_name}</p>
+                           </div>
+                        </div>
+                      ))}
+                   </div>
+                </div>
+              )}
+                
+              {portfolioYears.length > 0 && portfolioYears.sort((a,b) => b.year - a.year).map((yearGroup, idx) => (
+                 <div key={idx} className="mb-16">
+                    <h3 className="text-xl font-light text-gray-500 mb-6 uppercase tracking-widest border-b pb-2">Year {yearGroup.year}</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                       {yearGroup.images.map((img, i) => (
+                          <div key={i} className="aspect-square rounded-xl overflow-hidden bg-gray-100">
+                              <img src={img} className="w-full h-full object-cover hover:scale-105 transition duration-500"/>
+                          </div>
+                       ))}
+                    </div>
+                 </div>
+              ))}
+            </div>
+          );
+        }
+
+        // --- Layout Helpers ---
+        function NavButton({ active, onClick, children }) {
+          return (
+            <button onClick={onClick} className={`text-sm tracking-wide transition-colors duration-300 ${active ? 'text-brand-green font-medium' : 'text-gray-500 hover:text-brand-green'}`}>
+              {children}
+            </button>
+          );
+        }
+        function MobileNavBtn({ onClick, children }) {
+          return <button onClick={onClick} className="block w-full text-left py-2 text-base font-light text-gray-600 hover:text-brand-green">{children}</button>;
+        }
+
+        // --- Admin Components (Keeping Logic, Updating Styling lightly) ---
+        function LoginModal({ onClose, onLogin, onSignup }) {
+           const [isLogin, setIsLogin] = useState(true); const [email, setEmail] = useState(''); const [password, setPassword] = useState(''); const [loading, setLoading] = useState(false); const [message, setMessage] = useState({ type: '', text: '' });
+           const handleSubmit = async (e) => {
+             e.preventDefault(); if (!email || !password) return; setLoading(true); setMessage({ type: '', text: '' });
+             try { if (isLogin) { await onLogin(email, password); } else { const msg = await onSignup(email, password); setMessage({ type: 'success', text: msg }); setTimeout(() => { if (onClose) onClose(); }, 3000); } } catch (err) { setMessage({ type: 'error', text: err.message }); } setLoading(false);
+           };
+           return (
+             <div className="fixed inset-0 z-[70] bg-black/50 flex items-center justify-center p-4 backdrop-blur-sm">
+               <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-8 relative">
+                 <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><X size={20}/></button>
+                 <h3 className="text-xl font-light text-brand-green mb-6 text-center">{isLogin ? 'ระบบจัดการหลังบ้าน' : 'สมัครสิทธิ์การเข้าใช้งาน'}</h3>
+                 {message.text && <div className={`p-3 rounded-lg mb-4 text-sm font-light ${message.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-brand-light text-brand-green'}`}>{message.text}</div>}
+                 <form onSubmit={handleSubmit} className="space-y-4">
+                   <input type="email" required placeholder="อีเมล" className="input-modern bg-gray-50 border-transparent" value={email} onChange={e => setEmail(e.target.value)} />
+                   <input type="password" required placeholder="รหัสผ่าน" className="input-modern bg-gray-50 border-transparent" value={password} onChange={e => setPassword(e.target.value)} />
+                   <button type="submit" disabled={loading} className="w-full bg-brand-green text-white py-3 rounded-full font-light mt-4 disabled:opacity-50">{loading ? 'กำลังโหลด...' : (isLogin ? 'เข้าสู่ระบบ' : 'ลงทะเบียน')}</button>
+                 </form>
+                 <div className="mt-6 text-center text-sm font-light"><span className="text-gray-400">{isLogin ? 'ยังไม่มีบัญชี?' : 'มีบัญชีอยู่แล้ว?'} </span><button onClick={() => { setIsLogin(!isLogin); setMessage({ type: '', text: '' }); }} className="text-brand-green hover:underline">{isLogin ? 'ลงทะเบียน' : 'เข้าสู่ระบบ'}</button></div>
+               </div>
+             </div>
+           );
+        }
+
+        // --- FULL ADMIN PANEL ---
+        function AdminPanel({ userRole, userEmail, properties, users, companyInfo, onClose, onLogout, appId, db }) {
+            const [panelTab, setPanelTab] = useState('properties'); 
+            const [isEditing, setIsEditing] = useState(false);
+            const [editData, setEditData] = useState(null);
+            const [searchTerm, setSearchTerm] = useState('');
+            const [isSaving, setIsSaving] = useState(false);
+            const [saveSuccess, setSaveSuccess] = useState(false);
+
+            // Forms
+            const initialForm = { project_name: '', category: 'ทาวน์เฮาส์', price: '', status: 'available', badge: '', house_number: '', soi: '', zipcode: '', subdistrict: '', district: '', province: '', area_wah: '', area_sqm: '', floors: '', bedrooms: '', bathrooms: '', parking: '', direction: '', lat: '', lng: '', highlights: '', facilitiesList: [], images: [], youtubeUrl: '' };
+            const [formData, setFormData] = useState(initialForm);
+            const [imagesPreview, setImagesPreview] = useState([]);
+            const [addressOptions, setAddressOptions] = useState([]);
+            const [companyForm, setCompanyForm] = useState(companyInfo || DEFAULT_COMPANY_INFO);
+            const [newPortfolioYear, setNewPortfolioYear] = useState('');
+            const [inviteEmail, setInviteEmail] = useState(''); const [invitePassword, setInvitePassword] = useState(''); const [inviteRole, setInviteRole] = useState('admin');
+            const [newFacility, setNewFacility] = useState('');
+
+            useEffect(() => { if (companyInfo) setCompanyForm(companyInfo); }, [companyInfo]);
+
+            const filteredProperties = properties.filter(p => p.project_name.toLowerCase().includes(searchTerm.toLowerCase()));
+
+            const startEdit = (prop) => {
+                setEditData(prop); setFormData({ ...initialForm, ...prop, facilitiesList: prop.facilitiesList || [] }); setImagesPreview(prop.images || (prop.imageUrl ? [prop.imageUrl] : []));
+                if (prop.zipcode && THAI_ADDRESS_DB[prop.zipcode]) setAddressOptions(THAI_ADDRESS_DB[prop.zipcode]); else setAddressOptions([]);
+                setIsEditing(true);
+            };
+            const startNew = () => { setEditData(null); setFormData(initialForm); setImagesPreview([]); setAddressOptions([]); setIsEditing(true); };
+
+            const handleZipcodeChange = (e) => {
+                const code = e.target.value; setFormData(prev => ({ ...prev, zipcode: code }));
+                if (THAI_ADDRESS_DB[code]) { setAddressOptions(THAI_ADDRESS_DB[code]); if (THAI_ADDRESS_DB[code].length === 1) { const addr = THAI_ADDRESS_DB[code][0]; setFormData(prev => ({ ...prev, zipcode: code, subdistrict: addr.subdistrict, district: addr.district, province: addr.province, })); } else { setFormData(prev => ({ ...prev, zipcode: code, subdistrict: '', district: '', province: '' })); } } else { setAddressOptions([]); }
+            };
+            const handleAddressSelect = (e) => { const index = e.target.value; if (index === "") return; const addr = addressOptions[index]; setFormData(prev => ({ ...prev, subdistrict: addr.subdistrict, district: addr.district, province: addr.province, })); };
+
+            const handleImageUpload = async (e) => {
+                const files = Array.from(e.target.files); if (files.length + imagesPreview.length > 10) { alert('อัปโหลดได้สูงสุด 10 รูป'); return; }
+                const newImages = []; for (const file of files) { const base64 = await resizeImage(file); newImages.push(base64); }
+                const updated = [...imagesPreview, ...newImages]; setImagesPreview(updated); setFormData(prev => ({ ...prev, images: updated }));
+            };
+            const removeImage = (idx) => { const updated = imagesPreview.filter((_, i) => i !== idx); setImagesPreview(updated); setFormData(prev => ({ ...prev, images: updated })); };
+            
+            const handleFacilityChange = (e) => { const val = e.target.value; if (val && !formData.facilitiesList?.includes(val)) setFormData(prev => ({ ...prev, facilitiesList: [...(prev.facilitiesList || []), val] })); };
+            const addCustomFacility = () => { if(newFacility && !formData.facilitiesList?.includes(newFacility)) { setFormData(prev => ({ ...prev, facilitiesList: [...(prev.facilitiesList || []), newFacility] })); setNewFacility(''); } };
+            const removeFacility = (fac) => { setFormData(prev => ({ ...prev, facilitiesList: prev.facilitiesList.filter(f => f !== fac) })); };
+
+            const handleSaveProperty = async (e) => {
+                e.preventDefault(); setIsSaving(true);
+                try {
+                const lat = formData.lat ? formData.lat.trim().replace(',', '') : ''; const lng = formData.lng ? formData.lng.trim().replace(',', '') : '';
+                const facilitiesList = Array.isArray(formData.facilitiesList) ? formData.facilitiesList : [];
+                const finalImages = [];
+                if (formData.images && formData.images.length > 0) {
+                    for (const img of formData.images) { if (typeof img === 'string' && img.startsWith('data:')) { const url = await uploadBase64ToStorage(img); finalImages.push(url); } else { finalImages.push(img); } }
+                }
+                const dataToSave = { ...formData, images: finalImages, lat, lng, facilitiesList };
+                if (editData) await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'properties', editData.id), dataToSave);
+                else await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'properties'), { ...dataToSave, createdAt: serverTimestamp() });
+                setIsSaving(false); setSaveSuccess(true);
+                } catch (err) { setIsSaving(false); alert("Error: " + err.message); }
+            };
+
+            const closeSuccessOverlay = () => { setSaveSuccess(false); setIsEditing(false); setEditData(null); setFormData(initialForm); setImagesPreview([]); };
+
+            const handleDeleteProperty = async (id) => { if (window.confirm('ยืนยันการลบ?')) { try { setIsSaving(true); await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'properties', id)); setIsSaving(false); } catch (error) { setIsSaving(false); alert(error.message); } } };
+
+            const handleSaveCompany = async (e) => { e.preventDefault(); setIsSaving(true); let newLogoUrl = companyForm.logoUrl; if (newLogoUrl && newLogoUrl.startsWith('data:')) { newLogoUrl = await uploadBase64ToStorage(newLogoUrl); } const companyDataToSave = { ...companyForm, logoUrl: newLogoUrl }; await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'company_info', 'main'), companyDataToSave); setCompanyForm(companyDataToSave); setIsSaving(false); setSaveSuccess(true); };
+            const handleCompanyLogo = async (e) => { const file = e.target.files[0]; if(file) { const base64 = await resizeImage(file); setCompanyForm(prev => ({...prev, logoUrl: base64})); } };
+
+            const handleAddYear = () => { if(!newPortfolioYear) return; const currentYears = companyForm.portfolio_years || []; if(currentYears.find(y => y.year === newPortfolioYear)) { alert('มีปีนี้อยู่แล้ว'); return; } setCompanyForm({ ...companyForm, portfolio_years: [...currentYears, { year: newPortfolioYear, images: [] }] }); setNewPortfolioYear(''); };
+            const handleDeleteYear = (year) => { if(confirm(`ลบข้อมูลปี ${year}?`)) { setCompanyForm({ ...companyForm, portfolio_years: companyForm.portfolio_years.filter(y => y.year !== year) }); } };
+            const handlePortfolioImagesUpload = async (e, yearIndex) => { const files = Array.from(e.target.files); if(files.length === 0) return; setIsSaving(true); const newImages = []; for(const file of files) { const base64 = await resizeImage(file); newImages.push(base64); } setIsSaving(false); const updatedYears = [...(companyForm.portfolio_years || [])]; updatedYears[yearIndex].images = [...updatedYears[yearIndex].images, ...newImages]; setCompanyForm({ ...companyForm, portfolio_years: updatedYears }); };
+            const removePortfolioImageInYear = (yearIndex, imgIndex) => { const updatedYears = [...companyForm.portfolio_years]; updatedYears[yearIndex].images = updatedYears[yearIndex].images.filter((_, i) => i !== imgIndex); setCompanyForm({ ...companyForm, portfolio_years: updatedYears }); };
+            const handleSavePortfolio = async () => { setIsSaving(true); const updatedYears = []; if (companyForm.portfolio_years && companyForm.portfolio_years.length > 0) { for (const yearGroup of companyForm.portfolio_years) { const uploadedImages = []; for (const img of yearGroup.images) { if (typeof img === 'string' && img.startsWith('data:')) { const url = await uploadBase64ToStorage(img); uploadedImages.push(url); } else { uploadedImages.push(img); } } updatedYears.push({ ...yearGroup, images: uploadedImages }); } } const dataToSave = { ...companyForm, portfolio_years: updatedYears }; await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'company_info', 'main'), dataToSave); setCompanyForm(dataToSave); setIsSaving(false); setSaveSuccess(true); };
+
+            const handleAddUser = async (e) => { e.preventDefault(); if (!inviteEmail || !invitePassword) return; try { await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', inviteEmail.toLowerCase().trim()), { email: inviteEmail.toLowerCase().trim(), password: invitePassword, role: inviteRole, addedBy: userEmail, createdAt: serverTimestamp() }); setInviteEmail(''); setInvitePassword(''); alert('เพิ่มเรียบร้อย'); } catch (err) { alert(err.message); } };
+            const handleUpdateRole = async (userId, newRole) => { if (confirm(`ยืนยันเปลี่ยนสิทธิ์เป็น ${newRole}?`)) { try { await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', userId), { role: newRole }); } catch (err) { alert(err.message); } } };
+            const handleApproveUser = async (userId, role, email) => { if (confirm(`อนุมัติสิทธิ์ ${role} ให้ ${email}?`)) { try { await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', userId), { role: role }); } catch (err) { alert(err.message); } } };
+            const handleRemoveUser = async (id) => { if(confirm('ลบสิทธิ์ผู้ใช้นี้?')) { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', id)); } };
+
+            return (
+                <div className="fixed inset-0 z-[60] bg-gray-50 flex flex-col font-sans">
+                    {/* Loaders */}
+                    {isSaving && <div className="absolute inset-0 z-[100] bg-black/60 flex flex-col items-center justify-center text-white backdrop-blur-sm"><Loader size={48} className="animate-spin mb-4"/><h3 className="font-light">กำลังบันทึก...</h3></div>}
+                    {saveSuccess && <div className="absolute inset-0 z-[100] bg-black/60 flex items-center justify-center backdrop-blur-sm"><div className="bg-white p-8 rounded-2xl text-center"><Check size={40} className="mx-auto text-green-500 mb-4"/><h3 className="mb-4">บันทึกสำเร็จ</h3><button onClick={closeSuccessOverlay} className="btn-primary w-full">ตกลง</button></div></div>}
+
+                    {/* Admin Header */}
+                    <div className="bg-white border-b px-6 py-4 flex justify-between items-center z-10">
+                        <div className="flex items-center gap-3">
+                            <span className="text-xl font-light text-brand-green tracking-widest uppercase">Admin Panel</span>
+                            <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">{userRole}</span>
+                        </div>
+                        <div className="flex gap-4 items-center">
+                            <button onClick={onClose} className="text-sm text-gray-500 hover:text-black transition">กลับหน้าเว็บ</button>
+                            <button onClick={onLogout} className="text-sm bg-red-50 text-red-500 px-4 py-1.5 rounded-full hover:bg-red-500 hover:text-white transition">ออกจากระบบ</button>
+                        </div>
+                    </div>
+
+                    {/* Admin Body */}
+                    <div className="flex flex-1 overflow-hidden">
+                        {/* Sidebar */}
+                        <div className="w-64 bg-white border-r py-6 flex flex-col gap-2">
+                            <button onClick={() => { setPanelTab('properties'); setIsEditing(false); }} className={`px-6 py-3 text-left text-sm flex items-center gap-3 transition ${panelTab === 'properties' ? 'text-brand-green bg-brand-light font-medium border-r-2 border-brand-green' : 'text-gray-500 hover:bg-gray-50'}`}><Home size={18}/> จัดการบ้าน</button>
+                            {userRole === 'host' && <button onClick={() => setPanelTab('company')} className={`px-6 py-3 text-left text-sm flex items-center gap-3 transition ${panelTab === 'company' ? 'text-brand-green bg-brand-light font-medium border-r-2 border-brand-green' : 'text-gray-500 hover:bg-gray-50'}`}><Briefcase size={18}/> ข้อมูลบริษัท</button>}
+                            {userRole === 'host' && <button onClick={() => setPanelTab('portfolio_images')} className={`px-6 py-3 text-left text-sm flex items-center gap-3 transition ${panelTab === 'portfolio_images' ? 'text-brand-green bg-brand-light font-medium border-r-2 border-brand-green' : 'text-gray-500 hover:bg-gray-50'}`}><ImageIcon size={18}/> จัดการรูปผลงาน</button>}
+                            {userRole === 'host' && <button onClick={() => setPanelTab('users')} className={`px-6 py-3 text-left text-sm flex items-center gap-3 transition ${panelTab === 'users' ? 'text-brand-green bg-brand-light font-medium border-r-2 border-brand-green' : 'text-gray-500 hover:bg-gray-50'}`}><Users size={18}/> ผู้ดูแลระบบ</button>}
+                        </div>
+
+                        {/* Content */}
+                        <div className="flex-1 p-8 overflow-y-auto">
+                            {/* Properties List */}
+                            {panelTab === 'properties' && !isEditing && (
+                                <div className="max-w-6xl mx-auto">
+                                    <div className="flex justify-between items-center mb-8">
+                                        <h3 className="text-2xl font-light">รายการทรัพย์สิน</h3>
+                                        <div className="flex gap-3">
+                                            <input type="text" placeholder="ค้นหา..." className="input-modern py-2 w-64" value={searchTerm} onChange={e=>setSearchTerm(e.target.value)}/>
+                                            <button onClick={startNew} className="btn-primary"><Plus size={16}/> เพิ่มใหม่</button>
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-1 gap-4">
+                                        {filteredProperties.map(p => (
+                                            <div key={p.id} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex gap-4 items-center">
+                                                <div className="w-24 h-24 rounded-lg overflow-hidden relative bg-gray-100">
+                                                    <img src={p.images?.[0] || p.imageUrl} className="w-full h-full object-cover"/>
+                                                </div>
+                                                <div className="flex-1">
+                                                    <h4 className="font-medium">{p.project_name}</h4>
+                                                    <p className="text-xs text-gray-500 mt-1">{p.category} • {p.subdistrict}</p>
+                                                    <p className="font-medium text-brand-green mt-1">{Number(p.price).toLocaleString()} ฿</p>
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    <button onClick={() => startEdit(p)} className="p-2 text-gray-400 hover:text-brand-green bg-gray-50 rounded-lg transition"><Edit size={18}/></button>
+                                                    <button onClick={() => handleDeleteProperty(p.id)} className="p-2 text-gray-400 hover:text-red-500 bg-gray-50 rounded-lg transition"><Trash2 size={18}/></button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Property Editor */}
+                            {panelTab === 'properties' && isEditing && (
+                                <div className="max-w-6xl mx-auto">
+                                    <div className="flex justify-between mb-8 border-b pb-4">
+                                        <h3 className="text-2xl font-light">{editData ? 'แก้ไขข้อมูล' : 'เพิ่มรายการใหม่'}</h3>
+                                        <div className="flex gap-3">
+                                            <button onClick={()=>setIsEditing(false)} className="px-6 py-2 text-gray-500 hover:bg-gray-100 rounded-full transition">ยกเลิก</button>
+                                            <button onClick={handleSaveProperty} className="btn-primary">บันทึกข้อมูล</button>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                                        <div className="lg:col-span-2 space-y-6">
+                                            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                                                <h4 className="font-medium mb-6 pb-2 border-b">ข้อมูลหลัก</h4>
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div className="col-span-2"><label className="label">ชื่อโครงการ</label><input className="input-modern" value={formData.project_name} onChange={e=>setFormData({...formData, project_name: e.target.value})}/></div>
+                                                    <div><label className="label">ประเภท</label><select className="input-modern" value={formData.category} onChange={e=>setFormData({...formData, category: e.target.value})}>{CATEGORIES.map(c=><option key={c} value={c}>{c}</option>)}</select></div>
+                                                    <div><label className="label">ราคา (บาท)</label><input type="number" className="input-modern font-medium text-brand-green" value={formData.price} onChange={e=>setFormData({...formData, price: e.target.value})}/></div>
+                                                    <div className="col-span-2">
+                                                        <label className="label">ป้ายสถานะ (Badge)</label>
+                                                        <select className="input-modern" value={formData.badge} onChange={e=>setFormData({...formData, badge: e.target.value})}>
+                                                            {BADGES.map(b => <option key={b.value} value={b.value}>{b.label}</option>)}
+                                                        </select>
+                                                    </div>
+                                                    <div className="col-span-2"><label className="label">รายละเอียด (จุดเด่น)</label><textarea rows="4" className="input-modern" value={formData.highlights} onChange={e=>setFormData({...formData, highlights: e.target.value})}/></div>
+                                                    <div className="col-span-2"><label className="label">ลิงก์ YouTube</label><input className="input-modern" value={formData.youtubeUrl} onChange={e=>setFormData({...formData, youtubeUrl: e.target.value})}/></div>
+                                                </div>
+                                            </div>
+
+                                            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                                                <h4 className="font-medium mb-6 pb-2 border-b">รายละเอียดพื้นที่</h4>
+                                                <div className="grid grid-cols-3 gap-4">
+                                                    <div className="col-span-1"><label className="label">ห้องนอน</label><input type="number" className="input-modern" value={formData.bedrooms} onChange={e=>setFormData({...formData, bedrooms: e.target.value})}/></div>
+                                                    <div className="col-span-1"><label className="label">ห้องน้ำ</label><input type="number" className="input-modern" value={formData.bathrooms} onChange={e=>setFormData({...formData, bathrooms: e.target.value})}/></div>
+                                                    <div className="col-span-1"><label className="label">จอดรถ</label><input className="input-modern" value={formData.parking} onChange={e=>setFormData({...formData, parking: e.target.value})}/></div>
+                                                    <div className="col-span-1"><label className="label">ตร.ว.</label><input className="input-modern" value={formData.area_wah} onChange={e=>setFormData({...formData, area_wah: e.target.value})}/></div>
+                                                    <div className="col-span-1"><label className="label">ตร.ม.</label><input className="input-modern" value={formData.area_sqm} onChange={e=>setFormData({...formData, area_sqm: e.target.value})}/></div>
+                                                    <div className="col-span-1"><label className="label">จำนวนชั้น</label><input type="number" className="input-modern" value={formData.floors} onChange={e=>setFormData({...formData, floors: e.target.value})}/></div>
+                                                    <div className="col-span-1"><label className="label">ทิศ</label><select className="input-modern" value={formData.direction} onChange={e=>setFormData({...formData, direction: e.target.value})}><option value="">- เลือก -</option>{DIRECTIONS.map(d=><option key={d}>{d}</option>)}</select></div>
+                                                </div>
+                                            </div>
+
+                                            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                                                <h4 className="font-medium mb-6 pb-2 border-b">ที่ตั้ง</h4>
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div className="col-span-2"><label className="label">รหัสไปรษณีย์</label><input className="input-modern" value={formData.zipcode} onChange={handleZipcodeChange}/></div>
+                                                    {addressOptions.length > 1 && (
+                                                        <div className="col-span-2">
+                                                            <label className="label text-brand-green">เลือกตำบล/แขวง</label>
+                                                            <select className="input-modern" onChange={handleAddressSelect} defaultValue=""><option value="" disabled>- เลือก -</option>{addressOptions.map((opt, idx)=><option key={idx} value={idx}>{opt.subdistrict} - {opt.district}</option>)}</select>
+                                                        </div>
+                                                    )}
+                                                    <div><label className="label">ตำบล</label><input className="input-modern bg-gray-50" readOnly value={formData.subdistrict}/></div>
+                                                    <div><label className="label">อำเภอ</label><input className="input-modern bg-gray-50" readOnly value={formData.district}/></div>
+                                                    <div className="col-span-2"><label className="label">จังหวัด</label><input className="input-modern bg-gray-50" readOnly value={formData.province}/></div>
+                                                    <div><label className="label">ละติจูด (Lat)</label><input className="input-modern" value={formData.lat} onChange={e=>setFormData({...formData, lat: e.target.value})}/></div>
+                                                    <div><label className="label">ลองจิจูด (Lng)</label><input className="input-modern" value={formData.lng} onChange={e=>setFormData({...formData, lng: e.target.value})}/></div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-6">
+                                            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                                                <h4 className="font-medium mb-6 pb-2 border-b">รูปภาพ</h4>
+                                                <div className="grid grid-cols-3 gap-2 mb-4">
+                                                    {imagesPreview.map((img, i) => (
+                                                        <div key={i} className="aspect-square bg-gray-100 rounded-lg relative group overflow-hidden">
+                                                            <img src={img} className="w-full h-full object-cover"/>
+                                                            <button type="button" onClick={()=>removeImage(i)} className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100"><X size={12}/></button>
+                                                        </div>
+                                                    ))}
+                                                    {imagesPreview.length < 10 && (
+                                                        <label className="aspect-square border-2 border-dashed border-gray-200 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50">
+                                                            <Upload size={20} className="text-gray-400 mb-1" />
+                                                            <span className="text-[10px] text-gray-500">เพิ่มรูป</span>
+                                                            <input type="file" multiple accept="image/*" className="hidden" onChange={handleImageUpload}/>
+                                                        </label>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                                                <h4 className="font-medium mb-6 pb-2 border-b">สิ่งอำนวยความสะดวก</h4>
+                                                <select className="input-modern mb-3" value="" onChange={handleFacilityChange}><option value="">- เลือกจากรายการ -</option>{COMMON_FACILITIES.map(f=><option key={f}>{f}</option>)}</select>
+                                                <div className="flex gap-2 mb-4">
+                                                    <input className="input-modern text-sm" placeholder="พิมพ์เพิ่มเอง" value={newFacility} onChange={e=>setNewFacility(e.target.value)}/>
+                                                    <button type="button" onClick={addCustomFacility} className="bg-brand-green text-white px-3 rounded-lg"><Plus size={16}/></button>
+                                                </div>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {formData.facilitiesList?.map((fac, i) => (
+                                                        <span key={i} className="px-3 py-1 rounded-full text-xs bg-brand-light text-brand-green flex items-center gap-1 border border-brand-green/20">{fac} <button type="button" onClick={()=>removeFacility(fac)}><X size={12}/></button></span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Other Admin Tabs (Company, Portfolio, Users) - Keeping logic, light style update */}
+                            {panelTab === 'company' && (
+                                <div className="max-w-3xl mx-auto bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                                    <h3 className="text-2xl font-light mb-8 pb-4 border-b">ข้อมูลบริษัท</h3>
+                                    <form onSubmit={handleSaveCompany} className="space-y-6">
+                                        <div className="flex gap-6 items-center">
+                                            <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-100 relative group">
+                                                <img src={companyForm.logoUrl} className="w-full h-full object-cover"/>
+                                                <label className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white opacity-0 group-hover:opacity-100 cursor-pointer text-xs"><Upload size={16}/>เปลี่ยน<input type="file" className="hidden" onChange={handleCompanyLogo}/></label>
+                                            </div>
+                                            <div className="flex-1"><label className="label">ชื่อแบรนด์ / บริษัท</label><input className="input-modern" value={companyForm.name} onChange={e=>setCompanyForm({...companyForm, name: e.target.value})}/></div>
+                                        </div>
+                                        <div><label className="label">ที่อยู่</label><textarea className="input-modern" rows="2" value={companyForm.address} onChange={e=>setCompanyForm({...companyForm, address: e.target.value})}/></div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div><label className="label">เบอร์โทร</label><input className="input-modern" value={companyForm.phone} onChange={e=>setCompanyForm({...companyForm, phone: e.target.value})}/></div>
+                                            <div><label className="label">Email</label><input className="input-modern" value={companyForm.email} onChange={e=>setCompanyForm({...companyForm, email: e.target.value})}/></div>
+                                            <div><label className="label">Line URL</label><input className="input-modern" value={companyForm.line} onChange={e=>setCompanyForm({...companyForm, line: e.target.value})}/></div>
+                                            <div><label className="label">Facebook URL</label><input className="input-modern" value={companyForm.facebook} onChange={e=>setCompanyForm({...companyForm, facebook: e.target.value})}/></div>
+                                        </div>
+                                        <div><label className="label">สโลแกน / คำโปรย</label><input className="input-modern" value={companyForm.description} onChange={e=>setCompanyForm({...companyForm, description: e.target.value})}/></div>
+                                        <div className="text-right pt-4"><button className="btn-primary">บันทึกข้อมูล</button></div>
+                                    </form>
+                                </div>
+                            )}
+
+                            {panelTab === 'portfolio_images' && (
+                                <div className="max-w-5xl mx-auto">
+                                    <div className="flex justify-between items-center mb-8 border-b pb-4">
+                                        <h3 className="text-2xl font-light">จัดการรูปผลงาน</h3>
+                                        <button onClick={handleSavePortfolio} className="btn-primary">บันทึกทั้งหมด</button>
+                                    </div>
+                                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-8 flex gap-4 items-end">
+                                        <div><label className="label">สร้างหมวดหมู่ปี</label><input type="number" className="input-modern w-48" value={newPortfolioYear} onChange={e=>setNewPortfolioYear(e.target.value)}/></div>
+                                        <button onClick={handleAddYear} className="px-6 py-2.5 bg-gray-800 text-white rounded-lg">สร้าง</button>
+                                    </div>
+                                    <div className="space-y-6">
+                                        {companyForm.portfolio_years?.sort((a,b)=>b.year-a.year).map((yg, idx) => (
+                                            <div key={yg.year} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                                                <div className="flex justify-between items-center mb-6">
+                                                    <h4 className="text-lg font-medium">ปี {yg.year}</h4>
+                                                    <button onClick={()=>handleDeleteYear(yg.year)} className="text-sm text-red-500 hover:underline">ลบปีนี้</button>
+                                                </div>
+                                                <div className="mb-4">
+                                                    <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-gray-50 border rounded-lg text-sm hover:bg-gray-100"><Upload size={16}/> เลือกรูปภาพ<input type="file" multiple accept="image/*" className="hidden" onChange={(e)=>handlePortfolioImagesUpload(e, idx)}/></label>
+                                                </div>
+                                                <div className="grid grid-cols-5 gap-4">
+                                                    {yg.images.map((img, i) => (
+                                                        <div key={i} className="aspect-square bg-gray-100 rounded-lg relative group overflow-hidden">
+                                                            <img src={img} className="w-full h-full object-cover"/><button onClick={()=>removePortfolioImageInYear(idx, i)} className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100"><X size={12}/></button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {panelTab === 'users' && (
+                                <div className="max-w-4xl mx-auto bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                                    <h3 className="text-2xl font-light mb-8 border-b pb-4">จัดการผู้ดูแลระบบ</h3>
+                                    <form onSubmit={handleAddUser} className="flex gap-4 items-end mb-8 bg-gray-50 p-6 rounded-xl">
+                                        <div className="flex-1"><label className="label">อีเมล</label><input type="email" required className="input-modern" value={inviteEmail} onChange={e=>setInviteEmail(e.target.value)}/></div>
+                                        <div className="flex-1"><label className="label">รหัสผ่าน (ชั่วคราว)</label><input type="text" required minLength={6} className="input-modern" value={invitePassword} onChange={e=>setInvitePassword(e.target.value)}/></div>
+                                        <div className="w-32"><label className="label">สิทธิ์</label><select className="input-modern" value={inviteRole} onChange={e=>setInviteRole(e.target.value)}><option value="admin">Admin</option><option value="host">Host</option></select></div>
+                                        <button type="submit" className="btn-primary py-2.5">เพิ่ม</button>
+                                    </form>
+                                    <table className="w-full text-left">
+                                        <thead className="bg-gray-50 text-gray-500 text-sm"><tr><th className="p-4 font-normal">อีเมล</th><th className="p-4 font-normal">สถานะ</th><th className="p-4 text-right font-normal">จัดการ</th></tr></thead>
+                                        <tbody className="divide-y divide-gray-100 text-sm">
+                                            {users.map(u => (
+                                                <tr key={u.id}>
+                                                    <td className="p-4">{u.email}</td>
+                                                    <td className="p-4">
+                                                        {u.role === 'pending' || !u.role ? (
+                                                            <div className="flex gap-2 items-center"><span className="text-yellow-600 bg-yellow-50 px-2 py-1 rounded">รออนุมัติ</span><button onClick={()=>handleApproveUser(u.id, 'admin', u.email)} className="text-brand-green hover:underline">อนุมัติ Admin</button></div>
+                                                        ) : (
+                                                            <select value={u.role} onChange={e=>handleUpdateRole(u.id, e.target.value)} disabled={u.email===HOST_EMAIL} className={`p-1.5 border rounded outline-none ${u.role==='admin'?'bg-blue-50 text-blue-700':'bg-brand-light text-brand-green'}`}><option value="admin">Admin</option><option value="host">Host</option><option value="pending">ระงับ</option></select>
+                                                        )}
+                                                    </td>
+                                                    <td className="p-4 text-right">{u.email !== HOST_EMAIL && <button onClick={()=>handleRemoveUser(u.id)} className="text-red-500 hover:underline">ลบ</button>}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        const root = createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

@@ -805,14 +805,14 @@
                                    </div>
                                ) : (
                                    <iframe 
-                                        width="100%" 
-                                        height="100%" 
-                                        src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&playsinline=1&rel=0`} 
-                                        title="YouTube video player" 
-                                        frameBorder="0" 
-                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                                        allowFullScreen>
-                                    </iframe>
+                                       width="100%" 
+                                       height="100%" 
+                                       src={`https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=1&playsinline=1&rel=0`} 
+                                       title="YouTube video player" 
+                                       frameBorder="0" 
+                                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                       allowFullScreen>
+                                   </iframe>
                                )}
                             </div>
                          </div>
@@ -828,7 +828,7 @@
                                    height="100%" 
                                    frameBorder="0" 
                                    style={{ border: 0 }} 
-                                   src={`https://www.google.com/maps?q=${property.lat},${property.lng}&output=embed`} 
+                                   src={`https://maps.google.com/maps?q=${property.lat},${property.lng}&hl=th&z=16&output=embed`} 
                                    allowFullScreen
                                ></iframe>
                             </div>
@@ -1245,18 +1245,36 @@
 
             // Save Property Data
             const handleSaveProperty = async (e) => {
-                e.preventDefault(); setIsSaving(true);
+                e.preventDefault(); 
+                setIsSaving(true);
                 try {
-                    // ล็อคให้บันทึกเป็นสตริงตรงตัว ไม่มีการปัดเศษหรือตัดจุดทศนิยม
-                    const lat = formData.lat ? String(formData.lat).trim() : ''; 
-                    const lng = formData.lng ? String(formData.lng).trim() : '';
+                    // ปรับการจัดการ Lat/Lng ให้ปลอดภัยขึ้น ป้องกัน Error ถ้าค่าไม่ใช่ String
+                    const safeLat = formData.lat ? String(formData.lat).replace(/\s/g, '') : ''; 
+                    const safeLng = formData.lng ? String(formData.lng).replace(/\s/g, '') : '';
                     const facilitiesList = Array.isArray(formData.facilitiesList) ? formData.facilitiesList : [];
                     
-                    const dataToSave = { ...formData, lat, lng, facilitiesList };
-                    if (editData) await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'properties', editData.id), dataToSave);
-                    else await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'properties'), { ...dataToSave, createdAt: serverTimestamp() });
-                    setIsSaving(false); setSaveSuccess(true);
-                } catch (err) { setIsSaving(false); alert("Error: " + err.message); }
+                    const dataToSave = { 
+                        ...formData, 
+                        lat: safeLat, 
+                        lng: safeLng, 
+                        facilitiesList: facilitiesList 
+                    };
+
+                    if (editData) {
+                        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'properties', editData.id), dataToSave);
+                    } else {
+                        await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'properties'), { 
+                            ...dataToSave, 
+                            createdAt: serverTimestamp() 
+                        });
+                    }
+                    setIsSaving(false); 
+                    setSaveSuccess(true);
+                } catch (err) { 
+                    setIsSaving(false); 
+                    console.error("Save Error:", err);
+                    alert("เกิดข้อผิดพลาด: " + err.message); 
+                }
             };
 
             const closeSuccessOverlay = () => { setSaveSuccess(false); setIsEditing(false); setEditData(null); setFormData(initialForm); setImagesPreview([]); };

@@ -1211,39 +1211,63 @@
 
             // Save Property Data
             const handleSaveProperty = async (e) => {
-                if (e) e.preventDefault(); 
-                setIsSaving(true);
+                if (e) e.preventDefault();
                 
+                // ตรวจสอบความพร้อมของข้อมูลเบื้องต้น
+                if (!formData.project_name) {
+                    alert("กรุณาระบุชื่อโครงการ");
+                    return;
+                }
+
+                setIsSaving(true); // เริ่มแสดงหน้าจอโหลด
+
                 try {
-                    // ป้องกัน Error โดยการเช็คและแปลงค่าเป็น String ก่อนใช้ replace
-                    const safeLat = formData.lat ? String(formData.lat).replace(/\s/g, '') : '';
-                    const safeLng = formData.lng ? String(formData.lng).replace(/\s/g, '') : '';
-                    const facilitiesList = Array.isArray(formData.facilitiesList) ? formData.facilitiesList : [];
+                    // จัดการค่า Lat/Lng ให้ปลอดภัย
+                    const safeLat = formData.lat ? String(formData.lat).trim() : '';
+                    const safeLng = formData.lng ? String(formData.lng).trim() : '';
                     
+                    // ตรวจสอบความถูกต้องของอาเรย์
+                    const facilitiesList = Array.isArray(formData.facilitiesList) ? formData.facilitiesList : [];
+                    const imagesList = Array.isArray(formData.images) ? formData.images : [];
+
                     const dataToSave = {
                         ...formData,
+                        project_name: formData.project_name.trim(),
                         lat: safeLat,
                         lng: safeLng,
+                        price: formData.price ? Number(formData.price) : 0,
+                        bedrooms: formData.bedrooms ? Number(formData.bedrooms) : 0,
+                        bathrooms: formData.bathrooms ? Number(formData.bathrooms) : 0,
+                        area_wah: formData.area_wah ? Number(formData.area_wah) : 0,
                         facilitiesList: facilitiesList,
-                        price: formData.price ? Number(formData.price) : 0, // แปลงเป็นตัวเลขเพื่อความถูกต้องในการ Query
+                        images: imagesList,
                         updatedAt: serverTimestamp()
                     };
 
+                    // ตรวจสอบ path ของ Firestore ให้ถูกต้อง
+                    const docPath = `artifacts/${appId}/public/data/properties`;
+                    
                     if (editData && editData.id) {
-                        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'properties', editData.id), dataToSave);
+                        // กรณีแก้ไข
+                        const docRef = doc(db, docPath, editData.id);
+                        await updateDoc(docRef, dataToSave);
                     } else {
-                        await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'properties'), {
+                        // กรณีเพิ่มใหม่
+                        const colRef = collection(db, docPath);
+                        await addDoc(colRef, {
                             ...dataToSave,
                             createdAt: serverTimestamp()
                         });
                     }
 
-                    setIsSaving(false);
-                    setSaveSuccess(true);
+                    // เมื่อสำเร็จ
+                    setSaveSuccess(true); 
                 } catch (err) {
-                    setIsSaving(false); // ปิดตัวโหลดแม้จะเกิด Error
-                    console.error("Save Error:", err);
-                    alert("บันทึกไม่สำเร็จ: " + err.message);
+                    console.error("Save Error Details:", err);
+                    alert("เกิดข้อผิดพลาดในการบันทึก: " + err.message);
+                } finally {
+                    // สำคัญมาก: ต้องปิดสถานะกำลังโหลดไม่ว่าจะสำเร็จหรือไม่
+                    setIsSaving(false);
                 }
             };
 

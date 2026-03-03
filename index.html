@@ -188,7 +188,7 @@
     <script type="text/babel" data-type="module">
         import { createRoot } from 'react-dom/client';
         import React, { useState, useEffect } from 'react';
-        import { Home, MapPin, Bed, Bath, Car, Maximize, Phone, MessageCircle, Menu, X, Plus, Trash2, ShieldCheck, CheckCircle, Calculator, Users, FileText, Settings, Edit, Save, Image as ImageIcon, Layout, ChevronLeft, ChevronRight, Upload, Briefcase, XCircle, Tag, Youtube, Loader, Facebook, Instagram, Video, Check, Calendar, FolderPlus, Map, Search } from 'lucide-react';
+        import { Home, MapPin, Bed, Bath, Car, Maximize, Phone, MessageCircle, Menu, X, Plus, Trash2, ShieldCheck, CheckCircle, Calculator, Users, FileText, Settings, Edit, Save, Image as ImageIcon, Layout, ChevronLeft, ChevronRight, Upload, Briefcase, XCircle, Tag, Youtube, Loader, Facebook, Instagram, Video, Check, Calendar, FolderPlus, Map, Search, AlertTriangle, AlertCircle } from 'lucide-react';
         import { initializeApp } from 'firebase/app';
         
         import { 
@@ -257,14 +257,16 @@
         const COMMON_FACILITIES = ["รปภ. 24 ชม.", "สระว่ายน้ำ", "ฟิตเนส", "สวนสาธารณะ", "กล้อง CCTV", "เข้า-ออก ระบบคีย์การ์ด", "คลับเฮาส์", "สนามเด็กเล่น", "ใกล้ทางด่วน", "ใกล้รถไฟฟ้า", "ใกล้ห้างสรรพสินค้า", "ใกล้โรงเรียน", "ใกล้โรงพยาบาล", "ที่จอดรถส่วนตัว", "ถนนกว้าง", "รีโนเวทใหม่", "พร้อมอยู่"];
 
         const LOCATIONS_DATA = [
-          { area: 'ลำลูกกา', sub_areas: ['ลำลูกกา คลอง 2', 'ลำลูกกา คลอง 3', 'ลำลูกกา คลอง 4', 'ลำลูกกา คลอง 7'], img: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
-          { area: 'คลองหลวง', sub_areas: ['คลองหลวง คลอง 1', 'คลองหลวง คลอง 2', 'คลองหลวง คลอง 3', 'คลองหลวง คลอง 4'], img: 'https://images.unsplash.com/photo-1592595896551-12b371d546d5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
-          { area: 'ธัญบุรี', sub_areas: ['ธัญญะ คลอง 2', 'ธัญญะ คลอง 3', 'ธัญบุรี คลอง 4', 'ธัญบุรี คลอง 8'], img: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
-          { area: 'เมืองปทุมธานี / อยุธยา', sub_areas: ['บ้านใหม่', 'บางพูน', 'บางกะดี', 'อ.วังน้อย อยุธยา', 'พยอม'], img: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
-          { area: 'กรุงเทพมหานคร', sub_areas: ['ดอนเมือง', 'บางเขน', 'พหลโยธิน 48', 'พหลโยธิน 52', 'สายไหม'], img: 'https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
-          { area: 'นนทบุรี', sub_areas: ['บางบัวทอง', 'ปากเกร็ด', 'ติวานนท์'], img: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b91d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' }
+          { area: 'ลำลูกกา', sub_areas: ['คลองหนึ่ง', 'คลองสอง', 'คลองสาม', 'คลองสี่', 'คลองเจ็ด', 'คลองแปด'], img: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
+          { area: 'คลองหลวง', sub_areas: ['คลองหนึ่ง', 'คลองสอง', 'คลองสาม', 'คลองสี่'], img: 'https://images.unsplash.com/photo-1592595896551-12b371d546d5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
+          { area: 'ธัญบุรี', sub_areas: ['คลองหนึ่ง', 'คลองสอง', 'คลองสาม', 'คลองสี่', 'คลองห้า', 'คลองหก', 'คลองเจ็ด', 'คลองแปด', 'คลองเก้า', 'คลองสิบ', 'คลองสิบเอ็ด'], img: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
+          { area: 'เมืองปทุมธานี', sub_areas: ['บ้านใหม่', 'บางพูน', 'บางกะดี'], img: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
+          { area: 'อยุธยา', sub_areas: ['พยอม'], img: 'https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
+          { area: 'กรุงเทพมหานคร', sub_areas: ['ดอนเมือง', 'บางเขน', 'พหลโยธิน 48', 'พหลโยธิน 52', 'สายไหม'], img: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b91d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
+          { area: 'นนทบุรี', sub_areas: ['บางบัวทอง', 'ปากเกร็ด - ติวานนท์'], img: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' }
         ];
 
+        // ฐานข้อมูลรหัสไปรษณีย์
         const THAI_ADDRESS_DB = {
           '12120': [{ subdistrict: 'คลองสาม', district: 'คลองหลวง', province: 'ปทุมธานี' }, { subdistrict: 'คลองสี่', district: 'คลองหลวง', province: 'ปทุมธานี' }, { subdistrict: 'คลองหนึ่ง', district: 'คลองหลวง', province: 'ปทุมธานี' }, { subdistrict: 'คลองสอง', district: 'คลองหลวง', province: 'ปทุมธานี' }],
           '12110': [{ subdistrict: 'บางคูวัด', district: 'เมืองปทุมธานี', province: 'ปทุมธานี' }, { subdistrict: 'บางขะแยง', district: 'เมืองปทุมธานี', province: 'ปทุมธานี' }],
@@ -469,19 +471,19 @@
             setSearchParams({ type, value });
             setActiveTab('search_result');
             setSelectedProperty(null);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            window.scrollTo(0, 0);
           };
 
           const handleGlobalSearch = (query) => {
             setSearchParams({ type: 'keyword', value: query });
             setActiveTab('search_result');
             setSelectedProperty(null);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            window.scrollTo(0, 0);
           };
 
           const handleSelectProperty = (p) => {
             setSelectedProperty(p);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            window.scrollTo(0, 0);
           };
 
           return (
@@ -489,20 +491,8 @@
               <nav className="fixed w-full top-0 z-40 bg-white/90 backdrop-blur-md shadow-sm transition-all duration-300">
                 <div className="max-w-7xl mx-auto px-6 lg:px-12">
                   <div className="flex justify-between items-center h-20">
-                    <div className="hidden lg:flex items-center space-x-6 w-1/3">
-                      <NavButton active={activeTab === 'home' && !selectedProperty} onClick={() => {setActiveTab('home'); setSelectedProperty(null); window.scrollTo(0,0);}}>หน้าหลัก</NavButton>
-                      <NavButton active={activeTab === 'promo' && !selectedProperty} onClick={() => {setActiveTab('promo'); setSelectedProperty(null); window.scrollTo(0,0);}}>โปรโมชั่น</NavButton>
-                      <NavButton active={activeTab === 'location' && !selectedProperty} onClick={() => {setActiveTab('location'); setSelectedProperty(null); window.scrollTo(0,0);}}>ทำเล</NavButton>
-                      <NavButton active={activeTab === 'calculator' && !selectedProperty} onClick={() => {setActiveTab('calculator'); setSelectedProperty(null); window.scrollTo(0,0);}}>สินเชื่อ</NavButton>
-                    </div>
-
-                    <div className="lg:hidden flex w-1/3">
-                      <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-gray-800 hover:text-brand-green focus:outline-none p-2">
-                          {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-                      </button>
-                    </div>
-
-                    <div className="w-1/3 flex justify-center cursor-pointer" onClick={() => {setActiveTab('home'); setSelectedProperty(null); window.scrollTo(0,0);}}>
+                    {/* ส่วนซ้าย: โลโก้บริษัท */}
+                    <div className="w-1/3 flex justify-start items-center cursor-pointer" onClick={() => {setActiveTab('home'); setSelectedProperty(null); window.scrollTo(0,0);}}>
                         {companyInfo?.logoUrl ? (
                             <img src={companyInfo.logoUrl} alt="Logo" className="h-10 md:h-12 object-contain" />
                         ) : (
@@ -512,17 +502,35 @@
                         )}
                     </div>
 
-                    <div className="hidden lg:flex items-center justify-end space-x-6 w-1/3">
+                    {/* ส่วนกลาง: เมนูนำทาง (แสดงเฉพาะ Desktop) */}
+                    <div className="hidden lg:flex items-center justify-center space-x-4 xl:space-x-6 w-1/3">
+                      <NavButton active={activeTab === 'home' && !selectedProperty} onClick={() => {setActiveTab('home'); setSelectedProperty(null); window.scrollTo(0,0);}}>หน้าหลัก</NavButton>
+                      <NavButton active={activeTab === 'promo' && !selectedProperty} onClick={() => {setActiveTab('promo'); setSelectedProperty(null); window.scrollTo(0,0);}}>บ้านโปรโมชั่น</NavButton>
+                      <NavButton active={activeTab === 'location' && !selectedProperty} onClick={() => {setActiveTab('location'); setSelectedProperty(null); window.scrollTo(0,0);}}>ทำเล</NavButton>
+                      <NavButton active={activeTab === 'calculator' && !selectedProperty} onClick={() => {setActiveTab('calculator'); setSelectedProperty(null); window.scrollTo(0,0);}}>คำนวณสินเชื่อ</NavButton>
                       <NavButton active={activeTab === 'portfolio' && !selectedProperty} onClick={() => {setActiveTab('portfolio'); setSelectedProperty(null); window.scrollTo(0,0);}}>ผลงาน</NavButton>
-                      {userRole ? (
-                         <button onClick={() => setShowAdminPanel(true)} className="flex items-center gap-2 px-4 py-1.5 border border-brand-green text-brand-green rounded-full hover:bg-brand-green hover:text-white transition-all text-sm font-medium">
-                          <Settings size={14} /> ระบบจัดการ
+                    </div>
+
+                    {/* ส่วนขวา: ระบบจัดการ / ปุ่มเมนูมือถือ */}
+                    <div className="flex items-center justify-end w-1/3 gap-4">
+                      <div className="hidden lg:block">
+                        {userRole ? (
+                           <button onClick={() => setShowAdminPanel(true)} className="flex items-center gap-2 px-4 py-1.5 border border-brand-green text-brand-green rounded-full hover:bg-brand-green hover:text-white transition-all text-sm font-medium whitespace-nowrap">
+                            <Settings size={14} /> ระบบจัดการ
+                          </button>
+                        ) : (
+                          <button onClick={() => setShowLoginModal(true)} className="text-sm font-medium text-gray-400 hover:text-brand-green transition-colors duration-300 whitespace-nowrap">
+                            Admin Login
+                          </button>
+                        )}
+                      </div>
+                      
+                      {/* ไอคอนเมนูสำหรับมือถือ */}
+                      <div className="lg:hidden flex items-center">
+                        <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-gray-800 hover:text-brand-green focus:outline-none p-2 -mr-2">
+                            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
                         </button>
-                      ) : (
-                        <button onClick={() => setShowLoginModal(true)} className="text-sm font-medium text-gray-400 hover:text-brand-green transition-colors duration-300">
-                          Admin Login
-                        </button>
-                      )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -632,7 +640,6 @@
             <main className="py-16 px-4 md:px-6 max-w-screen-xl mx-auto min-h-screen">
                 <div className="text-center mb-16">
                     <h2 className="text-3xl font-light text-brand-green mb-4">ค้นพบบ้านที่ใช่สำหรับคุณ</h2>
-                    <p className="text-gray-500 font-light text-sm tracking-wide">โซนรังสิต - ปทุมธานี</p>
                 </div>
                 
                 <div className="space-y-16">
@@ -694,7 +701,7 @@
                                                 <div className="text-[13px] text-gray-500 flex items-center gap-1.5 mb-4">
                                                     <MapPin size={15} className="flex-shrink-0 text-gray-400" />
                                                     <span className="font-light truncate">
-                                                        {p.subdistrict && `ต.${p.subdistrict} `}{p.district && `อ.${p.district} `}{p.province && `จ.${p.province}`}
+                                                        {p.main_location || p.district} {p.sub_location || p.subdistrict ? `- ${p.sub_location || p.subdistrict}` : ''}
                                                     </span>
                                                 </div>
                                                 
@@ -730,7 +737,7 @@
           const relatedProps = properties.filter(p => 
               p.id !== property.id && 
               p.badge !== 'Sold Out' && 
-              (p.district === property.district || p.category === property.category)
+              (p.sub_location === property.sub_location || p.category === property.category)
           ).slice(0, 6);
 
           return (
@@ -768,6 +775,10 @@
                           <div>
                             <span className="text-gray-500 text-sm font-light tracking-wide">{property.category}</span>
                             <h1 className="text-3xl md:text-4xl font-light text-brand-green mt-1">{property.project_name}</h1>
+                            <div className="flex items-center gap-1.5 text-gray-500 text-sm mt-3 font-light">
+                                <MapPin size={16} className="text-brand-green" />
+                                <span>{property.main_location || property.district} {property.sub_location || property.subdistrict ? `- ${property.sub_location || property.subdistrict}` : ''}</span>
+                            </div>
                             {/* แสดงผลบ้านเลขที่และซอย ถ้ามีข้อมูล */}
                             {(property.house_number || property.soi) && (
                                 <p className="text-gray-500 text-sm mt-2 font-light">
@@ -809,8 +820,16 @@
                                 <h3 className="text-lg font-medium text-brand-green mb-4">วิดีโอแนะนำ</h3>
                                 <div className="aspect-video rounded-xl overflow-hidden bg-black shadow-sm relative">
                                     {!isVideoPlaying ? (
-                                        <div className="w-full h-full cursor-pointer group relative" onClick={() => setIsVideoPlaying(true)}>
-                                            <img src={`https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg`} className="w-full h-full object-cover opacity-80" onError={(e) => { e.target.src = `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`; }} />
+                                        <div 
+                                            className="w-full h-full cursor-pointer group relative"
+                                            onClick={() => setIsVideoPlaying(true)}
+                                        >
+                                            <img 
+                                                src={`https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg`} 
+                                                className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+                                                alt="Video Preview"
+                                                onError={(e) => { e.target.src = `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`; }} 
+                                            />
                                             <div className="absolute inset-0 flex items-center justify-center">
                                                 <div className="w-16 h-12 bg-red-600 rounded-xl flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform">
                                                     <svg className="w-8 h-8 text-white fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
@@ -818,13 +837,21 @@
                                             </div>
                                         </div>
                                     ) : (
-                                        <iframe width="100%" height="100%" src={`https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=1&rel=0`} frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
+                                        <iframe 
+                                            width="100%" 
+                                            height="100%" 
+                                            src={`https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=1&rel=0&modestbranding=1&playsinline=1`} 
+                                            title="YouTube video player" 
+                                            frameBorder="0" 
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                            allowFullScreen>
+                                        </iframe>
                                     )}
                                 </div>
                             </div>
                         )}
 
-                        {/* ส่วนแผนที่ - แก้ไข URL ที่มีเลข 1 และเครื่องหมาย { เกินมา */}
+                        {/* --- ส่วนแผนที่ที่แก้ไข URL ที่พิมพ์ผิด --- */}
                         {property.lat && property.lng && property.lat.trim() !== '' && property.lng.trim() !== '' && (
                             <div className="mb-8">
                                 <h3 className="text-lg font-medium text-brand-green mb-4">ที่ตั้งโครงการ</h3>
@@ -842,29 +869,50 @@
                         )}
                     </div>
 
-                    {/* --- ส่วนบ้านที่คุณอาจสนใจ (แนวนอน เลื่อนได้) --- */}
+                    {/* --- ส่วนบ้านที่คุณอาจสนใจ (แนวนอน เลื่อนได้) ขนาดเท่าหน้าแรก --- */}
                     {relatedProps.length > 0 && (
                         <div className="mt-12 mb-8 px-4 md:px-0">
                             <h3 className="text-xl font-medium text-brand-green mb-6 border-l-4 border-brand-green pl-3">โครงการที่คุณอาจสนใจ</h3>
-                            <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-6 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
+                            <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 md:gap-6 pb-6 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
                                 {relatedProps.map((p, index) => (
-                                    <div key={p.id} onClick={() => onSelectProp(p)} className="bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 rounded-xl overflow-hidden cursor-pointer flex flex-col min-w-[70vw] md:min-w-[280px] snap-center flex-shrink-0">
+                                    <div key={p.id} onClick={() => onSelectProp(p)} className="bg-white border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-lg transition-all duration-300 rounded-2xl overflow-hidden cursor-pointer flex flex-col h-full min-w-[85vw] sm:min-w-[45vw] md:min-w-[calc(33.333%-1rem)] lg:min-w-[calc(33.333%-1.33rem)] snap-center flex-shrink-0" style={{ animation: `fadeUpAnim 0.5s ease forwards ${index * 50}ms`, opacity: 0, transform: 'translateY(20px)' }}>
                                         <div className="aspect-[4/3] relative overflow-hidden bg-gray-100">
-                                            <img src={p.images?.[0] || p.imageUrl || "https://placehold.co/600x400"} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
-                                            <div className="absolute top-2 left-2 bg-white/95 text-gray-700 px-2 py-1 rounded-md font-medium text-[10px] shadow-sm z-10 flex items-center gap-1">
+                                            <img src={p.images?.[0] || p.imageUrl || "https://placehold.co/600x400"} alt={p.project_name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                                            
+                                            <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm text-gray-700 px-3 py-1.5 rounded-full font-medium text-xs shadow-sm z-10 flex items-center gap-1.5">
+                                                <Home size={14} className="text-brand-green" />
                                                 {p.category}
                                             </div>
+
+                                            {p.badge && (
+                                                <div className={`absolute top-3 right-3 px-3 py-1.5 rounded-full font-medium text-xs shadow-sm z-10 ${
+                                                    p.badge === 'Promotion' ? 'bg-[#c8ff00] text-black' : 
+                                                    p.badge === 'Sold Out' ? 'bg-red-600 text-white' : 
+                                                    'bg-blue-500 text-white'
+                                                }`}>
+                                                    {p.badge}
+                                                </div>
+                                            )}
                                         </div>
-                                        <div className="p-4 flex flex-col flex-grow">
-                                            <h4 className="font-medium text-gray-800 text-[15px] mb-1 line-clamp-1">{p.project_name}</h4>
-                                            <div className="text-[11px] text-gray-500 flex items-center gap-1 mb-3">
-                                                <MapPin size={12} className="text-gray-400 flex-shrink-0" />
-                                                <span className="truncate">{p.subdistrict} {p.district}</span>
-                                            </div>
-                                            <div className="mt-auto flex items-center justify-between border-t border-gray-50 pt-3">
-                                                <span className="text-[16px] font-bold text-brand-green">
-                                                    ฿{Number(p.price).toLocaleString()}
+                                        <div className="p-5 flex flex-col flex-grow">
+                                            <h4 className="font-bold text-gray-800 text-[18px] mb-2 line-clamp-2 leading-snug">{p.project_name}</h4>
+                                            
+                                            <div className="text-[13px] text-gray-500 flex items-center gap-1.5 mb-4">
+                                                <MapPin size={15} className="flex-shrink-0 text-gray-400" />
+                                                <span className="font-light truncate">
+                                                    {p.main_location || p.district} {p.sub_location || p.subdistrict ? `- ${p.sub_location || p.subdistrict}` : ''}
                                                 </span>
+                                            </div>
+                                            
+                                            <div className="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between">
+                                                <span className="text-[20px] font-bold text-brand-green">
+                                                    <span className="text-[16px] mr-1">฿</span>{Number(p.price).toLocaleString()}
+                                                </span>
+                                                <div className="flex items-center gap-2 md:gap-3 text-gray-500 text-[12px] md:text-[13px]">
+                                                    <div className="flex items-center gap-1" title="พื้นที่"><Maximize size={14} /> {p.area_wah}</div>
+                                                    <div className="flex items-center gap-1" title="ห้องนอน"><Bed size={14} /> {p.bedrooms}</div>
+                                                    <div className="flex items-center gap-1" title="ห้องน้ำ"><Bath size={14} /> {p.bathrooms}</div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -875,7 +923,10 @@
                  </div>
 
                  <div className="space-y-6">
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 sticky top-24">
+                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 sticky top-24 text-center">
+                        {companyInfo?.logoUrl && (
+                            <img src={companyInfo.logoUrl} alt="Logo" className="h-16 mx-auto mb-4 object-contain" />
+                        )}
                         <h3 className="font-medium text-lg mb-6">สนใจติดต่อ</h3>
                         <div className="space-y-3 mb-8">
                             <a href={`tel:${companyInfo?.phone}`} className="flex items-center justify-center gap-2 w-full bg-brand-green text-white py-3.5 rounded-full font-light hover:bg-opacity-90 transition">
@@ -885,7 +936,7 @@
                                 <MessageCircle size={18} /> ทักไลน์
                             </a>
                         </div>
-                        <div className="border-t border-gray-100 pt-6">
+                        <div className="border-t border-gray-100 pt-6 text-left">
                             <CalculatorSection defaultPrice={property.price} minimalist={true} />
                         </div>
                     </div>
@@ -902,20 +953,26 @@
           if (searchParams?.type === 'promo') {
               displayProps = properties.filter(p => p.badge === 'Promotion');
               title = 'โปรโมชั่นพิเศษ';
+          } else if (searchParams?.type === 'main_location') {
+              displayProps = properties.filter(p => p.main_location === searchParams.value || (!p.main_location && p.district === searchParams.value));
+              title = `ทำเล: ${searchParams.value}`;
+          } else if (searchParams?.type === 'sub_location') {
+              displayProps = properties.filter(p => p.sub_location === searchParams.value || (!p.sub_location && p.subdistrict === searchParams.value));
+              title = `ทำเล: ${searchParams.value}`;
           } else if (searchParams?.type === 'district') {
               displayProps = properties.filter(p => p.district === searchParams.value || (p.subdistrict === 'คูคต' && searchParams.value === 'ลำลูกกา'));
               title = `ทำเล: ${searchParams.value}`;
           } else if (searchParams?.type === 'subdistrict') {
               const keyword = normalizeThaiSearch(searchParams.value); 
               displayProps = properties.filter(p => {
-                  const propString = normalizeThaiSearch(`${p.district} ${p.subdistrict} ${p.project_name} ${p.soi} ${p.highlights} ${p.category}`);
+                  const propString = normalizeThaiSearch(`${p.district} ${p.subdistrict} ${p.project_name} ${p.house_number} ${p.soi} ${p.highlights} ${p.category}`);
                   return propString.includes(keyword);
               });
               title = `ผลการค้นหา: ${searchParams.value}`;
           } else if (searchParams?.type === 'keyword') {
               const keyword = normalizeThaiSearch(searchParams.value); 
               displayProps = properties.filter(p => {
-                  const propString = normalizeThaiSearch(`${p.district} ${p.subdistrict} ${p.project_name} ${p.soi} ${p.highlights} ${p.category}`);
+                  const propString = normalizeThaiSearch(`${p.main_location} ${p.sub_location} ${p.district} ${p.subdistrict} ${p.project_name} ${p.house_number} ${p.soi} ${p.highlights} ${p.category}`);
                   return propString.includes(keyword);
               });
               title = `ผลการค้นหา: "${searchParams.value}"`;
@@ -944,7 +1001,7 @@
                            <div className="text-[13px] text-gray-500 flex items-center gap-1.5 mb-4">
                                <MapPin size={15} className="flex-shrink-0 text-gray-400" />
                                <span className="font-light truncate">
-                                   {p.subdistrict && `ต.${p.subdistrict} `}{p.district && `อ.${p.district} `}{p.province && `จ.${p.province}`}
+                                   {p.main_location || p.district} {p.sub_location || p.subdistrict ? `- ${p.sub_location || p.subdistrict}` : ''}
                                </span>
                            </div>
                            <div className="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between">
@@ -969,7 +1026,7 @@
               <h2 className="text-3xl font-light text-center text-brand-green mb-12">ทำเลยอดนิยม</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {LOCATIONS_DATA.map((loc, idx) => (
-                  <div key={idx} onClick={() => onSelectLocation && onSelectLocation('district', loc.area)} className="group cursor-pointer">
+                  <div key={idx} onClick={() => onSelectLocation && onSelectLocation('main_location', loc.area)} className="group cursor-pointer">
                     <div className="h-64 rounded-2xl overflow-hidden relative mb-4">
                        <img src={loc.img} className="w-full h-full object-cover group-hover:scale-105 transition duration-700" alt={loc.area} />
                        <div className="absolute inset-0 bg-black/30 flex items-center justify-center transition group-hover:bg-black/40">
@@ -978,7 +1035,7 @@
                     </div>
                     <div className="flex flex-wrap gap-2 px-2">
                        {loc.sub_areas.map((sub, i) => (
-                           <span key={i} onClick={(e) => { e.stopPropagation(); onSelectLocation && onSelectLocation('subdistrict', sub); }} className="text-xs border border-gray-200 text-gray-500 px-3 py-1.5 rounded-full hover:border-brand-green hover:text-brand-green transition font-light">
+                           <span key={i} onClick={(e) => { e.stopPropagation(); onSelectLocation && onSelectLocation('sub_location', sub); }} className="text-xs border border-gray-200 text-gray-500 px-3 py-1.5 rounded-full hover:border-brand-green hover:text-brand-green transition font-light">
                              {sub}
                            </span>
                        ))}
@@ -1116,6 +1173,31 @@
            );
         }
 
+        // --- Custom Alert Modal Component ---
+        function CustomAlertModal({ isOpen, type, title, message, onConfirm, onCancel, showCancel }) {
+            if (!isOpen) return null;
+            const Icon = type === 'warning' ? AlertTriangle : type === 'error' ? XCircle : type === 'success' ? CheckCircle : AlertCircle;
+            const iconColor = type === 'warning' ? 'text-yellow-500' : type === 'error' ? 'text-red-500' : type === 'success' ? 'text-green-500' : 'text-blue-500';
+            
+            return (
+                <div className="fixed inset-0 z-[120] bg-black/50 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+                    <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 text-center animate-in zoom-in-95 duration-200">
+                        <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-gray-50 mb-4">
+                            <Icon className={`h-8 w-8 ${iconColor}`} />
+                        </div>
+                        <h3 className="text-xl font-medium text-gray-900 mb-2">{title}</h3>
+                        <p className="text-sm text-gray-500 mb-8">{message}</p>
+                        <div className="flex gap-3 justify-center">
+                            {showCancel && (
+                                <button onClick={onCancel} className="px-5 py-2.5 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-full font-medium text-sm transition flex-1">ยกเลิก</button>
+                            )}
+                            <button onClick={onConfirm} className={`px-5 py-2.5 text-white rounded-full font-medium text-sm transition flex-1 ${type === 'error' ? 'bg-red-500 hover:bg-red-600' : type === 'warning' ? 'bg-brand-green hover:bg-[#135c2a]' : 'bg-brand-green hover:bg-[#135c2a]'}`}>ตกลง</button>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
         // --- FULL ADMIN PANEL ---
         function AdminPanel({ userRole, userEmail, properties, users, companyInfo, onClose, onLogout, db, appId }) {
             const [panelTab, setPanelTab] = useState('properties'); 
@@ -1125,13 +1207,35 @@
             const [isSaving, setIsSaving] = useState(false);
             const [saveSuccess, setSaveSuccess] = useState(false);
 
+            // Custom Alert State
+            const [alertConfig, setAlertConfig] = useState({ isOpen: false, type: 'info', title: '', message: '', onConfirm: null, showCancel: false });
+
+            const showAlert = (title, message, type = 'info') => {
+                setAlertConfig({ isOpen: true, type, title, message, showCancel: false, onConfirm: () => setAlertConfig(prev => ({...prev, isOpen: false})) });
+            };
+
+            const showConfirm = (title, message, onConfirmCallback) => {
+                setAlertConfig({
+                    isOpen: true,
+                    type: 'warning',
+                    title,
+                    message,
+                    showCancel: true,
+                    onCancel: () => setAlertConfig(prev => ({...prev, isOpen: false})),
+                    onConfirm: () => {
+                        setAlertConfig(prev => ({...prev, isOpen: false}));
+                        if(onConfirmCallback) onConfirmCallback();
+                    }
+                });
+            };
+
             // Uploading states
             const [isUploadingImgs, setIsUploadingImgs] = useState(false);
             const [isUploadingLogo, setIsUploadingLogo] = useState(false);
             const [isUploadingPortfolio, setIsUploadingPortfolio] = useState({ state: false, index: -1 });
 
             // Forms
-            const initialForm = { project_name: '', category: 'ทาวน์เฮาส์', price: '', status: 'available', badge: '', house_number: '', soi: '', zipcode: '', subdistrict: '', district: '', province: '', area_wah: '', area_sqm: '', floors: '', bedrooms: '', bathrooms: '', parking: '', direction: '', lat: '', lng: '', highlights: '', facilitiesList: [], images: [], youtubeUrl: '' };
+            const initialForm = { project_name: '', category: 'ทาวน์เฮาส์', price: '', status: 'available', badge: '', house_number: '', soi: '', zipcode: '', subdistrict: '', district: '', province: '', area_wah: '', area_sqm: '', floors: '', bedrooms: '', bathrooms: '', parking: '', direction: '', lat: '', lng: '', highlights: '', facilitiesList: [], images: [], youtubeUrl: '', main_location: '', sub_location: '' };
             const [formData, setFormData] = useState(initialForm);
             const [imagesPreview, setImagesPreview] = useState([]);
             const [addressOptions, setAddressOptions] = useState([]);
@@ -1221,7 +1325,7 @@
                 
                 // Limit max files
                 const allowedFiles = files.slice(0, 10 - imagesPreview.length);
-                if (allowedFiles.length === 0) { alert('อัปโหลดได้สูงสุด 10 รูปครับ'); return; }
+                if (allowedFiles.length === 0) { showAlert('แจ้งเตือน', 'อัปโหลดได้สูงสุด 10 รูปครับ', 'warning'); return; }
 
                 setIsUploadingImgs(true);
                 try {
@@ -1237,7 +1341,7 @@
                         return newArr;
                     });
                 } catch (error) {
-                    alert(error.message);
+                    showAlert('อัปโหลดผิดพลาด', error.message, 'error');
                 } finally {
                     setIsUploadingImgs(false);
                     e.target.value = null; // reset input
@@ -1254,7 +1358,7 @@
                     const url = await uploadFileToCloudinary(file);
                     setCompanyForm(prev => ({...prev, logoUrl: url}));
                 } catch (error) {
-                    alert(error.message);
+                    showAlert('อัปโหลดผิดพลาด', error.message, 'error');
                 } finally {
                     setIsUploadingLogo(false);
                     e.target.value = null;
@@ -1280,7 +1384,7 @@
                         return { ...prev, portfolio_years: updatedYears };
                     });
                 } catch (error) {
-                    alert(error.message);
+                    showAlert('อัปโหลดผิดพลาด', error.message, 'error');
                 } finally {
                     setIsUploadingPortfolio({ state: false, index: -1 });
                     e.target.value = null;
@@ -1299,7 +1403,7 @@
                 
                 // 1. ตรวจสอบข้อมูลบังคับก่อนบันทึก
                 if (!formData.project_name || !formData.price) {
-                    alert("กรุณากรอกชื่อโครงการและราคาให้ครบถ้วน");
+                    showAlert('ข้อมูลไม่ครบถ้วน', 'กรุณากรอกชื่อโครงการและราคาให้ครบถ้วน', 'warning');
                     return;
                 }
 
@@ -1319,6 +1423,8 @@
                         bedrooms: Number(formData.bedrooms) || 0,
                         bathrooms: Number(formData.bathrooms) || 0,
                         area_wah: Number(formData.area_wah) || 0,
+                        main_location: formData.main_location || '',
+                        sub_location: formData.sub_location || '',
                         updatedAt: serverTimestamp()
                     };
 
@@ -1344,7 +1450,7 @@
                 } catch (err) {
                     // 5. หากเกิด Error ให้แสดงแจ้งเตือน
                     console.error("Save Error Details:", err);
-                    alert("บันทึกไม่สำเร็จ: " + err.message);
+                    showAlert('บันทึกไม่สำเร็จ', err.message, 'error');
                 } finally {
                     // 6. *** สำคัญมาก *** ไม่ว่าจะสำเร็จหรือพัง ต้องปิดหน้าจอโหลด
                     // เพื่อไม่ให้หน้าจอหมุนค้าง
@@ -1354,17 +1460,17 @@
 
             const closeSuccessOverlay = () => { setSaveSuccess(false); setIsEditing(false); setEditData(null); setFormData(initialForm); setImagesPreview([]); };
 
-            const handleDeleteProperty = async (id) => { 
-                if (window.confirm('คุณต้องการลบข้อมูลบ้านหลังนี้ใช่หรือไม่?')) { 
+            const handleDeleteProperty = (id) => { 
+                showConfirm('ยืนยันการลบ', 'คุณต้องการลบข้อมูลบ้านหลังนี้ใช่หรือไม่?', async () => {
                     setIsSaving(true); 
                     try {
                         await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'properties', id));
                     } catch (error) {
-                        alert(error.message);
+                        showAlert('ผิดพลาด', error.message, 'error');
                     } finally {
                         setIsSaving(false); 
                     }
-                } 
+                });
             };
 
             const handleSaveCompany = async (e) => { 
@@ -1377,8 +1483,12 @@
                 setSaveSuccess(true); 
             };
 
-            const handleAddYear = () => { if(!newPortfolioYear) return; const currentYears = companyForm.portfolio_years || []; if(currentYears.find(y => y.year === newPortfolioYear)) { alert('มีปีนี้อยู่แล้ว'); return; } setCompanyForm({ ...companyForm, portfolio_years: [...currentYears, { year: newPortfolioYear, images: [] }] }); setNewPortfolioYear(''); };
-            const handleDeleteYear = (year) => { if(confirm(`ลบข้อมูลปี ${year}?`)) { setCompanyForm({ ...companyForm, portfolio_years: companyForm.portfolio_years.filter(y => y.year !== year) }); } };
+            const handleAddYear = () => { if(!newPortfolioYear) return; const currentYears = companyForm.portfolio_years || []; if(currentYears.find(y => y.year === newPortfolioYear)) { showAlert('แจ้งเตือน', 'มีปีนี้อยู่แล้ว', 'warning'); return; } setCompanyForm({ ...companyForm, portfolio_years: [...currentYears, { year: newPortfolioYear, images: [] }] }); setNewPortfolioYear(''); };
+            const handleDeleteYear = (year) => { 
+                showConfirm('ยืนยันการลบ', `ยืนยันการลบข้อมูลผลงานปี ${year}?`, () => {
+                    setCompanyForm({ ...companyForm, portfolio_years: companyForm.portfolio_years.filter(y => y.year !== year) });
+                });
+            };
             const removePortfolioImageInYear = (yearIndex, imgIndex) => { const updatedYears = [...companyForm.portfolio_years]; updatedYears[yearIndex].images = updatedYears[yearIndex].images.filter((_, i) => i !== imgIndex); setCompanyForm({ ...companyForm, portfolio_years: updatedYears }); };
             
             const handleSavePortfolio = async () => { 
@@ -1390,16 +1500,53 @@
                 setSaveSuccess(true); 
             };
 
-            const handleAddUser = async (e) => { e.preventDefault(); if (!inviteEmail || !invitePassword) return; try { await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', inviteEmail.toLowerCase().trim()), { email: inviteEmail.toLowerCase().trim(), password: invitePassword, role: inviteRole, addedBy: userEmail, createdAt: serverTimestamp() }); setInviteEmail(''); setPassword(''); alert('เพิ่มเรียบร้อย'); } catch (err) { alert(err.message); } };
-            const handleUpdateRole = async (userId, newRole) => { if (confirm(`ยืนยันเปลี่ยนสิทธิ์เป็น ${newRole}?`)) { try { await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', userId), { role: newRole }); } catch (err) { alert(err.message); } } };
-            const handleApproveUser = async (userId, role, email) => { if (confirm(`อนุมัติสิทธิ์ ${role} ให้ ${email}?`)) { try { await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', userId), { role: role }); } catch (err) { alert(err.message); } } };
-            const handleRemoveUser = async (id) => { if(confirm('ลบสิทธิ์ผู้ใช้นี้?')) { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', id)); } };
+            const handleAddUser = async (e) => { 
+                e.preventDefault(); 
+                if (!inviteEmail || !invitePassword) return; 
+                try { 
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', inviteEmail.toLowerCase().trim()), { email: inviteEmail.toLowerCase().trim(), password: invitePassword, role: inviteRole, addedBy: userEmail, createdAt: serverTimestamp() }); 
+                    setInviteEmail(''); 
+                    setPassword(''); 
+                    showAlert('สำเร็จ', 'เพิ่มผู้ใช้เรียบร้อยแล้ว', 'success'); 
+                } catch (err) { 
+                    showAlert('ผิดพลาด', err.message, 'error'); 
+                } 
+            };
+            const handleUpdateRole = (userId, newRole) => { 
+                showConfirm('ยืนยันการเปลี่ยนสิทธิ์', `ยืนยันเปลี่ยนสิทธิ์เป็น ${newRole}?`, async () => {
+                    try { await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', userId), { role: newRole }); } 
+                    catch (err) { showAlert('ผิดพลาด', err.message, 'error'); }
+                });
+            };
+            const handleApproveUser = (userId, role, email) => { 
+                showConfirm('ยืนยันการอนุมัติ', `อนุมัติสิทธิ์ ${role} ให้ ${email}?`, async () => {
+                    try { await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', userId), { role: role }); } 
+                    catch (err) { showAlert('ผิดพลาด', err.message, 'error'); }
+                });
+            };
+            const handleRemoveUser = (id) => { 
+                showConfirm('ยืนยันการลบ', 'ลบสิทธิ์ผู้ใช้นี้?', async () => {
+                    try { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', id)); } 
+                    catch (err) { showAlert('ผิดพลาด', err.message, 'error'); }
+                });
+            };
 
             return (
                 <div className="fixed inset-0 z-[60] bg-gray-50 flex flex-col font-sans">
                     {/* Loaders */}
                     {isSaving && <div className="absolute inset-0 z-[100] bg-black/60 flex flex-col items-center justify-center text-white backdrop-blur-sm"><Loader size={48} className="animate-spin mb-4"/><h3 className="font-light">กำลังบันทึก...</h3></div>}
                     {saveSuccess && <div className="absolute inset-0 z-[100] bg-black/60 flex items-center justify-center backdrop-blur-sm"><div className="bg-white p-8 rounded-2xl text-center"><Check size={40} className="mx-auto text-green-500 mb-4"/><h3 className="mb-4">บันทึกสำเร็จ</h3><button onClick={closeSuccessOverlay} className="btn-primary w-full">ตกลง</button></div></div>}
+
+                    {/* Custom Alert Modal */}
+                    <CustomAlertModal 
+                        isOpen={alertConfig.isOpen} 
+                        type={alertConfig.type} 
+                        title={alertConfig.title} 
+                        message={alertConfig.message} 
+                        showCancel={alertConfig.showCancel} 
+                        onCancel={alertConfig.onCancel} 
+                        onConfirm={alertConfig.onConfirm} 
+                    />
 
                     {/* Admin Header */}
                     <div className="bg-white border-b px-6 py-4 flex justify-between items-center z-10">
@@ -1491,6 +1638,26 @@
                                                     </div>
                                                     <div className="sm:col-span-2"><label className="label">รายละเอียด (จุดเด่น)</label><textarea rows="4" className="input-modern" value={formData.highlights} onChange={e=>setFormData({...formData, highlights: e.target.value})}/></div>
                                                     <div className="sm:col-span-2"><label className="label">ลิงก์ YouTube (Optional)</label><input className="input-modern" placeholder="https://youtube.com/..." value={formData.youtubeUrl} onChange={e=>setFormData({...formData, youtubeUrl: e.target.value})}/></div>
+                                                </div>
+                                            </div>
+
+                                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                                                <h4 className="font-medium mb-6 pb-2 border-b">ทำเลแสดงผลบนหน้าเว็บ (ตามหมวดหมู่)</h4>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                    <div>
+                                                        <label className="label">ทำเล (หลัก)</label>
+                                                        <select className="input-modern" value={formData.main_location} onChange={e => setFormData({...formData, main_location: e.target.value, sub_location: ''})}>
+                                                            <option value="">- เลือกทำเลหลัก -</option>
+                                                            {LOCATIONS_DATA.map(loc => <option key={loc.area} value={loc.area}>{loc.area}</option>)}
+                                                        </select>
+                                                    </div>
+                                                    <div>
+                                                        <label className="label">ทำเลย่อย</label>
+                                                        <select className="input-modern" value={formData.sub_location} onChange={e => setFormData({...formData, sub_location: e.target.value})} disabled={!formData.main_location}>
+                                                            <option value="">- เลือกทำเลย่อย -</option>
+                                                            {formData.main_location && LOCATIONS_DATA.find(l => l.area === formData.main_location)?.sub_areas.map(sub => <option key={sub} value={sub}>{sub}</option>)}
+                                                        </select>
+                                                    </div>
                                                 </div>
                                             </div>
 

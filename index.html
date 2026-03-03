@@ -1209,64 +1209,61 @@
             const addCustomFacility = () => { if(newFacility && !formData.facilitiesList?.includes(newFacility)) { setFormData(prev => ({ ...prev, facilitiesList: [...(prev.facilitiesList || []), newFacility] })); setNewFacility(''); } };
             const removeFacility = (fac) => { setFormData(prev => ({ ...prev, facilitiesList: prev.facilitiesList.filter(f => f !== fac) })); };
 
-            // Save Property Data
+            // Save Property Data (แก้ไขใหม่เพื่อแก้ปัญหาหมุนค้าง)
             const handleSaveProperty = async (e) => {
                 if (e) e.preventDefault();
                 
-                // ตรวจสอบความพร้อมของข้อมูลเบื้องต้น
-                if (!formData.project_name) {
-                    alert("กรุณาระบุชื่อโครงการ");
+                // 1. ตรวจสอบข้อมูลบังคับก่อนบันทึก
+                if (!formData.project_name || !formData.price) {
+                    alert("กรุณากรอกชื่อโครงการและราคาให้ครบถ้วน");
                     return;
                 }
 
-                setIsSaving(true); // เริ่มแสดงหน้าจอโหลด
-
+                setIsSaving(true); // เริ่มแสดงหน้าจอโหลด (ตัวหมุนจะเริ่มทำงาน)
+                
                 try {
-                    // จัดการค่า Lat/Lng ให้ปลอดภัย
+                    // 2. เตรียมข้อมูลและจัดการค่า Lat/Lng, ตัวเลข ให้ปลอดภัย
                     const safeLat = formData.lat ? String(formData.lat).trim() : '';
                     const safeLng = formData.lng ? String(formData.lng).trim() : '';
                     
-                    // ตรวจสอบความถูกต้องของอาเรย์
-                    const facilitiesList = Array.isArray(formData.facilitiesList) ? formData.facilitiesList : [];
-                    const imagesList = Array.isArray(formData.images) ? formData.images : [];
-
                     const dataToSave = {
                         ...formData,
                         project_name: formData.project_name.trim(),
                         lat: safeLat,
                         lng: safeLng,
-                        price: formData.price ? Number(formData.price) : 0,
-                        bedrooms: formData.bedrooms ? Number(formData.bedrooms) : 0,
-                        bathrooms: formData.bathrooms ? Number(formData.bathrooms) : 0,
-                        area_wah: formData.area_wah ? Number(formData.area_wah) : 0,
-                        facilitiesList: facilitiesList,
-                        images: imagesList,
+                        price: Number(formData.price) || 0,
+                        bedrooms: Number(formData.bedrooms) || 0,
+                        bathrooms: Number(formData.bathrooms) || 0,
+                        area_wah: Number(formData.area_wah) || 0,
                         updatedAt: serverTimestamp()
                     };
 
-                    // ตรวจสอบ path ของ Firestore ให้ถูกต้อง
-                    const docPath = `artifacts/${appId}/public/data/properties`;
-                    
+                    // 3. กำหนด Path ให้ชัดเจน (ตรวจสอบว่าใช้ db และ appId จาก props)
+                    // โครงสร้าง: artifacts > [appId] > public > data > properties
+                    const collectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'properties');
+
                     if (editData && editData.id) {
-                        // กรณีแก้ไข
-                        const docRef = doc(db, docPath, editData.id);
+                        // กรณีแก้ไขข้อมูลเดิม
+                        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'properties', editData.id);
                         await updateDoc(docRef, dataToSave);
                     } else {
-                        // กรณีเพิ่มใหม่
-                        const colRef = collection(db, docPath);
-                        await addDoc(colRef, {
+                        // กรณีเพิ่มข้อมูลใหม่
+                        await addDoc(collectionRef, {
                             ...dataToSave,
                             createdAt: serverTimestamp()
                         });
                     }
 
-                    // เมื่อสำเร็จ
+                    // 4. บันทึกสำเร็จ
                     setSaveSuccess(true); 
+
                 } catch (err) {
+                    // 5. หากเกิด Error ให้แสดงแจ้งเตือน
                     console.error("Save Error Details:", err);
-                    alert("เกิดข้อผิดพลาดในการบันทึก: " + err.message);
+                    alert("บันทึกไม่สำเร็จ: " + err.message);
                 } finally {
-                    // สำคัญมาก: ต้องปิดสถานะกำลังโหลดไม่ว่าจะสำเร็จหรือไม่
+                    // 6. *** สำคัญมาก *** ไม่ว่าจะสำเร็จหรือพัง ต้องปิดหน้าจอโหลด
+                    // เพื่อไม่ให้หน้าจอหมุนค้าง
                     setIsSaving(false);
                 }
             };

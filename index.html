@@ -248,14 +248,13 @@
           '12150': [{ subdistrict: 'คูคต', district: 'ลำลูกกา', province: 'ปทุมธานี' }, { subdistrict: 'ลาดสวาย', district: 'ลำลูกกา', province: 'ปทุมธานี' }, { subdistrict: 'บึงคำพร้อย', district: 'ลำลูกกา', province: 'ปทุมธานี' }, { subdistrict: 'ลำลูกกา', district: 'ลำลูกกา', province: 'ปทุมธานี' }],
         };
 
-        // --- 1. ปรับฟังก์ชันดึง ID ให้แม่นยำขึ้น ---
         const getYoutubeId = (url) => {
             if (!url) return null;
             let str = url.trim();
+            // ถ้ามาเป็น iframe ให้ล้วงเอา src ออกมา
             const srcMatch = str.match(/src=["']([^"']+)["']/);
             if (srcMatch) str = srcMatch[1];
             
-            // รองรับทั้ง v=, shorts/, embed/ และ youtu.be
             const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/)([^#&?]*).*/;
             const match = str.match(regExp);
             return (match && match[2].length === 11) ? match[2] : null;
@@ -772,59 +771,35 @@
                            </>
                        )}
 
-                       {/* --- ส่วนวิดีโอที่แก้ไขใหม่ --- */}
-                       {youtubeId && (
-                           <div className="mb-8">
-                               <h3 className="text-lg font-medium text-brand-green mb-4">วิดีโอแนะนำ</h3>
-                               <div className="aspect-video rounded-xl overflow-hidden bg-black shadow-sm relative">
-                                   {!isVideoPlaying ? (
-                                       <div 
-                                           className="w-full h-full cursor-pointer group relative"
-                                           onClick={() => setIsVideoPlaying(true)}
-                                       >
-                                           <img 
-                                               src={`https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg`} 
-                                               className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
-                                               alt="Video Preview"
-                                               onError={(e) => { e.target.src = `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`; }} 
-                                           />
-                                           <div className="absolute inset-0 flex items-center justify-center">
-                                               <div className="w-16 h-12 bg-red-600 rounded-xl flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform">
-                                                   <svg className="w-8 h-8 text-white fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                                               </div>
-                                           </div>
-                                       </div>
-                                   ) : (
-                                       <iframe 
-                                           width="100%" 
-                                           height="100%" 
-                                           src={`https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=1&rel=0&modestbranding=1&playsinline=1`} 
-                                           title="YouTube video player" 
-                                           frameBorder="0" 
-                                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                                           allowFullScreen>
-                                       </iframe>
-                                   )}
-                               </div>
-                           </div>
-                       )}
+                        {youtubeId && (
+                            <div className="mb-8">
+                                <h3 className="text-lg font-medium text-brand-green mb-4">วิดีโอแนะนำ</h3>
+                                <div className="aspect-video rounded-xl overflow-hidden bg-black shadow-sm relative">
+                                    {!isVideoPlaying ? (
+                                        <div className="w-full h-full cursor-pointer group relative" onClick={() => setIsVideoPlaying(true)}>
+                                            <img src={`https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg`} className="w-full h-full object-cover opacity-80" onError={(e) => { e.target.src = `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`; }} />
+                                            <div className="absolute inset-0 flex items-center justify-center">
+                                                <div className="w-16 h-12 bg-red-600 rounded-xl flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform">
+                                                    <svg className="w-8 h-8 text-white fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <iframe width="100%" height="100%" src={`https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=1&rel=0`} frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
+                                    )}
+                                </div>
+                            </div>
+                        )}
 
-                       {/* --- ส่วนแผนที่ที่แก้ไข URL ที่พิมพ์ผิด --- */}
-                       {property.lat && property.lng && (
-                           <div className="mb-8">
-                               <h3 className="text-lg font-medium text-brand-green mb-4">ที่ตั้งโครงการ</h3>
-                               <div className="aspect-video md:aspect-[21/9] rounded-xl overflow-hidden bg-gray-100 border border-gray-200">
-                                   <iframe 
-                                       width="100%" 
-                                       height="100%" 
-                                       frameBorder="0" 
-                                       style={{ border: 0 }} 
-                                       src={`https://www.google.com/maps?q=${property.lat},${property.lng}&hl=th&z=16&output=embed`} 
-                                       allowFullScreen
-                                   ></iframe>
-                               </div>
-                           </div>
-                       )}
+                        {/* ส่วนแผนที่ - แก้ไข URL ที่มีเลข 1 และเครื่องหมาย { เกินมา */}
+                        {property.lat && property.lng && (
+                            <div className="mb-8">
+                                <h3 className="text-lg font-medium text-brand-green mb-4">ที่ตั้งโครงการ</h3>
+                                <div className="aspect-video md:aspect-[21/9] rounded-xl overflow-hidden bg-gray-100 border border-gray-200">
+                                    <iframe width="100%" height="100%" frameBorder="0" style={{ border: 0 }} src={`https://maps.google.com/maps?q=${property.lat},${property.lng}&hl=th&z=16&output=embed`} allowFullScreen></iframe>
+                                </div>
+                            </div>
+                        )}
                     </div>
                  </div>
 
@@ -1240,27 +1215,24 @@
                 setIsSaving(true);
                 
                 try {
-                    // สร้าง Object ข้อมูลใหม่ และตรวจสอบประเภทข้อมูลให้ถูกต้องก่อนส่งไป Firebase
+                    // ป้องกัน Error โดยการเช็คและแปลงค่าเป็น String ก่อนใช้ replace
+                    const safeLat = formData.lat ? String(formData.lat).replace(/\s/g, '') : '';
+                    const safeLng = formData.lng ? String(formData.lng).replace(/\s/g, '') : '';
+                    const facilitiesList = Array.isArray(formData.facilitiesList) ? formData.facilitiesList : [];
+                    
                     const dataToSave = {
                         ...formData,
-                        // ป้องกัน Error กรณี lat/lng เป็นค่าว่าง หรือไม่ใช่ string
-                        lat: formData.lat ? String(formData.lat).replace(/\s/g, '') : '',
-                        lng: formData.lng ? String(formData.lng).replace(/\s/g, '') : '',
-                        // ตรวจสอบว่า facilities เป็น Array
-                        facilitiesList: Array.isArray(formData.facilitiesList) ? formData.facilitiesList : [],
-                        // แปลงราคาเป็นตัวเลข (ถ้าเป็นไปได้) เพื่อการเรียงลำดับที่ถูกต้อง
-                        price: formData.price ? Number(formData.price) : 0,
+                        lat: safeLat,
+                        lng: safeLng,
+                        facilitiesList: facilitiesList,
+                        price: formData.price ? Number(formData.price) : 0, // แปลงเป็นตัวเลขเพื่อความถูกต้องในการ Query
                         updatedAt: serverTimestamp()
                     };
 
                     if (editData && editData.id) {
-                        // กรณีแก้ไข
-                        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'properties', editData.id);
-                        await updateDoc(docRef, dataToSave);
+                        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'properties', editData.id), dataToSave);
                     } else {
-                        // กรณีเพิ่มใหม่
-                        const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'properties');
-                        await addDoc(colRef, {
+                        await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'properties'), {
                             ...dataToSave,
                             createdAt: serverTimestamp()
                         });
@@ -1269,9 +1241,9 @@
                     setIsSaving(false);
                     setSaveSuccess(true);
                 } catch (err) {
-                    setIsSaving(false);
-                    console.error("Firebase Save Error:", err);
-                    alert("ไม่สามารถบันทึกข้อมูลได้: " + err.message);
+                    setIsSaving(false); // ปิดตัวโหลดแม้จะเกิด Error
+                    console.error("Save Error:", err);
+                    alert("บันทึกไม่สำเร็จ: " + err.message);
                 }
             };
 

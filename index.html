@@ -171,6 +171,15 @@
                 transform: translateY(0);
             }
         }
+
+        /* ซ่อน Scrollbar สำหรับแนวนอน (Carousel) */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
     </style>
 </head>
 <body class="text-gray-800 antialiased selection:bg-brand-green selection:text-white">
@@ -179,10 +188,9 @@
     <script type="text/babel" data-type="module">
         import { createRoot } from 'react-dom/client';
         import React, { useState, useEffect } from 'react';
-        import { Home, MapPin, Bed, Bath, Car, Maximize, Phone, MessageCircle, Menu, X, Plus, Trash2, ShieldCheck, CheckCircle, Calculator, Users, FileText, Settings, Edit, Save, Image as ImageIcon, Layout, ChevronLeft, ChevronRight, Upload, Briefcase, XCircle, Tag, Youtube, Loader, Facebook, Instagram, Video, Check, Calendar, FolderPlus, Map } from 'lucide-react';
+        import { Home, MapPin, Bed, Bath, Car, Maximize, Phone, MessageCircle, Menu, X, Plus, Trash2, ShieldCheck, CheckCircle, Calculator, Users, FileText, Settings, Edit, Save, Image as ImageIcon, Layout, ChevronLeft, ChevronRight, Upload, Briefcase, XCircle, Tag, Youtube, Loader, Facebook, Instagram, Video, Check, Calendar, FolderPlus, Map, Search } from 'lucide-react';
         import { initializeApp } from 'firebase/app';
         
-        // แก้ไขส่วน Import ให้มีฟังก์ชันที่ขาดไป
         import { 
             getAuth, 
             signInWithEmailAndPassword, 
@@ -192,7 +200,6 @@
             signInWithCustomToken 
         } from 'firebase/auth';
 
-        // เพิ่มส่วน Import Firestore ที่จำเป็นต้องใช้ใน AdminPanel ด้วย
         import { 
             getFirestore, 
             collection, 
@@ -225,7 +232,7 @@
 
         // --- Constants ---
         const HOST_EMAIL = 'pepetchpunk@gmail.com';
-        const appId = "startup-up-realestate"; // กำหนดค่า appId ให้ตรงกับชื่อโปรเจกต์ของคุณ
+        const appId = "startup-up-realestate";
 
         const DEFAULT_COMPANY_INFO = {
           name: 'STARTUP UP',
@@ -258,7 +265,6 @@
           { area: 'นนทบุรี', sub_areas: ['บางบัวทอง', 'ปากเกร็ด', 'ติวานนท์'], img: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b91d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' }
         ];
 
-        // ฐานข้อมูลรหัสไปรษณีย์
         const THAI_ADDRESS_DB = {
           '12120': [{ subdistrict: 'คลองสาม', district: 'คลองหลวง', province: 'ปทุมธานี' }, { subdistrict: 'คลองสี่', district: 'คลองหลวง', province: 'ปทุมธานี' }, { subdistrict: 'คลองหนึ่ง', district: 'คลองหลวง', province: 'ปทุมธานี' }, { subdistrict: 'คลองสอง', district: 'คลองหลวง', province: 'ปทุมธานี' }],
           '12110': [{ subdistrict: 'บางคูวัด', district: 'เมืองปทุมธานี', province: 'ปทุมธานี' }, { subdistrict: 'บางขะแยง', district: 'เมืองปทุมธานี', province: 'ปทุมธานี' }],
@@ -269,7 +275,6 @@
         const getYoutubeId = (url) => {
             if (!url) return null;
             let str = url.trim();
-            // ถ้ามาเป็น iframe ให้ล้วงเอา src ออกมา
             const srcMatch = str.match(/src=["']([^"']+)["']/);
             if (srcMatch) str = srcMatch[1];
             
@@ -278,63 +283,52 @@
             return (match && match[2].length === 11) ? match[2] : null;
         };
 
-        // --- Intro Overlay Component ---
-        function IntroOverlay({ isHome }) {
-            const [showIntro, setShowIntro] = useState(true);
+        // ฟังก์ชันแปลงและลบช่องว่าง สำหรับให้การค้นหาทำเลแม่นยำขึ้น
+        const normalizeThaiSearch = (text) => {
+            if (!text) return '';
+            return text.toLowerCase()
+                       .replace(/1/g, 'หนึ่ง').replace(/2/g, 'สอง').replace(/3/g, 'สาม')
+                       .replace(/4/g, 'สี่').replace(/5/g, 'ห้า').replace(/6/g, 'หก')
+                       .replace(/7/g, 'เจ็ด').replace(/8/g, 'แปด').replace(/9/g, 'เก้า')
+                       .replace(/0/g, 'ศูนย์').replace(/\s+/g, '');
+        };
 
-            useEffect(() => {
-                const handleScroll = () => {
-                    if (window.scrollY < 10) {
-                        setShowIntro(true);
-                    } else {
-                        setShowIntro(false);
-                    }
-                };
-
-                window.addEventListener('scroll', handleScroll, { passive: true });
-                window.addEventListener('touchmove', handleScroll, { passive: true });
-
-                if (window.scrollY > 10) {
-                    setShowIntro(false);
+        // --- Hero Section (แทนที่ IntroOverlay แบบเดิม) ---
+        function HeroSection({ onSearch }) {
+            const [query, setQuery] = useState('');
+            
+            const handleSearchSubmit = (e) => {
+                e.preventDefault();
+                if (query.trim()) {
+                    onSearch(query.trim());
                 }
-
-                return () => {
-                    window.removeEventListener('scroll', handleScroll);
-                    window.removeEventListener('touchmove', handleScroll);
-                };
-            }, []);
-
-            // ตรวจสอบว่าเป็นหน้าหลักหรือไม่ ถ้าไม่ใช่จะไม่โชว์
-            const isVisible = showIntro && isHome;
+            };
 
             return (
-                <div 
-                    className={`fixed inset-0 z-30 bg-black flex flex-col items-center justify-center ${isVisible ? 'pointer-events-auto' : 'pointer-events-none'}`}
-                    style={{
-                        transition: 'transform 3s cubic-bezier(0.25, 1, 0.5, 1), border-radius 3s ease',
-                        transformOrigin: 'top center',
-                        transform: isVisible ? 'translateY(0)' : 'translateY(-100%)',
-                        borderBottomLeftRadius: isVisible ? '0' : '50%',
-                        borderBottomRightRadius: isVisible ? '0' : '50%'
-                    }}
-                >
+                <div className="relative w-full h-[50vh] md:h-[60vh] flex flex-col items-center justify-center overflow-hidden bg-black">
                     <div className="absolute inset-0 w-full h-full">
-                        <img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80" alt="Modern House" className="w-full h-full object-cover opacity-60" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80"></div>
+                        <img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80" alt="Modern House Background" className="w-full h-full object-cover opacity-50" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30"></div>
                     </div>
-                    <div className="relative z-10 text-center">
-                        <h1 className="text-5xl md:text-7xl font-light text-white tracking-wide mb-4">STARTUP UP</h1>
-                        <p className="text-gray-300 font-light tracking-[0.2em] uppercase text-sm">จุดเริ่มต้นของคนอยากมีบ้าน</p>
-                    </div>
-                    <div className={`absolute bottom-10 text-white/50 text-xs tracking-widest uppercase flex flex-col items-center gap-2 transition-opacity duration-500 ${showIntro ? 'opacity-100 animate-pulse' : 'opacity-0'}`}>
-                        <span>Scroll Down</span>
-                        <ChevronDown size={16} />
+                    <div className="relative z-10 text-center px-6 w-full max-w-2xl mt-12">
+                        <h1 className="text-4xl md:text-6xl font-light text-white tracking-wide mb-4">STARTUP UP</h1>
+                        <p className="text-gray-300 font-light tracking-[0.2em] uppercase text-sm md:text-base mb-10">จุดเริ่มต้นของคนอยากมีบ้าน</p>
+                        
+                        <form onSubmit={handleSearchSubmit} className="relative flex items-center w-full max-w-lg mx-auto transform transition-transform hover:scale-[1.02]">
+                            <input 
+                                type="text" 
+                                placeholder="ค้นหาทำเล, ชื่อโครงการ, หรือประเภทบ้าน..." 
+                                className="w-full pl-6 pr-14 py-4 rounded-full outline-none shadow-2xl text-gray-700 font-light text-sm md:text-base focus:ring-4 focus:ring-brand-green/30 transition-all"
+                                value={query} 
+                                onChange={e => setQuery(e.target.value)} 
+                            />
+                            <button type="submit" className="absolute right-2 bg-brand-green text-white p-2.5 rounded-full hover:bg-[#135c2a] transition-colors">
+                                <Search size={20} />
+                            </button>
+                        </form>
                     </div>
                 </div>
             );
-        }
-        function ChevronDown({size}) {
-            return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
         }
 
         // --- Main Application Component ---
@@ -361,7 +355,6 @@
                       document.activeElement.blur();
                   }
               };
-              // ใส่ passive: false เพื่อให้ป้องกันพฤติกรรมดั้งเดิมได้
               window.addEventListener('wheel', handleWheel, { passive: false });
               return () => window.removeEventListener('wheel', handleWheel);
           }, []);
@@ -476,21 +469,31 @@
             setSearchParams({ type, value });
             setActiveTab('search_result');
             setSelectedProperty(null);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          };
+
+          const handleGlobalSearch = (query) => {
+            setSearchParams({ type: 'keyword', value: query });
+            setActiveTab('search_result');
+            setSelectedProperty(null);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          };
+
+          const handleSelectProperty = (p) => {
+            setSelectedProperty(p);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
           };
 
           return (
             <div className="text-gray-800 bg-white min-h-screen flex flex-col font-sans relative">
-              {/* ส่ง prop isHome ไปตรวจสอบ ถ้าไม่ใช่แท็บ home หรือดูบ้านอยู่ จะไม่แสดงแอนิเมชัน */}
-              <IntroOverlay isHome={activeTab === 'home' && !selectedProperty} />
-              
               <nav className="fixed w-full top-0 z-40 bg-white/90 backdrop-blur-md shadow-sm transition-all duration-300">
                 <div className="max-w-7xl mx-auto px-6 lg:px-12">
                   <div className="flex justify-between items-center h-20">
                     <div className="hidden lg:flex items-center space-x-6 w-1/3">
-                      <NavButton active={activeTab === 'home'} onClick={() => {setActiveTab('home'); setSelectedProperty(null);}}>หน้าหลัก</NavButton>
-                      <NavButton active={activeTab === 'promo'} onClick={() => {setActiveTab('promo'); setSelectedProperty(null);}}>โปรโมชั่น</NavButton>
-                      <NavButton active={activeTab === 'location'} onClick={() => {setActiveTab('location'); setSelectedProperty(null);}}>ทำเล</NavButton>
-                      <NavButton active={activeTab === 'calculator'} onClick={() => {setActiveTab('calculator'); setSelectedProperty(null);}}>สินเชื่อ</NavButton>
+                      <NavButton active={activeTab === 'home' && !selectedProperty} onClick={() => {setActiveTab('home'); setSelectedProperty(null); window.scrollTo(0,0);}}>หน้าหลัก</NavButton>
+                      <NavButton active={activeTab === 'promo' && !selectedProperty} onClick={() => {setActiveTab('promo'); setSelectedProperty(null); window.scrollTo(0,0);}}>โปรโมชั่น</NavButton>
+                      <NavButton active={activeTab === 'location' && !selectedProperty} onClick={() => {setActiveTab('location'); setSelectedProperty(null); window.scrollTo(0,0);}}>ทำเล</NavButton>
+                      <NavButton active={activeTab === 'calculator' && !selectedProperty} onClick={() => {setActiveTab('calculator'); setSelectedProperty(null); window.scrollTo(0,0);}}>สินเชื่อ</NavButton>
                     </div>
 
                     <div className="lg:hidden flex w-1/3">
@@ -499,7 +502,7 @@
                       </button>
                     </div>
 
-                    <div className="w-1/3 flex justify-center cursor-pointer" onClick={() => {setActiveTab('home'); setSelectedProperty(null);}}>
+                    <div className="w-1/3 flex justify-center cursor-pointer" onClick={() => {setActiveTab('home'); setSelectedProperty(null); window.scrollTo(0,0);}}>
                         {companyInfo?.logoUrl ? (
                             <img src={companyInfo.logoUrl} alt="Logo" className="h-10 md:h-12 object-contain" />
                         ) : (
@@ -510,7 +513,7 @@
                     </div>
 
                     <div className="hidden lg:flex items-center justify-end space-x-6 w-1/3">
-                      <NavButton active={activeTab === 'portfolio'} onClick={() => {setActiveTab('portfolio'); setSelectedProperty(null);}}>ผลงาน</NavButton>
+                      <NavButton active={activeTab === 'portfolio' && !selectedProperty} onClick={() => {setActiveTab('portfolio'); setSelectedProperty(null); window.scrollTo(0,0);}}>ผลงาน</NavButton>
                       {userRole ? (
                          <button onClick={() => setShowAdminPanel(true)} className="flex items-center gap-2 px-4 py-1.5 border border-brand-green text-brand-green rounded-full hover:bg-brand-green hover:text-white transition-all text-sm font-medium">
                           <Settings size={14} /> ระบบจัดการ
@@ -527,11 +530,11 @@
                 {isMenuOpen && (
                   <div className="lg:hidden bg-white border-t border-gray-100 py-4 absolute w-full shadow-lg">
                     <div className="px-6 space-y-4 flex flex-col">
-                      <MobileNavBtn onClick={() => {setActiveTab('home'); setSelectedProperty(null); setIsMenuOpen(false)}}>หน้าหลัก</MobileNavBtn>
-                      <MobileNavBtn onClick={() => {setActiveTab('promo'); setSelectedProperty(null); setIsMenuOpen(false)}}>บ้านจัดโปรโมชั่น</MobileNavBtn>
-                      <MobileNavBtn onClick={() => {setActiveTab('location'); setSelectedProperty(null); setIsMenuOpen(false)}}>ทำเล</MobileNavBtn>
-                      <MobileNavBtn onClick={() => {setActiveTab('calculator'); setSelectedProperty(null); setIsMenuOpen(false)}}>คำนวณสินเชื่อ</MobileNavBtn>
-                      <MobileNavBtn onClick={() => {setActiveTab('portfolio'); setSelectedProperty(null); setIsMenuOpen(false)}}>ผลงาน</MobileNavBtn>
+                      <MobileNavBtn onClick={() => {setActiveTab('home'); setSelectedProperty(null); setIsMenuOpen(false); window.scrollTo(0,0);}}>หน้าหลัก</MobileNavBtn>
+                      <MobileNavBtn onClick={() => {setActiveTab('promo'); setSelectedProperty(null); setIsMenuOpen(false); window.scrollTo(0,0);}}>บ้านจัดโปรโมชั่น</MobileNavBtn>
+                      <MobileNavBtn onClick={() => {setActiveTab('location'); setSelectedProperty(null); setIsMenuOpen(false); window.scrollTo(0,0);}}>ทำเล</MobileNavBtn>
+                      <MobileNavBtn onClick={() => {setActiveTab('calculator'); setSelectedProperty(null); setIsMenuOpen(false); window.scrollTo(0,0);}}>คำนวณสินเชื่อ</MobileNavBtn>
+                      <MobileNavBtn onClick={() => {setActiveTab('portfolio'); setSelectedProperty(null); setIsMenuOpen(false); window.scrollTo(0,0);}}>ผลงาน</MobileNavBtn>
                       <div className="h-px bg-gray-100 my-2"></div>
                       {userRole ? (
                         <button onClick={() => {setShowAdminPanel(true); setIsMenuOpen(false)}} className="w-full text-left py-2 text-brand-green font-medium">เข้าสู่ระบบหลังบ้าน</button>
@@ -544,13 +547,15 @@
               </nav>
 
               <div className="flex-grow pt-20">
+                {activeTab === 'home' && !selectedProperty && <HeroSection onSearch={handleGlobalSearch} />}
+                
                 {selectedProperty ? (
-                  <SalePage property={selectedProperty} companyInfo={companyInfo} onBack={() => setSelectedProperty(null)} />
+                  <SalePage property={selectedProperty} companyInfo={companyInfo} onBack={() => setSelectedProperty(null)} properties={properties} onSelectProp={handleSelectProperty} />
                 ) : (
                   <>
-                    {activeTab === 'home' && <HomeSection properties={properties} loading={loading} onSelectProp={setSelectedProperty} setActiveTab={setActiveTab} />}
-                    {activeTab === 'promo' && <PropertiesList properties={properties} searchParams={{ type: 'promo' }} onSelectProp={setSelectedProperty} />}
-                    {activeTab === 'search_result' && <PropertiesList properties={properties} searchParams={searchParams} onSelectProp={setSelectedProperty} />}
+                    {activeTab === 'home' && <HomeSection properties={properties} loading={loading} onSelectProp={handleSelectProperty} setActiveTab={setActiveTab} />}
+                    {activeTab === 'promo' && <PropertiesList properties={properties} searchParams={{ type: 'promo' }} onSelectProp={handleSelectProperty} />}
+                    {activeTab === 'search_result' && <PropertiesList properties={properties} searchParams={searchParams} onSelectProp={handleSelectProperty} />}
                     {activeTab === 'location' && <LocationSection onSelectLocation={handleLocationSelect} />}
                     {activeTab === 'calculator' && <div className="py-16 bg-gray-50"><CalculatorSection /></div>}
                     {activeTab === 'portfolio' && <PortfolioSection companyInfo={companyInfo} properties={properties} />}
@@ -593,7 +598,7 @@
 
               {showLoginModal && <LoginModal onClose={() => setShowLoginModal(false)} onLogin={handleEmailLogin} onSignup={handleEmailSignup} />}
               {showAdminPanel && (
-                <AdminPanel userRole={userRole} userEmail={userEmail} properties={properties} users={authorizedUsers} companyInfo={companyInfo} onClose={() => setShowAdminPanel(false)} onLogout={handleLogout} db={db} />
+                <AdminPanel userRole={userRole} userEmail={userEmail} properties={properties} users={authorizedUsers} companyInfo={companyInfo} onClose={() => setShowAdminPanel(false)} onLogout={handleLogout} db={db} appId={appId} />
               )}
             </div>
           );
@@ -623,16 +628,6 @@
               { title: 'บ้านเดี่ยว', data: singleHouses },
           ];
 
-          // ฟังก์ชันแปลงราคาเป็น "ล้านบาท" ให้ตรงกับรูปตัวอย่าง
-          const formatPrice = (price) => {
-              const num = Number(price);
-              if (isNaN(num)) return `ราคา ${price}`;
-              if (num >= 1000000) {
-                  return `ราคา ${Number((num / 1000000).toFixed(2))} ล้านบาท`;
-              }
-              return `ราคา ${num.toLocaleString()} บาท`;
-          };
-
           return (
             <main className="py-16 px-4 md:px-6 max-w-screen-xl mx-auto min-h-screen">
                 <div className="text-center mb-16">
@@ -643,21 +638,23 @@
                 <div className="space-y-16">
                     {sections.map((section, sIdx) => (
                         <div key={section.title}>
-                            <div className="flex justify-between items-center mb-6">
+                            <div className="flex justify-between items-center mb-6 px-2 md:px-0">
                                 <div className="flex items-center gap-2">
                                      <Home size={30} className="text-brand-green" />
                                      <h3 className="text-2xl font-bold text-brand-green">{section.title}</h3>
                                 </div>
-                                <button onClick={() => setActiveTab('search_result')} className="bg-[#1b5e20] text-white px-5 py-2 rounded-full text-sm font-light hover:bg-opacity-90 transition flex items-center gap-1">
+                                <button onClick={() => { setActiveTab('search_result'); window.scrollTo(0,0); }} className="bg-[#1b5e20] text-white px-4 md:px-5 py-1.5 md:py-2 rounded-full text-[13px] md:text-sm font-light hover:bg-opacity-90 transition flex items-center gap-1">
                                     ดูทั้งหมด <ChevronRight size={16} />
                                 </button>
                             </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+                            
+                            {/* เปลี่ยน Grid เป็นแนวนอนสำหรับ Mobile และ Grid แถวละ 3 การ์ดสำหรับ Desktop */}
+                            <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 md:gap-8 pb-6 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-3 md:overflow-visible">
                                 {section.data.map((p, index) => {
                                     if (!p) {
                                         // กรอบว่างสำหรับรอข้อมูล (Skeleton card)
                                         return (
-                                            <div key={`empty-${index}`} className="bg-white border-2 border-dashed border-gray-200 rounded-2xl flex flex-col h-full min-h-[380px] opacity-60">
+                                            <div key={`empty-${index}`} className="bg-white border-2 border-dashed border-gray-200 rounded-2xl flex flex-col h-full min-h-[350px] opacity-60 min-w-[80vw] sm:min-w-[45vw] md:min-w-0 snap-center flex-shrink-0">
                                                  <div className="aspect-[4/3] bg-gray-50 rounded-t-2xl flex items-center justify-center">
                                                      <ImageIcon size={48} className="text-gray-300" />
                                                  </div>
@@ -672,18 +669,15 @@
                                         );
                                     }
                                     return (
-                                        // โครงสร้างการ์ดอ้างอิงตามรูปภาพ (พื้นหลังขาว กรอบบาง โค้งมน)
-                                        <div key={p.id} onClick={() => onSelectProp(p)} className="bg-white border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-lg transition-all duration-300 rounded-2xl overflow-hidden cursor-pointer flex flex-col h-full" style={{ animation: `fadeUpAnim 0.8s ease forwards ${index * 50}ms`, opacity: 0, transform: 'translateY(20px)' }}>
+                                        <div key={p.id} onClick={() => onSelectProp(p)} className="bg-white border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-lg transition-all duration-300 rounded-2xl overflow-hidden cursor-pointer flex flex-col h-full min-w-[80vw] sm:min-w-[45vw] md:min-w-0 snap-center flex-shrink-0" style={{ animation: `fadeUpAnim 0.8s ease forwards ${index * 50}ms`, opacity: 0, transform: 'translateY(20px)' }}>
                                             <div className="aspect-[4/3] relative overflow-hidden bg-gray-100">
                                                 <img src={p.images?.[0] || p.imageUrl || "https://placehold.co/600x400"} alt={p.project_name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
                                                 
-                                                {/* Category Left (มุมซ้ายบนระบุประเภท) */}
                                                 <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm text-gray-700 px-3 py-1.5 rounded-full font-medium text-xs shadow-sm z-10 flex items-center gap-1.5">
                                                     <Home size={14} className="text-brand-green" />
                                                     {p.category}
                                                 </div>
 
-                                                {/* Badge Right (ป้ายสถานะขวาบน) */}
                                                 {p.badge && (
                                                     <div className={`absolute top-3 right-3 px-3 py-1.5 rounded-full font-medium text-xs shadow-sm z-10 ${
                                                         p.badge === 'Promotion' ? 'bg-[#c8ff00] text-black' : 
@@ -697,7 +691,6 @@
                                             <div className="p-5 flex flex-col flex-grow">
                                                 <h4 className="font-bold text-gray-800 text-[18px] mb-2 line-clamp-2 leading-snug">{p.project_name}</h4>
                                                 
-                                                {/* Location (แสดงที่ตั้งของบ้าน) */}
                                                 <div className="text-[13px] text-gray-500 flex items-center gap-1.5 mb-4">
                                                     <MapPin size={15} className="flex-shrink-0 text-gray-400" />
                                                     <span className="font-light truncate">
@@ -705,15 +698,14 @@
                                                     </span>
                                                 </div>
                                                 
-                                                {/* Price and Detail Icons Layout (เส้นคั่น ราคาซ้าย ไอคอนขวา) */}
                                                 <div className="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between">
                                                     <span className="text-[20px] font-bold text-brand-green">
                                                         <span className="text-[16px] mr-1">฿</span>{Number(p.price).toLocaleString()}
                                                     </span>
-                                                    <div className="flex items-center gap-3 text-gray-500 text-[13px]">
-                                                        <div className="flex items-center gap-1.5" title="พื้นที่"><Maximize size={15} /> {p.area_wah}</div>
-                                                        <div className="flex items-center gap-1.5" title="ห้องนอน"><Bed size={15} /> {p.bedrooms}</div>
-                                                        <div className="flex items-center gap-1.5" title="ห้องน้ำ"><Bath size={15} /> {p.bathrooms}</div>
+                                                    <div className="flex items-center gap-2 md:gap-3 text-gray-500 text-[12px] md:text-[13px]">
+                                                        <div className="flex items-center gap-1" title="พื้นที่"><Maximize size={14} /> {p.area_wah}</div>
+                                                        <div className="flex items-center gap-1" title="ห้องนอน"><Bed size={14} /> {p.bedrooms}</div>
+                                                        <div className="flex items-center gap-1" title="ห้องน้ำ"><Bath size={14} /> {p.bathrooms}</div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -728,11 +720,18 @@
           );
         }
 
-        function SalePage({ property, companyInfo, onBack }) {
+        function SalePage({ property, companyInfo, onBack, properties, onSelectProp }) {
           const [activeImg, setActiveImg] = useState(0);
           const [isVideoPlaying, setIsVideoPlaying] = useState(false); // เพิ่ม State สำหรับเช็คสถานะการกดเล่นวิดีโอ
           const images = property.images && property.images.length > 0 ? property.images : [property.imageUrl || "https://placehold.co/600x400"];
           const youtubeId = getYoutubeId(property.youtubeUrl);
+
+          // คำนวณบ้านที่คุณอาจสนใจ (ทำเลเดียวกัน หรือ ประเภทเดียวกัน ไม่เอาหลังเดิม ไม่เอาอันที่ Sold Out)
+          const relatedProps = properties.filter(p => 
+              p.id !== property.id && 
+              p.badge !== 'Sold Out' && 
+              (p.district === property.district || p.category === property.category)
+          ).slice(0, 6);
 
           return (
             <div className="bg-gray-50 min-h-screen pb-12 animate-in fade-in duration-300">
@@ -826,15 +825,53 @@
                         )}
 
                         {/* ส่วนแผนที่ - แก้ไข URL ที่มีเลข 1 และเครื่องหมาย { เกินมา */}
-                        {property.lat && property.lng && (
+                        {property.lat && property.lng && property.lat.trim() !== '' && property.lng.trim() !== '' && (
                             <div className="mb-8">
                                 <h3 className="text-lg font-medium text-brand-green mb-4">ที่ตั้งโครงการ</h3>
                                 <div className="aspect-video md:aspect-[21/9] rounded-xl overflow-hidden bg-gray-100 border border-gray-200">
-                                    <iframe width="100%" height="100%" frameBorder="0" style={{ border: 0 }} src={`https://maps.google.com/maps?q=${property.lat},${property.lng}&hl=th&z=16&output=embed`} allowFullScreen></iframe>
+                                    <iframe 
+                                        width="100%" 
+                                        height="100%" 
+                                        frameBorder="0" 
+                                        style={{ border: 0 }} 
+                                        src={`https://www.google.com/maps?q=${property.lat},${property.lng}&hl=th&z=16&output=embed`} 
+                                        allowFullScreen
+                                    ></iframe>
                                 </div>
                             </div>
                         )}
                     </div>
+
+                    {/* --- ส่วนบ้านที่คุณอาจสนใจ (แนวนอน เลื่อนได้) --- */}
+                    {relatedProps.length > 0 && (
+                        <div className="mt-12 mb-8 px-4 md:px-0">
+                            <h3 className="text-xl font-medium text-brand-green mb-6 border-l-4 border-brand-green pl-3">โครงการที่คุณอาจสนใจ</h3>
+                            <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-6 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
+                                {relatedProps.map((p, index) => (
+                                    <div key={p.id} onClick={() => onSelectProp(p)} className="bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 rounded-xl overflow-hidden cursor-pointer flex flex-col min-w-[70vw] md:min-w-[280px] snap-center flex-shrink-0">
+                                        <div className="aspect-[4/3] relative overflow-hidden bg-gray-100">
+                                            <img src={p.images?.[0] || p.imageUrl || "https://placehold.co/600x400"} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                                            <div className="absolute top-2 left-2 bg-white/95 text-gray-700 px-2 py-1 rounded-md font-medium text-[10px] shadow-sm z-10 flex items-center gap-1">
+                                                {p.category}
+                                            </div>
+                                        </div>
+                                        <div className="p-4 flex flex-col flex-grow">
+                                            <h4 className="font-medium text-gray-800 text-[15px] mb-1 line-clamp-1">{p.project_name}</h4>
+                                            <div className="text-[11px] text-gray-500 flex items-center gap-1 mb-3">
+                                                <MapPin size={12} className="text-gray-400 flex-shrink-0" />
+                                                <span className="truncate">{p.subdistrict} {p.district}</span>
+                                            </div>
+                                            <div className="mt-auto flex items-center justify-between border-t border-gray-50 pt-3">
+                                                <span className="text-[16px] font-bold text-brand-green">
+                                                    ฿{Number(p.price).toLocaleString()}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                  </div>
 
                  <div className="space-y-6">
@@ -869,14 +906,24 @@
               displayProps = properties.filter(p => p.district === searchParams.value || (p.subdistrict === 'คูคต' && searchParams.value === 'ลำลูกกา'));
               title = `ทำเล: ${searchParams.value}`;
           } else if (searchParams?.type === 'subdistrict') {
-              const keyword = searchParams.value.trim().toLowerCase(); 
-              displayProps = properties.filter(p => `${p.district} ${p.subdistrict} ${p.project_name} ${p.soi}`.toLowerCase().includes(keyword) || p.highlights?.toLowerCase().includes(keyword));
+              const keyword = normalizeThaiSearch(searchParams.value); 
+              displayProps = properties.filter(p => {
+                  const propString = normalizeThaiSearch(`${p.district} ${p.subdistrict} ${p.project_name} ${p.soi} ${p.highlights} ${p.category}`);
+                  return propString.includes(keyword);
+              });
               title = `ผลการค้นหา: ${searchParams.value}`;
+          } else if (searchParams?.type === 'keyword') {
+              const keyword = normalizeThaiSearch(searchParams.value); 
+              displayProps = properties.filter(p => {
+                  const propString = normalizeThaiSearch(`${p.district} ${p.subdistrict} ${p.project_name} ${p.soi} ${p.highlights} ${p.category}`);
+                  return propString.includes(keyword);
+              });
+              title = `ผลการค้นหา: "${searchParams.value}"`;
           }
 
           return (
             <div className="max-w-7xl mx-auto px-4 py-16 min-h-screen">
-              <h2 className="text-2xl font-light text-brand-green mb-10">{title}</h2>
+              <h2 className="text-2xl font-light text-brand-green mb-10">{title} <span className="text-sm text-gray-400 ml-2">({displayProps.length} รายการ)</span></h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {displayProps.length > 0 ? displayProps.map(p => (
                    <div key={p.id} onClick={() => onSelectProp(p)} className="bg-white border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-lg transition-all duration-300 rounded-2xl overflow-hidden cursor-pointer flex flex-col h-full" style={{ animation: `fadeUpAnim 0.5s ease forwards`, opacity: 0, transform: 'translateY(20px)' }}>
@@ -965,15 +1012,15 @@
               {!minimalist && <h2 className="text-2xl font-light text-center text-brand-green mb-8">คำนวณสินเชื่อเบื้องต้น</h2>}
               <div className="space-y-5">
                  <div className={minimalist ? "space-y-4" : "grid grid-cols-2 gap-6"}>
-                     <div><label className="label">วงเงินกู้ (บาท)</label><input type="number" value={loanAmount} onChange={e=>setLoanAmount(e.target.value)} className="input-modern"/></div>
+                     <div><label className="label">วงเงินกู้ (บาท)</label><input type="text" inputMode="numeric" value={loanAmount} onChange={e=>setLoanAmount(e.target.value.replace(/[^0-9.]/g, ''))} className="input-modern"/></div>
                      <div className={minimalist ? "grid grid-cols-2 gap-4" : ""} >
-                        <div><label className="label">ดอกเบี้ย (%)</label><input type="number" step="0.1" value={interest} onChange={e=>setInterest(Number(e.target.value))} className="input-modern"/></div>
+                        <div><label className="label">ดอกเบี้ย (%)</label><input type="text" inputMode="numeric" value={interest} onChange={e=>setInterest(e.target.value.replace(/[^0-9.]/g, ''))} className="input-modern"/></div>
                         {!minimalist && <div></div>}
                      </div>
                  </div>
                  
                  <div className="grid grid-cols-2 gap-4">
-                     <div><label className="label">อายุผู้กู้ (ปี)</label><input type="number" min="20" max="70" value={age} onChange={e=>setAge(e.target.value)} className="input-modern"/></div>
+                     <div><label className="label">อายุผู้กู้ (ปี)</label><input type="text" inputMode="numeric" value={age} onChange={e=>setAge(e.target.value.replace(/[^0-9]/g, ''))} className="input-modern"/></div>
                      <div><label className="label">ระยะเวลา (ปี)</label><div className="input-modern bg-gray-50 text-gray-500 border-transparent">{years > 0 ? `${years} ปี` : '-'}</div></div>
                  </div>
 
@@ -1069,8 +1116,8 @@
            );
         }
 
-        // --- FULL ADMIN PANEL (UPDATED FOR CLOUDINARY REST API) ---
-        function AdminPanel({ userRole, userEmail, properties, users, companyInfo, onClose, onLogout, db }) {
+        // --- FULL ADMIN PANEL ---
+        function AdminPanel({ userRole, userEmail, properties, users, companyInfo, onClose, onLogout, db, appId }) {
             const [panelTab, setPanelTab] = useState('properties'); 
             const [isEditing, setIsEditing] = useState(false);
             const [editData, setEditData] = useState(null);
@@ -1246,37 +1293,61 @@
             const addCustomFacility = () => { if(newFacility && !formData.facilitiesList?.includes(newFacility)) { setFormData(prev => ({ ...prev, facilitiesList: [...(prev.facilitiesList || []), newFacility] })); setNewFacility(''); } };
             const removeFacility = (fac) => { setFormData(prev => ({ ...prev, facilitiesList: prev.facilitiesList.filter(f => f !== fac) })); };
 
-            // ตัวอย่างการเปลี่ยนจากการ Mock เป็นการบันทึกจริงใน AdminPanel
+            // Save Property Data (เชื่อมต่อ Firebase)
             const handleSaveProperty = async (e) => {
                 if (e) e.preventDefault();
+                
+                // 1. ตรวจสอบข้อมูลบังคับก่อนบันทึก
                 if (!formData.project_name || !formData.price) {
                     alert("กรุณากรอกชื่อโครงการและราคาให้ครบถ้วน");
                     return;
                 }
 
-                setIsSaving(true);
+                setIsSaving(true); // เริ่มแสดงหน้าจอโหลด (ตัวหมุนจะเริ่มทำงาน)
+                
                 try {
+                    // 2. เตรียมข้อมูลและจัดการค่า Lat/Lng, ตัวเลข ให้ปลอดภัย
+                    const safeLat = formData.lat ? String(formData.lat).trim() : '';
+                    const safeLng = formData.lng ? String(formData.lng).trim() : '';
+                    
                     const dataToSave = {
                         ...formData,
-                        price: Number(formData.price),
-                        updatedAt: serverTimestamp(), // ใช้ของ firebase/firestore
+                        project_name: formData.project_name.trim(),
+                        lat: safeLat,
+                        lng: safeLng,
+                        price: Number(formData.price) || 0,
+                        bedrooms: Number(formData.bedrooms) || 0,
+                        bathrooms: Number(formData.bathrooms) || 0,
+                        area_wah: Number(formData.area_wah) || 0,
+                        updatedAt: serverTimestamp()
                     };
 
+                    // 3. กำหนด Path ให้ชัดเจน (ตรวจสอบว่าใช้ db และ appId จาก props)
+                    // โครงสร้าง: artifacts > [appId] > public > data > properties
+                    const collectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'properties');
+
                     if (editData && editData.id) {
-                        // กรณีแก้ไข
+                        // กรณีแก้ไขข้อมูลเดิม
                         const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'properties', editData.id);
                         await updateDoc(docRef, dataToSave);
                     } else {
-                        // กรณีเพิ่มใหม่
-                        const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'properties');
-                        dataToSave.createdAt = serverTimestamp();
-                        await addDoc(colRef, dataToSave);
+                        // กรณีเพิ่มข้อมูลใหม่
+                        await addDoc(collectionRef, {
+                            ...dataToSave,
+                            createdAt: serverTimestamp()
+                        });
                     }
 
-                    setSaveSuccess(true);
+                    // 4. บันทึกสำเร็จ
+                    setSaveSuccess(true); 
+
                 } catch (err) {
+                    // 5. หากเกิด Error ให้แสดงแจ้งเตือน
+                    console.error("Save Error Details:", err);
                     alert("บันทึกไม่สำเร็จ: " + err.message);
                 } finally {
+                    // 6. *** สำคัญมาก *** ไม่ว่าจะสำเร็จหรือพัง ต้องปิดหน้าจอโหลด
+                    // เพื่อไม่ให้หน้าจอหมุนค้าง
                     setIsSaving(false);
                 }
             };
@@ -1284,11 +1355,15 @@
             const closeSuccessOverlay = () => { setSaveSuccess(false); setIsEditing(false); setEditData(null); setFormData(initialForm); setImagesPreview([]); };
 
             const handleDeleteProperty = async (id) => { 
-                if (window.confirm('ยืนยันการลบ?')) { 
+                if (window.confirm('คุณต้องการลบข้อมูลบ้านหลังนี้ใช่หรือไม่?')) { 
                     setIsSaving(true); 
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                    console.log('Deleted property:', id);
-                    setIsSaving(false); 
+                    try {
+                        await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'properties', id));
+                    } catch (error) {
+                        alert(error.message);
+                    } finally {
+                        setIsSaving(false); 
+                    }
                 } 
             };
 
@@ -1296,7 +1371,7 @@
                 e.preventDefault(); 
                 setIsSaving(true); 
                 const companyDataToSave = { ...companyForm }; 
-                await new Promise(resolve => setTimeout(resolve, 500));
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'company_info', 'main'), companyDataToSave); 
                 setCompanyForm(companyDataToSave); 
                 setIsSaving(false); 
                 setSaveSuccess(true); 
@@ -1309,16 +1384,16 @@
             const handleSavePortfolio = async () => { 
                 setIsSaving(true); 
                 const dataToSave = { ...companyForm }; 
-                await new Promise(resolve => setTimeout(resolve, 500));
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'company_info', 'main'), dataToSave); 
                 setCompanyForm(dataToSave); 
                 setIsSaving(false); 
                 setSaveSuccess(true); 
             };
 
-            const handleAddUser = async (e) => { e.preventDefault(); if (!inviteEmail || !invitePassword) return; alert('เพิ่มเรียบร้อย (Mock)'); setInviteEmail(''); setPassword(''); };
-            const handleUpdateRole = async (userId, newRole) => { if (confirm(`ยืนยันเปลี่ยนสิทธิ์เป็น ${newRole}?`)) { console.log('Role updated (Mock)'); } };
-            const handleApproveUser = async (userId, role, email) => { if (confirm(`อนุมัติสิทธิ์ ${role} ให้ ${email}?`)) { console.log('User approved (Mock)'); } };
-            const handleRemoveUser = async (id) => { if(confirm('ลบสิทธิ์ผู้ใช้นี้?')) { console.log('User removed (Mock)'); } };
+            const handleAddUser = async (e) => { e.preventDefault(); if (!inviteEmail || !invitePassword) return; try { await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', inviteEmail.toLowerCase().trim()), { email: inviteEmail.toLowerCase().trim(), password: invitePassword, role: inviteRole, addedBy: userEmail, createdAt: serverTimestamp() }); setInviteEmail(''); setPassword(''); alert('เพิ่มเรียบร้อย'); } catch (err) { alert(err.message); } };
+            const handleUpdateRole = async (userId, newRole) => { if (confirm(`ยืนยันเปลี่ยนสิทธิ์เป็น ${newRole}?`)) { try { await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', userId), { role: newRole }); } catch (err) { alert(err.message); } } };
+            const handleApproveUser = async (userId, role, email) => { if (confirm(`อนุมัติสิทธิ์ ${role} ให้ ${email}?`)) { try { await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', userId), { role: role }); } catch (err) { alert(err.message); } } };
+            const handleRemoveUser = async (id) => { if(confirm('ลบสิทธิ์ผู้ใช้นี้?')) { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', id)); } };
 
             return (
                 <div className="fixed inset-0 z-[60] bg-gray-50 flex flex-col font-sans">
@@ -1341,7 +1416,7 @@
                     {/* Admin Body */}
                     <div className="flex flex-1 overflow-hidden">
                         {/* Sidebar */}
-                        <div className="w-64 bg-white border-r py-6 flex flex-col gap-2">
+                        <div className="w-64 bg-white border-r py-6 flex flex-col gap-2 hidden md:flex">
                             <button onClick={() => { setPanelTab('properties'); setIsEditing(false); }} className={`px-6 py-3 text-left text-sm flex items-center gap-3 transition ${panelTab === 'properties' ? 'text-brand-green bg-brand-light font-medium border-r-2 border-brand-green' : 'text-gray-500 hover:bg-gray-50'}`}><Home size={18}/> จัดการบ้าน</button>
                             {userRole === 'host' && <button onClick={() => setPanelTab('company')} className={`px-6 py-3 text-left text-sm flex items-center gap-3 transition ${panelTab === 'company' ? 'text-brand-green bg-brand-light font-medium border-r-2 border-brand-green' : 'text-gray-500 hover:bg-gray-50'}`}><Briefcase size={18}/> ข้อมูลบริษัท</button>}
                             {userRole === 'host' && <button onClick={() => setPanelTab('portfolio_images')} className={`px-6 py-3 text-left text-sm flex items-center gap-3 transition ${panelTab === 'portfolio_images' ? 'text-brand-green bg-brand-light font-medium border-r-2 border-brand-green' : 'text-gray-500 hover:bg-gray-50'}`}><ImageIcon size={18}/> จัดการรูปผลงาน</button>}
@@ -1349,31 +1424,39 @@
                         </div>
 
                         {/* Content */}
-                        <div className="flex-1 p-8 overflow-y-auto">
+                        <div className="flex-1 p-4 md:p-8 overflow-y-auto">
+                            {/* Mobile Sidebar Tabs */}
+                            <div className="md:hidden flex gap-2 overflow-x-auto pb-4 mb-4 scrollbar-hide">
+                                <button onClick={() => { setPanelTab('properties'); setIsEditing(false); }} className={`whitespace-nowrap px-4 py-2 text-sm flex items-center gap-2 rounded-full transition ${panelTab === 'properties' ? 'bg-brand-green text-white' : 'bg-white text-gray-600 border'}`}><Home size={14}/> จัดการบ้าน</button>
+                                {userRole === 'host' && <button onClick={() => setPanelTab('company')} className={`whitespace-nowrap px-4 py-2 text-sm flex items-center gap-2 rounded-full transition ${panelTab === 'company' ? 'bg-brand-green text-white' : 'bg-white text-gray-600 border'}`}><Briefcase size={14}/> ข้อมูลบริษัท</button>}
+                                {userRole === 'host' && <button onClick={() => setPanelTab('portfolio_images')} className={`whitespace-nowrap px-4 py-2 text-sm flex items-center gap-2 rounded-full transition ${panelTab === 'portfolio_images' ? 'bg-brand-green text-white' : 'bg-white text-gray-600 border'}`}><ImageIcon size={14}/> รูปผลงาน</button>}
+                                {userRole === 'host' && <button onClick={() => setPanelTab('users')} className={`whitespace-nowrap px-4 py-2 text-sm flex items-center gap-2 rounded-full transition ${panelTab === 'users' ? 'bg-brand-green text-white' : 'bg-white text-gray-600 border'}`}><Users size={14}/> ผู้ดูแลระบบ</button>}
+                            </div>
+
                             {/* Properties List */}
                             {panelTab === 'properties' && !isEditing && (
                                 <div className="max-w-6xl mx-auto">
-                                    <div className="flex justify-between items-center mb-8">
+                                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
                                         <h3 className="text-2xl font-light">รายการทรัพย์สิน</h3>
-                                        <div className="flex gap-3">
-                                            <input type="text" placeholder="ค้นหา..." className="input-modern py-2 w-64" value={searchTerm} onChange={e=>setSearchTerm(e.target.value)}/>
-                                            <button onClick={startNew} className="btn-primary"><Plus size={16}/> เพิ่มใหม่</button>
+                                        <div className="flex gap-3 w-full sm:w-auto">
+                                            <input type="text" placeholder="ค้นหา..." className="input-modern py-2 w-full sm:w-64" value={searchTerm} onChange={e=>setSearchTerm(e.target.value)}/>
+                                            <button onClick={startNew} className="btn-primary whitespace-nowrap"><Plus size={16}/> เพิ่มใหม่</button>
                                         </div>
                                     </div>
                                     <div className="grid grid-cols-1 gap-4">
                                         {filteredProperties.map(p => (
-                                            <div key={p.id} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex gap-4 items-center">
-                                                <div className="w-24 h-24 rounded-lg overflow-hidden relative bg-gray-100">
+                                            <div key={p.id} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col sm:flex-row gap-4 items-center">
+                                                <div className="w-full sm:w-24 h-40 sm:h-24 rounded-lg overflow-hidden relative bg-gray-100 flex-shrink-0">
                                                     <img src={p.images?.[0] || p.imageUrl} className="w-full h-full object-cover"/>
                                                 </div>
-                                                <div className="flex-1">
-                                                    <h4 className="font-medium">{p.project_name}</h4>
+                                                <div className="flex-1 w-full text-center sm:text-left">
+                                                    <h4 className="font-medium line-clamp-1">{p.project_name}</h4>
                                                     <p className="text-xs text-gray-500 mt-1">{p.category} • {p.subdistrict}</p>
                                                     <p className="font-medium text-brand-green mt-1">{Number(p.price).toLocaleString()} ฿</p>
                                                 </div>
-                                                <div className="flex gap-2">
-                                                    <button onClick={() => startEdit(p)} className="p-2 text-gray-400 hover:text-brand-green bg-gray-50 rounded-lg transition"><Edit size={18}/></button>
-                                                    <button onClick={() => handleDeleteProperty(p.id)} className="p-2 text-gray-400 hover:text-red-500 bg-gray-50 rounded-lg transition"><Trash2 size={18}/></button>
+                                                <div className="flex gap-2 w-full sm:w-auto justify-center">
+                                                    <button onClick={() => startEdit(p)} className="p-2 w-full sm:w-auto flex justify-center text-gray-400 hover:text-brand-green bg-gray-50 rounded-lg transition"><Edit size={18}/></button>
+                                                    <button onClick={() => handleDeleteProperty(p.id)} className="p-2 w-full sm:w-auto flex justify-center text-gray-400 hover:text-red-500 bg-gray-50 rounded-lg transition"><Trash2 size={18}/></button>
                                                 </div>
                                             </div>
                                         ))}
@@ -1383,65 +1466,63 @@
 
                             {/* Property Editor */}
                             {panelTab === 'properties' && isEditing && (
-                                <div className="max-w-6xl mx-auto">
-                                    <div className="flex justify-between mb-8 border-b pb-4">
+                                <div className="max-w-6xl mx-auto pb-10">
+                                    <div className="flex flex-col sm:flex-row justify-between gap-4 mb-8 border-b pb-4 sticky top-0 bg-gray-50 z-20 py-2">
                                         <h3 className="text-2xl font-light">{editData ? 'แก้ไขข้อมูล' : 'เพิ่มรายการใหม่'}</h3>
                                         <div className="flex gap-3">
-                                            <button onClick={()=>setIsEditing(false)} className="px-6 py-2 text-gray-500 hover:bg-gray-100 rounded-full transition">ยกเลิก</button>
-                                            <button onClick={handleSaveProperty} className="btn-primary">บันทึกข้อมูล</button>
+                                            <button onClick={()=>setIsEditing(false)} className="px-6 py-2 text-gray-500 hover:bg-gray-200 bg-white border rounded-full transition w-full sm:w-auto">ยกเลิก</button>
+                                            <button onClick={handleSaveProperty} className="btn-primary w-full sm:w-auto">บันทึกข้อมูล</button>
                                         </div>
                                     </div>
 
                                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                                         <div className="lg:col-span-2 space-y-6">
-                                            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                                                 <h4 className="font-medium mb-6 pb-2 border-b">ข้อมูลหลัก</h4>
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    <div className="col-span-2"><label className="label">ชื่อโครงการ</label><input className="input-modern" value={formData.project_name} onChange={e=>setFormData({...formData, project_name: e.target.value})}/></div>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                    <div className="sm:col-span-2"><label className="label">ชื่อโครงการ <span className="text-red-500">*</span></label><input className="input-modern" required value={formData.project_name} onChange={e=>setFormData({...formData, project_name: e.target.value})}/></div>
                                                     <div><label className="label">ประเภท</label><select className="input-modern" value={formData.category} onChange={e=>setFormData({...formData, category: e.target.value})}>{CATEGORIES.map(c=><option key={c} value={c}>{c}</option>)}</select></div>
-                                                    <div><label className="label">ราคา (บาท)</label><input type="number" className="input-modern font-medium text-brand-green" value={formData.price} onChange={e=>setFormData({...formData, price: e.target.value})}/></div>
-                                                    <div className="col-span-2">
+                                                    <div><label className="label">ราคา (บาท) <span className="text-red-500">*</span></label><input type="text" inputMode="numeric" required className="input-modern font-medium text-brand-green" value={formData.price} onChange={e=>setFormData({...formData, price: e.target.value.replace(/[^0-9]/g, '')})}/></div>
+                                                    <div className="sm:col-span-2">
                                                         <label className="label">ป้ายสถานะ (Badge)</label>
                                                         <select className="input-modern" value={formData.badge} onChange={e=>setFormData({...formData, badge: e.target.value})}>
                                                             {BADGES.map(b => <option key={b.value} value={b.value}>{b.label}</option>)}
                                                         </select>
                                                     </div>
-                                                    <div className="col-span-2"><label className="label">รายละเอียด (จุดเด่น)</label><textarea rows="4" className="input-modern" value={formData.highlights} onChange={e=>setFormData({...formData, highlights: e.target.value})}/></div>
-                                                    <div className="col-span-2"><label className="label">ลิงก์ YouTube</label><input className="input-modern" value={formData.youtubeUrl} onChange={e=>setFormData({...formData, youtubeUrl: e.target.value})}/></div>
+                                                    <div className="sm:col-span-2"><label className="label">รายละเอียด (จุดเด่น)</label><textarea rows="4" className="input-modern" value={formData.highlights} onChange={e=>setFormData({...formData, highlights: e.target.value})}/></div>
+                                                    <div className="sm:col-span-2"><label className="label">ลิงก์ YouTube (Optional)</label><input className="input-modern" placeholder="https://youtube.com/..." value={formData.youtubeUrl} onChange={e=>setFormData({...formData, youtubeUrl: e.target.value})}/></div>
                                                 </div>
                                             </div>
 
-                                            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                                                 <h4 className="font-medium mb-6 pb-2 border-b">รายละเอียด</h4>
-                                                <div className="grid grid-cols-3 gap-4">
-                                                    {/* เพิ่ม บ้านเลขที่ และ ซอย ไว้ลำดับแรกสุดในหัวข้อรายละเอียด */}
-                                                    <div className="col-span-1"><label className="label">บ้านเลขที่</label><input className="input-modern" value={formData.house_number} onChange={e=>setFormData({...formData, house_number: e.target.value})}/></div>
-                                                    <div className="col-span-2"><label className="label">ซอย</label><input className="input-modern" value={formData.soi} onChange={e=>setFormData({...formData, soi: e.target.value})}/></div>
+                                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                                                    <div className="col-span-2 sm:col-span-1"><label className="label">บ้านเลขที่</label><input className="input-modern" value={formData.house_number} onChange={e=>setFormData({...formData, house_number: e.target.value})}/></div>
+                                                    <div className="col-span-2 sm:col-span-2"><label className="label">ซอย</label><input className="input-modern" value={formData.soi} onChange={e=>setFormData({...formData, soi: e.target.value})}/></div>
                                                     
-                                                    <div className="col-span-1"><label className="label">ห้องนอน</label><input type="number" className="input-modern" value={formData.bedrooms} onChange={e=>setFormData({...formData, bedrooms: e.target.value})}/></div>
-                                                    <div className="col-span-1"><label className="label">ห้องน้ำ</label><input type="number" className="input-modern" value={formData.bathrooms} onChange={e=>setFormData({...formData, bathrooms: e.target.value})}/></div>
-                                                    <div className="col-span-1"><label className="label">จอดรถ</label><input className="input-modern" value={formData.parking} onChange={e=>setFormData({...formData, parking: e.target.value})}/></div>
-                                                    <div className="col-span-1"><label className="label">ตร.ว.</label><input type="number" className="input-modern" value={formData.area_wah} onChange={e=>setFormData({...formData, area_wah: e.target.value})}/></div>
-                                                    <div className="col-span-1"><label className="label">ตร.ม.</label><input type="number" className="input-modern" value={formData.area_sqm} onChange={e=>setFormData({...formData, area_sqm: e.target.value})}/></div>
-                                                    <div className="col-span-1"><label className="label">จำนวนชั้น</label><input type="number" className="input-modern" value={formData.floors} onChange={e=>setFormData({...formData, floors: e.target.value})}/></div>
-                                                    <div className="col-span-1"><label className="label">ทิศ</label><select className="input-modern" value={formData.direction} onChange={e=>setFormData({...formData, direction: e.target.value})}><option value="">- เลือก -</option>{DIRECTIONS.map(d=><option key={d}>{d}</option>)}</select></div>
+                                                    <div><label className="label">ห้องนอน</label><input type="text" inputMode="numeric" className="input-modern" value={formData.bedrooms} onChange={e=>setFormData({...formData, bedrooms: e.target.value.replace(/[^0-9]/g, '')})}/></div>
+                                                    <div><label className="label">ห้องน้ำ</label><input type="text" inputMode="numeric" className="input-modern" value={formData.bathrooms} onChange={e=>setFormData({...formData, bathrooms: e.target.value.replace(/[^0-9]/g, '')})}/></div>
+                                                    <div><label className="label">จอดรถ</label><input type="text" inputMode="numeric" className="input-modern" value={formData.parking} onChange={e=>setFormData({...formData, parking: e.target.value.replace(/[^0-9]/g, '')})}/></div>
+                                                    <div><label className="label">ตร.ว.</label><input type="text" inputMode="numeric" className="input-modern" value={formData.area_wah} onChange={e=>setFormData({...formData, area_wah: e.target.value.replace(/[^0-9.]/g, '')})}/></div>
+                                                    <div><label className="label">ตร.ม.</label><input type="text" inputMode="numeric" className="input-modern" value={formData.area_sqm} onChange={e=>setFormData({...formData, area_sqm: e.target.value.replace(/[^0-9.]/g, '')})}/></div>
+                                                    <div><label className="label">จำนวนชั้น</label><input type="text" inputMode="numeric" className="input-modern" value={formData.floors} onChange={e=>setFormData({...formData, floors: e.target.value.replace(/[^0-9]/g, '')})}/></div>
+                                                    <div className="col-span-2 sm:col-span-3"><label className="label">ทิศ</label><select className="input-modern" value={formData.direction} onChange={e=>setFormData({...formData, direction: e.target.value})}><option value="">- เลือก -</option>{DIRECTIONS.map(d=><option key={d}>{d}</option>)}</select></div>
                                                 </div>
                                             </div>
 
-                                            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-                                                <h4 className="font-medium mb-6 pb-2 border-b">ที่ตั้ง</h4>
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    <div className="col-span-2"><label className="label">รหัสไปรษณีย์</label><input className="input-modern" value={formData.zipcode} onChange={handleZipcodeChange}/></div>
+                                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                                                <h4 className="font-medium mb-6 pb-2 border-b">ที่ตั้ง (สำหรับแสดงในแผนที่)</h4>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                    <div className="sm:col-span-2"><label className="label">รหัสไปรษณีย์</label><input type="text" inputMode="numeric" className="input-modern" value={formData.zipcode} onChange={handleZipcodeChange}/></div>
                                                     {addressOptions.length > 1 && (
-                                                        <div className="col-span-2">
+                                                        <div className="sm:col-span-2">
                                                             <label className="label text-brand-green">เลือกตำบล/แขวง</label>
                                                             <select className="input-modern" onChange={handleAddressSelect} defaultValue=""><option value="" disabled>- เลือก -</option>{addressOptions.map((opt, idx)=><option key={idx} value={idx}>{opt.subdistrict} - {opt.district}</option>)}</select>
                                                         </div>
                                                     )}
                                                     <div><label className="label">ตำบล</label><input className="input-modern bg-gray-50" readOnly value={formData.subdistrict}/></div>
                                                     <div><label className="label">อำเภอ</label><input className="input-modern bg-gray-50" readOnly value={formData.district}/></div>
-                                                    <div className="col-span-2"><label className="label">จังหวัด</label><input className="input-modern bg-gray-50" readOnly value={formData.province}/></div>
-                                                    {/* เปลี่ยน Type ตรงนี้ให้เป็น Text เพื่อป้องกันการโดนปัดเศษ */}
+                                                    <div className="sm:col-span-2"><label className="label">จังหวัด</label><input className="input-modern bg-gray-50" readOnly value={formData.province}/></div>
                                                     <div><label className="label">ละติจูด (Lat)</label><input type="text" className="input-modern" value={formData.lat} onChange={e=>setFormData({...formData, lat: e.target.value})}/></div>
                                                     <div><label className="label">ลองจิจูด (Lng)</label><input type="text" className="input-modern" value={formData.lng} onChange={e=>setFormData({...formData, lng: e.target.value})}/></div>
                                                 </div>
@@ -1449,13 +1530,13 @@
                                         </div>
 
                                         <div className="space-y-6">
-                                            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                                                 <h4 className="font-medium mb-6 pb-2 border-b">รูปภาพ</h4>
                                                 <div className="grid grid-cols-3 gap-2 mb-4">
                                                     {imagesPreview.map((img, i) => (
                                                         <div key={i} className="aspect-square bg-gray-100 rounded-lg relative group overflow-hidden">
                                                             <img src={img} className="w-full h-full object-cover"/>
-                                                            <button type="button" onClick={()=>removeImage(i)} className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100"><X size={12}/></button>
+                                                            <button type="button" onClick={()=>removeImage(i)} className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-100 md:opacity-0 md:group-hover:opacity-100 transition"><X size={12}/></button>
                                                         </div>
                                                     ))}
                                                     
@@ -1475,7 +1556,7 @@
                                                 </div>
                                             </div>
 
-                                            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                                                 <h4 className="font-medium mb-6 pb-2 border-b">สิ่งอำนวยความสะดวก</h4>
                                                 <select className="input-modern mb-3" value="" onChange={handleFacilityChange}><option value="">- เลือกจากรายการ -</option>{COMMON_FACILITIES.map(f=><option key={f}>{f}</option>)}</select>
                                                 <div className="flex gap-2 mb-4">
@@ -1495,34 +1576,34 @@
 
                             {/* Company Tab */}
                             {panelTab === 'company' && (
-                                <div className="max-w-3xl mx-auto bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                                <div className="max-w-3xl mx-auto bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100">
                                     <h3 className="text-2xl font-light mb-8 pb-4 border-b">ข้อมูลบริษัท</h3>
                                     <form onSubmit={handleSaveCompany} className="space-y-6">
-                                        <div className="flex gap-6 items-center">
-                                            <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-100 relative group">
+                                        <div className="flex flex-col sm:flex-row gap-6 items-center sm:items-start">
+                                            <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-100 relative group flex-shrink-0">
                                                 {isUploadingLogo ? (
                                                     <div className="absolute inset-0 flex items-center justify-center bg-gray-200"><Loader className="animate-spin text-brand-green" size={24} /></div>
                                                 ) : (
                                                     <>
                                                         <img src={companyForm.logoUrl} className="w-full h-full object-cover"/>
-                                                        <label className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white opacity-0 group-hover:opacity-100 cursor-pointer text-xs w-full h-full transition">
+                                                        <label className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white opacity-100 sm:opacity-0 sm:group-hover:opacity-100 cursor-pointer text-xs w-full h-full transition">
                                                             <Upload size={16}/>เปลี่ยน
                                                             <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
                                                         </label>
                                                     </>
                                                 )}
                                             </div>
-                                            <div className="flex-1"><label className="label">ชื่อแบรนด์ / บริษัท</label><input className="input-modern" value={companyForm.name} onChange={e=>setCompanyForm({...companyForm, name: e.target.value})}/></div>
+                                            <div className="flex-1 w-full"><label className="label">ชื่อแบรนด์ / บริษัท</label><input className="input-modern" value={companyForm.name} onChange={e=>setCompanyForm({...companyForm, name: e.target.value})}/></div>
                                         </div>
-                                        <div><label className="label">ที่อยู่</label><textarea className="input-modern" rows="2" value={companyForm.address} onChange={e=>setCompanyForm({...companyForm, address: e.target.value})}/></div>
-                                        <div className="grid grid-cols-2 gap-4">
+                                        <div><label className="label">ที่อยู่</label><textarea className="input-modern" rows="3" value={companyForm.address} onChange={e=>setCompanyForm({...companyForm, address: e.target.value})}/></div>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             <div><label className="label">เบอร์โทร</label><input className="input-modern" value={companyForm.phone} onChange={e=>setCompanyForm({...companyForm, phone: e.target.value})}/></div>
                                             <div><label className="label">Email</label><input className="input-modern" value={companyForm.email} onChange={e=>setCompanyForm({...companyForm, email: e.target.value})}/></div>
                                             <div><label className="label">Line URL</label><input className="input-modern" value={companyForm.line} onChange={e=>setCompanyForm({...companyForm, line: e.target.value})}/></div>
                                             <div><label className="label">Facebook URL</label><input className="input-modern" value={companyForm.facebook} onChange={e=>setCompanyForm({...companyForm, facebook: e.target.value})}/></div>
                                         </div>
                                         <div><label className="label">สโลแกน / คำโปรย</label><input className="input-modern" value={companyForm.description} onChange={e=>setCompanyForm({...companyForm, description: e.target.value})}/></div>
-                                        <div className="text-right pt-4"><button className="btn-primary">บันทึกข้อมูล</button></div>
+                                        <div className="text-right pt-4"><button className="btn-primary w-full sm:w-auto">บันทึกข้อมูล</button></div>
                                     </form>
                                 </div>
                             )}
@@ -1530,37 +1611,42 @@
                             {/* Portfolio Images Tab */}
                             {panelTab === 'portfolio_images' && (
                                 <div className="max-w-5xl mx-auto">
-                                    <div className="flex justify-between items-center mb-8 border-b pb-4">
+                                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 border-b pb-4">
                                         <h3 className="text-2xl font-light">จัดการรูปผลงาน</h3>
-                                        <button onClick={handleSavePortfolio} className="btn-primary">บันทึกทั้งหมด</button>
+                                        <button onClick={handleSavePortfolio} className="btn-primary w-full sm:w-auto">บันทึกทั้งหมด</button>
                                     </div>
-                                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-8 flex gap-4 items-end">
-                                        <div><label className="label">สร้างหมวดหมู่ปี</label><input type="number" className="input-modern w-48" value={newPortfolioYear} onChange={e=>setNewPortfolioYear(e.target.value)}/></div>
-                                        <button onClick={handleAddYear} className="px-6 py-2.5 bg-gray-800 text-white rounded-lg">สร้าง</button>
+                                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-8 flex flex-col sm:flex-row gap-4 items-end">
+                                        <div className="w-full sm:w-auto"><label className="label">สร้างหมวดหมู่ปี (ค.ศ. หรือ พ.ศ.)</label><input type="number" className="input-modern w-full sm:w-48" value={newPortfolioYear} onChange={e=>setNewPortfolioYear(e.target.value)}/></div>
+                                        <button onClick={handleAddYear} className="px-6 py-2.5 bg-gray-800 text-white rounded-lg w-full sm:w-auto">สร้างโฟลเดอร์</button>
                                     </div>
                                     <div className="space-y-6">
                                         {companyForm.portfolio_years?.sort((a,b)=>b.year-a.year).map((yg, idx) => (
                                             <div key={yg.year} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                                                 <div className="flex justify-between items-center mb-6">
-                                                    <h4 className="text-lg font-medium">ปี {yg.year}</h4>
-                                                    <button onClick={()=>handleDeleteYear(yg.year)} className="text-sm text-red-500 hover:underline">ลบปีนี้</button>
+                                                    <h4 className="text-lg font-medium">ผลงานปี {yg.year}</h4>
+                                                    <button onClick={()=>handleDeleteYear(yg.year)} className="text-sm text-red-500 hover:underline">ลบหมวดหมู่นี้</button>
                                                 </div>
                                                 <div className="mb-4 relative">
-                                                    <label className={`inline-flex items-center gap-2 px-4 py-2 bg-gray-50 border rounded-lg text-sm transition ${isUploadingPortfolio.state && isUploadingPortfolio.index === idx ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100 cursor-pointer'}`}>
+                                                    <label className={`inline-flex items-center justify-center sm:justify-start w-full sm:w-auto gap-2 px-4 py-2 bg-gray-50 border rounded-lg text-sm transition ${isUploadingPortfolio.state && isUploadingPortfolio.index === idx ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100 cursor-pointer'}`}>
                                                         {isUploadingPortfolio.state && isUploadingPortfolio.index === idx ? (
                                                             <><Loader size={16} className="animate-spin" /> กำลังอัปโหลด...</>
                                                         ) : (
-                                                            <><Upload size={16}/> เลือกรูปภาพ<input type="file" multiple accept="image/*" className="hidden" onChange={(e) => handlePortfolioUpload(e, idx)} /></>
+                                                            <><Upload size={16}/> เลือกรูปภาพ (เลือกได้หลายรูป)<input type="file" multiple accept="image/*" className="hidden" onChange={(e) => handlePortfolioUpload(e, idx)} /></>
                                                         )}
                                                     </label>
                                                 </div>
-                                                <div className="grid grid-cols-5 gap-4">
-                                                    {yg.images.map((img, i) => (
-                                                        <div key={i} className="aspect-square bg-gray-100 rounded-lg relative group overflow-hidden">
-                                                            <img src={img} className="w-full h-full object-cover"/><button onClick={()=>removePortfolioImageInYear(idx, i)} className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100"><X size={12}/></button>
-                                                        </div>
-                                                    ))}
-                                                </div>
+                                                {yg.images && yg.images.length > 0 ? (
+                                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                                                        {yg.images.map((img, i) => (
+                                                            <div key={i} className="aspect-square bg-gray-100 rounded-lg relative group overflow-hidden border">
+                                                                <img src={img} className="w-full h-full object-cover"/>
+                                                                <button onClick={()=>removePortfolioImageInYear(idx, i)} className="absolute top-1 right-1 bg-red-500 text-white p-1.5 rounded-full opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition"><X size={14}/></button>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <p className="text-sm text-gray-400 text-center py-8 bg-gray-50 rounded-lg border border-dashed">ยังไม่มีรูปภาพในหมวดหมู่นี้</p>
+                                                )}
                                             </div>
                                         ))}
                                     </div>
@@ -1569,32 +1655,35 @@
 
                             {/* Users Tab */}
                             {panelTab === 'users' && (
-                                <div className="max-w-4xl mx-auto bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                                <div className="max-w-4xl mx-auto bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100">
                                     <h3 className="text-2xl font-light mb-8 border-b pb-4">จัดการผู้ดูแลระบบ</h3>
-                                    <form onSubmit={handleAddUser} className="flex gap-4 items-end mb-8 bg-gray-50 p-6 rounded-xl">
-                                        <div className="flex-1"><label className="label">อีเมล</label><input type="email" required className="input-modern" value={inviteEmail} onChange={e=>setInviteEmail(e.target.value)}/></div>
-                                        <div className="flex-1"><label className="label">รหัสผ่าน (ชั่วคราว)</label><input type="text" required minLength={6} className="input-modern" value={invitePassword} onChange={e=>setPassword(e.target.value)}/></div>
-                                        <div className="w-32"><label className="label">สิทธิ์</label><select className="input-modern" value={inviteRole} onChange={e=>setInviteRole(e.target.value)}><option value="admin">Admin</option><option value="host">Host</option></select></div>
-                                        <button type="submit" className="btn-primary py-2.5">เพิ่ม</button>
+                                    <form onSubmit={handleAddUser} className="flex flex-col md:flex-row gap-4 items-start md:items-end mb-8 bg-gray-50 p-6 rounded-xl">
+                                        <div className="w-full md:flex-1"><label className="label">อีเมล</label><input type="email" required className="input-modern" value={inviteEmail} onChange={e=>setInviteEmail(e.target.value)}/></div>
+                                        <div className="w-full md:flex-1"><label className="label">รหัสผ่าน (ชั่วคราว)</label><input type="text" required minLength={6} className="input-modern" value={invitePassword} onChange={e=>setPassword(e.target.value)}/></div>
+                                        <div className="w-full md:w-32"><label className="label">สิทธิ์</label><select className="input-modern" value={inviteRole} onChange={e=>setInviteRole(e.target.value)}><option value="admin">Admin</option><option value="host">Host</option></select></div>
+                                        <button type="submit" className="btn-primary py-2.5 w-full md:w-auto">เพิ่มผู้ใช้</button>
                                     </form>
-                                    <table className="w-full text-left">
-                                        <thead className="bg-gray-50 text-gray-500 text-sm"><tr><th className="p-4 font-normal">อีเมล</th><th className="p-4 font-normal">สถานะ</th><th className="p-4 text-right font-normal">จัดการ</th></tr></thead>
-                                        <tbody className="divide-y divide-gray-100 text-sm">
-                                            {users.map(u => (
-                                                <tr key={u.id}>
-                                                    <td className="p-4">{u.email}</td>
-                                                    <td className="p-4">
-                                                        {u.role === 'pending' || !u.role ? (
-                                                            <div className="flex gap-2 items-center"><span className="text-yellow-600 bg-yellow-50 px-2 py-1 rounded">รออนุมัติ</span><button onClick={()=>handleApproveUser(u.id, 'admin', u.email)} className="text-brand-green hover:underline">อนุมัติ Admin</button></div>
-                                                        ) : (
-                                                            <select value={u.role} onChange={e=>handleUpdateRole(u.id, e.target.value)} disabled={u.email===HOST_EMAIL} className={`p-1.5 border rounded outline-none ${u.role==='admin'?'bg-blue-50 text-blue-700':'bg-brand-light text-brand-green'}`}><option value="admin">Admin</option><option value="host">Host</option><option value="pending">ระงับ</option></select>
-                                                        )}
-                                                    </td>
-                                                    <td className="p-4 text-right">{u.email !== HOST_EMAIL && <button onClick={()=>handleRemoveUser(u.id)} className="text-red-500 hover:underline">ลบ</button>}</td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-left min-w-[500px]">
+                                            <thead className="bg-gray-50 text-gray-500 text-sm"><tr><th className="p-4 font-normal">อีเมล</th><th className="p-4 font-normal">สถานะ/สิทธิ์</th><th className="p-4 text-right font-normal">จัดการ</th></tr></thead>
+                                            <tbody className="divide-y divide-gray-100 text-sm">
+                                                {users.map(u => (
+                                                    <tr key={u.id}>
+                                                        <td className="p-4">{u.email}</td>
+                                                        <td className="p-4">
+                                                            {u.role === 'pending' || !u.role ? (
+                                                                <div className="flex gap-2 items-center"><span className="text-yellow-600 bg-yellow-50 px-2 py-1 rounded text-xs">รออนุมัติ</span><button onClick={()=>handleApproveUser(u.id, 'admin', u.email)} className="text-brand-green hover:underline">อนุมัติ Admin</button></div>
+                                                            ) : (
+                                                                <select value={u.role} onChange={e=>handleUpdateRole(u.id, e.target.value)} disabled={u.email===HOST_EMAIL} className={`p-1.5 border rounded outline-none text-xs ${u.role==='admin'?'bg-blue-50 text-blue-700 border-blue-200':'bg-brand-light text-brand-green border-brand-green/20'}`}><option value="admin">Admin</option><option value="host">Host</option><option value="pending">ระงับสิทธิ์</option></select>
+                                                            )}
+                                                        </td>
+                                                        <td className="p-4 text-right">{u.email !== HOST_EMAIL && <button onClick={()=>handleRemoveUser(u.id)} className="text-red-500 hover:bg-red-50 px-3 py-1 rounded transition">ลบ</button>}</td>
+                                                    </tr>
+                                                ))}
+                                                {users.length === 0 && <tr><td colSpan="3" className="text-center p-8 text-gray-400">ไม่พบข้อมูลผู้ดูแลระบบ</td></tr>}
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             )}
                         </div>

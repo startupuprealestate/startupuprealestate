@@ -1,14 +1,13 @@
 export default async function handler(req, res) {
   const { property } = req.query;
 
-  // 1. ข้อมูลเริ่มต้น (กรณีหาบ้านไม่เจอ หรือลิงก์ปกติ)
+  // 1. ข้อมูลเริ่มต้น (ใช้โลโก้แบรนด์ STARTUP UP)
   let title = "STARTUP UP - จุดเริ่มต้นของคนอยากมีบ้าน";
   let desc = "ค้นหาบ้าน ทาวน์เฮาส์ บ้านเดี่ยว ทำเลดี พร้อมบริการสินเชื่อ";
-  let image = "https://drive.google.com/uc?export=view&id=1_CeuqQ7b0UgssGmBp_IqP_i1Og16UAXn"; // รูปโลโก้หลักของคุณ
+  let image = "https://drive.google.com/uc?export=view&id=1_CeuqQ7b0UgssGmBp_IqP_i1Og16UAXn"; 
 
   if (property) {
     try {
-      // 2. ดึงข้อมูลจาก Firestore ผ่าน REST API (ไม่ต้องใช้ Firebase SDK)
       const projectId = "startup-up-realestate";
       const collectionPath = "artifacts/startup-up-realestate/public/data/properties";
       const dbUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/${collectionPath}`;
@@ -16,33 +15,37 @@ export default async function handler(req, res) {
       const response = await fetch(dbUrl);
       const result = await response.json();
 
-      // 3. ค้นหาเอกสารที่มี house_number ตรงกับค่า property ใน URL
+      // 3. ค้นหาเอกสารที่มี house_number ตรงกับค่า property
       const doc = result.documents?.find(d => {
         const fields = d.fields;
-        // เทียบค่า house_number (ในฐานข้อมูลคุณเก็บเป็น String)
         return fields.house_number?.stringValue === property;
       });
 
       if (doc) {
         const f = doc.fields;
-        const projectName = f.project_name?.stringValue || "บ้านสวยทำเลดี";
+        const projectName = f.project_name?.stringValue || "บ้านสวยคัดสรรมาแล้ว";
         const price = Number(f.price?.integerValue || f.price?.doubleValue || 0).toLocaleString();
         const subdistrict = f.subdistrict?.stringValue || "";
         const category = f.category?.stringValue || "บ้าน";
 
-        // ปรับแต่ง Title และ Description ให้สวยงาม
-        title = `${projectName} (บ้านเลขที่ ${property}) | STARTUP UP`;
-        desc = `${category} ทำเล ${subdistrict} ราคาเพียง ${price} บาท - จุดเริ่มต้นของคนอยากมีบ้าน`;
+        title = `${projectName} | STARTUP UP`;
+        desc = `บ้านเลขที่ ${property} ทำเล ${subdistrict} ราคาเพียง ${price} บาท - จุดเริ่มต้นของคนอยากมีบ้าน`;
         
-        // ดึงรูปภาพแรกจาก Array 'images' หรือรูปจาก 'imageUrl'
-        image = f.images?.arrayValue?.values?.[0]?.stringValue || f.imageUrl?.stringValue || image;
+        // --- จุดที่ปรับปรุง: การดึงรูปภาพแบบละเอียด ---
+        if (f.images && f.images.arrayValue && f.images.arrayValue.values) {
+          // กรณีมีหลายรูป ให้เอารูปแรก
+          image = f.images.arrayValue.values[0].stringValue;
+        } else if (f.imageUrl && f.imageUrl.stringValue) {
+          // กรณีมีรูปเดียวในช่อง imageUrl
+          image = f.imageUrl.stringValue;
+        }
       }
     } catch (error) {
       console.error("Error fetching Firestore:", error);
     }
   }
 
-  // 4. พ่น HTML พิเศษออกไปให้ Bot (Facebook/Line) อ่าน Meta Tags
+  // 4. แสดงผล Meta Tags สำหรับ Social Media
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.send(`
     <!DOCTYPE html>
@@ -58,11 +61,14 @@ export default async function handler(req, res) {
       <meta name="twitter:card" content="summary_large_image">
       
       <script>
+        // ส่งคนไปยังหน้าเว็บหลักของคุณ
         window.location.href = "/?property=${encodeURIComponent(property)}";
       </script>
     </head>
-    <body style="font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0;">
-      <p>กำลังพาท่านไปที่หน้าโครงการ...</p>
+    <body style="font-family: 'Prompt', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; background-color: #f8faf9; color: #0b3d1b;">
+      <div style="text-align: center;">
+        <p>กำลังพาคุณไปชมโครงการ ${property}...</p>
+      </div>
     </body>
     </html>
   `);

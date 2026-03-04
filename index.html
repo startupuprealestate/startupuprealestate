@@ -350,6 +350,77 @@
           const [showLoginModal, setShowLoginModal] = useState(false);
           const [showAdminPanel, setShowAdminPanel] = useState(false);
 
+          // --- URL Routing Logic ---
+          const [requestedPropId, setRequestedPropId] = useState(null);
+
+          // 1. Read URL on mount & popstate
+          useEffect(() => {
+              const syncFromUrl = () => {
+                  try {
+                      const params = new URLSearchParams(window.location.search);
+                      const tab = params.get('tab') || 'home';
+                      const propId = params.get('property');
+                      const sType = params.get('sType');
+                      const sValue = params.get('sValue');
+
+                      setActiveTab(tab);
+                      if (sType && sValue) {
+                          setSearchParams({ type: sType, value: sValue });
+                      }
+                      if (propId) {
+                          setRequestedPropId(propId);
+                      } else {
+                          setSelectedProperty(null);
+                      }
+                  } catch (e) {
+                      console.warn("Cannot read URL parameters in this environment.");
+                  }
+              };
+
+              syncFromUrl();
+              window.addEventListener('popstate', syncFromUrl);
+              return () => window.removeEventListener('popstate', syncFromUrl);
+          }, []);
+
+          // 2. Select property when properties data is ready
+          useEffect(() => {
+              if (requestedPropId && properties.length > 0) {
+                  const prop = properties.find(p => p.id === requestedPropId);
+                  if (prop) {
+                      setSelectedProperty(prop);
+                      setRequestedPropId(null);
+                  }
+              }
+          }, [requestedPropId, properties]);
+
+          // 3. Update URL when state changes
+          useEffect(() => {
+              const params = new URLSearchParams();
+              if (activeTab !== 'home') params.set('tab', activeTab);
+              if (selectedProperty) params.set('property', selectedProperty.id);
+              if (activeTab === 'search_result' && searchParams.value) {
+                  params.set('sType', searchParams.type);
+                  params.set('sValue', searchParams.value);
+              }
+              
+              const queryString = params.toString() ? `?${params.toString()}` : '';
+              
+              try {
+                  const currentUrl = window.location.pathname + window.location.search;
+                  const newUrl = window.location.pathname + queryString;
+
+                  if (currentUrl !== newUrl && !requestedPropId) {
+                      // ดักจับ Error สำหรับกรณีรันใน iframe / blob (Preview mode)
+                      window.history.pushState({}, '', newUrl);
+                  }
+              } catch (e) {
+                  // ปล่อยผ่านไปเงียบๆ เพื่อไม่ให้เว็บพังในหน้า Preview
+                  // เมื่อไปอยู่บน Server จริง URL จะเปลี่ยนตามปกติ
+                  console.warn("URL routing is disabled in this preview environment, but will work when deployed.");
+              }
+          }, [activeTab, selectedProperty, searchParams, requestedPropId]);
+
+
           // ป้องกันการ Scroll แล้วตัวเลขเปลี่ยนในช่อง input number ในทุกๆ หน้า
           useEffect(() => {
               const handleWheel = (e) => {

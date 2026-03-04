@@ -8,8 +8,7 @@
     <!-- Meta Tags สำหรับ Social Share ค่าเริ่มต้น -->
     <meta property="og:title" content="STARTUP UP - จุดเริ่มต้นของคนอยากมีบ้าน" />
     <meta property="og:description" content="จุดเริ่มต้นของคนอยากมีบ้าน ค้นหาบ้าน ทาวน์เฮาส์ บ้านเดี่ยว ทำเลดี" />
-    <!-- อัปเดตเป็นโลโก้ใหม่เป็นค่าเริ่มต้น แปลงเป็น Direct Link ให้ดึงรูปได้ -->
-    <meta property="og:image" content="https://drive.google.com/uc?export=view&id=1_CeuqQ7b0UgssGmBp_IqP_i1Og16UAXn" />
+    <meta property="og:image" content="https://res.cloudinary.com/dm2wr55r5/image/upload/v1772615014/LOGO_%E0%B9%80%E0%B8%82%E0%B8%B5%E0%B8%A2%E0%B8%A7%E0%B8%AB%E0%B8%A5%E0%B8%B1%E0%B8%87%E0%B8%82%E0%B8%B2%E0%B8%A7_zhoefm.jpg" />
     <meta property="og:type" content="website" />
     
     <!-- Tailwind CSS -->
@@ -249,7 +248,7 @@
           line: 'https://line.me/R/ti/p/@SURE141',
           facebook: 'https://www.facebook.com/startupuprealestate/',
           description: 'จุดเริ่มต้นของคนอยากมีบ้าน',
-          logoUrl: 'https://res.cloudinary.com/dm2wr55r5/image/upload/v1772615014/LOGO_%E0%B9%80%E0%B8%82%E0%B8%B5%E0%B8%A2%E0%B8%A7%E0%B8%AB%E0%B8%A5%E0%B8%B1%E0%B8%87%E0%B8%82%E0%B8%B2%E0%B8%A7_zhoefm.jpg',
+          logoUrl: 'https://lh3.googleusercontent.com/d/1EEAbI2a89rG4ii0Um0cfWdXLtcb6I_RU',
           portfolio_years: []
         };
 
@@ -439,7 +438,7 @@
           useEffect(() => {
               let title = companyInfo?.name || 'STARTUP UP - จุดเริ่มต้นของคนอยากมีบ้าน';
               // ใช้โลโก้เป็น Default
-              let ogImage = companyInfo?.logoUrl || 'https://drive.google.com/uc?export=view&id=1_CeuqQ7b0UgssGmBp_IqP_i1Og16UAXn';
+              let ogImage = companyInfo?.logoUrl || 'https://res.cloudinary.com/dm2wr55r5/image/upload/v1772615014/LOGO_%E0%B9%80%E0%B8%82%E0%B8%B5%E0%B8%A2%E0%B8%A7%E0%B8%AB%E0%B8%A5%E0%B8%B1%E0%B8%87%E0%B8%82%E0%B8%B2%E0%B8%A7_zhoefm.jpg';
 
               if (selectedProperty) {
                   const propName = selectedProperty.project_name || '';
@@ -1800,7 +1799,6 @@
                                                         <label className="label">บ้านเลขที่</label>
                                                         <input className="input-modern" value={formData.house_number} onChange={e=>{ 
                                                             const val = e.target.value; 
-                                                            // เปลี่ยน / เป็น - อัตโนมัติเมื่อพิมพ์บ้านเลขที่
                                                             setFormData({...formData, house_number: val, custom_id: val.replace(/\//g, '-').replace(/\s+/g, '')}); 
                                                         }}/>
                                                     </div>

@@ -373,6 +373,7 @@
           useEffect(() => {
               const syncFromUrl = () => {
                   try {
+                      // ดักจับทั้งแบบ /?property=... และ /api/share?property=...
                       const params = new URLSearchParams(window.location.search);
                       const tab = params.get('tab') || 'home';
                       const propSlug = params.get('property');
@@ -414,8 +415,19 @@
           // 3. Update URL when state changes
           useEffect(() => {
               const params = new URLSearchParams();
+              let targetPath = window.location.pathname; // ค่าเริ่มต้นคือ path ปัจจุบัน
+
               if (activeTab !== 'home') params.set('tab', activeTab);
-              if (selectedProperty) params.set('property', generatePropSlug(selectedProperty));
+              
+              if (selectedProperty) {
+                  params.set('property', generatePropSlug(selectedProperty));
+                  // *** จุดสำคัญ: ถ้าเลือกบ้าน ให้บังคับ Path เป็น /api/share เลย ***
+                  targetPath = '/api/share'; 
+              } else {
+                  // ถ้าไม่ได้เลือกบ้าน (อยู่หน้าหลัก หรือหน้าอื่นๆ) ให้กลับไปใช้ / ปกติ
+                  targetPath = '/';
+              }
+
               if (activeTab === 'search_result' && searchParams.value) {
                   params.set('sType', searchParams.type);
                   params.set('sValue', searchParams.value);
@@ -425,7 +437,7 @@
               
               try {
                   const currentUrl = window.location.pathname + window.location.search;
-                  const newUrl = window.location.pathname + queryString;
+                  const newUrl = targetPath + queryString;
 
                   if (currentUrl !== newUrl && !requestedPropSlug) {
                       window.history.pushState({}, '', newUrl);

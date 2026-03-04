@@ -5,9 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>STARTUP UP - จุดเริ่มต้นของคนอยากมีบ้าน</title>
     
-    <!-- Meta Tags สำหรับ Social Share ค่าเริ่มต้น (จะถูกเปลี่ยนด้วย JS อีกครั้ง) -->
+    <!-- Meta Tags สำหรับ Social Share ค่าเริ่มต้น -->
     <meta property="og:title" content="STARTUP UP - จุดเริ่มต้นของคนอยากมีบ้าน" />
     <meta property="og:description" content="จุดเริ่มต้นของคนอยากมีบ้าน ค้นหาบ้าน ทาวน์เฮาส์ บ้านเดี่ยว ทำเลดี" />
+    <!-- อัปเดตเป็นโลโก้ใหม่เป็นค่าเริ่มต้น -->
     <meta property="og:image" content="https://lh3.googleusercontent.com/d/1EEAbI2a89rG4ii0Um0cfWdXLtcb6I_RU" />
     <meta property="og:type" content="website" />
     
@@ -301,6 +302,17 @@
                        .replace(/0/g, 'ศูนย์').replace(/\s+/g, '');
         };
 
+        // ฟังก์ชันสร้าง Slug จากชื่อโครงการและบ้านเลขที่สำหรับ URL
+        const generatePropSlug = (p) => {
+            if (!p) return '';
+            let slug = p.project_name || 'house';
+            if (p.house_number) {
+                slug += `-${p.house_number}`;
+            }
+            // แทนที่ช่องว่างด้วยเครื่องหมายขีดกลาง และเข้ารหัส URL
+            return encodeURIComponent(slug.replace(/\s+/g, '-'));
+        };
+
         // --- Hero Section (แทนที่ IntroOverlay แบบเดิม) ---
         function HeroSection({ onSearch }) {
             const [query, setQuery] = useState('');
@@ -357,7 +369,7 @@
           const [showAdminPanel, setShowAdminPanel] = useState(false);
 
           // --- URL Routing Logic ---
-          const [requestedPropId, setRequestedPropId] = useState(null);
+          const [requestedPropSlug, setRequestedPropSlug] = useState(null);
 
           // 1. Read URL on mount & popstate
           useEffect(() => {
@@ -365,7 +377,7 @@
                   try {
                       const params = new URLSearchParams(window.location.search);
                       const tab = params.get('tab') || 'home';
-                      const propId = params.get('property');
+                      const propSlug = params.get('property');
                       const sType = params.get('sType');
                       const sValue = params.get('sValue');
 
@@ -373,8 +385,8 @@
                       if (sType && sValue) {
                           setSearchParams({ type: sType, value: sValue });
                       }
-                      if (propId) {
-                          setRequestedPropId(propId);
+                      if (propSlug) {
+                          setRequestedPropSlug(propSlug);
                       } else {
                           setSelectedProperty(null);
                       }
@@ -390,20 +402,27 @@
 
           // 2. Select property when properties data is ready
           useEffect(() => {
-              if (requestedPropId && properties.length > 0) {
-                  const prop = properties.find(p => p.id === requestedPropId);
+              if (requestedPropSlug && properties.length > 0) {
+                  // พยายามหาจาก Slug (ชื่อโครงการ-บ้านเลขที่)
+                  let prop = properties.find(p => generatePropSlug(p) === requestedPropSlug);
+                  
+                  // สำรอง: เผื่อเป็นลิงก์เก่าที่ใช้ ID
+                  if (!prop) {
+                      prop = properties.find(p => p.id === requestedPropSlug);
+                  }
+
                   if (prop) {
                       setSelectedProperty(prop);
-                      setRequestedPropId(null);
+                      setRequestedPropSlug(null);
                   }
               }
-          }, [requestedPropId, properties]);
+          }, [requestedPropSlug, properties]);
 
           // 3. Update URL when state changes
           useEffect(() => {
               const params = new URLSearchParams();
               if (activeTab !== 'home') params.set('tab', activeTab);
-              if (selectedProperty) params.set('property', selectedProperty.id);
+              if (selectedProperty) params.set('property', generatePropSlug(selectedProperty));
               if (activeTab === 'search_result' && searchParams.value) {
                   params.set('sType', searchParams.type);
                   params.set('sValue', searchParams.value);
@@ -415,15 +434,15 @@
                   const currentUrl = window.location.pathname + window.location.search;
                   const newUrl = window.location.pathname + queryString;
 
-                  if (currentUrl !== newUrl && !requestedPropId) {
+                  if (currentUrl !== newUrl && !requestedPropSlug) {
                       window.history.pushState({}, '', newUrl);
                   }
               } catch (e) {
                   console.warn("URL routing is disabled in this preview environment, but will work when deployed.");
               }
-          }, [activeTab, selectedProperty, searchParams, requestedPropId]);
+          }, [activeTab, selectedProperty, searchParams, requestedPropSlug]);
 
-          // 4. Dynamic Title & Meta Tags (เพื่อการแสดงผลใน Browser Tab และ Social บางส่วน)
+          // 4. Dynamic Title & Meta Tags (เพื่อการแสดงผลใน Browser Tab และช่วยเรื่อง Social Preview บางส่วน)
           useEffect(() => {
               let title = companyInfo?.name || 'STARTUP UP - จุดเริ่มต้นของคนอยากมีบ้าน';
               let ogImage = companyInfo?.logoUrl || 'https://lh3.googleusercontent.com/d/1EEAbI2a89rG4ii0Um0cfWdXLtcb6I_RU';

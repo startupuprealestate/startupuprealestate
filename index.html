@@ -8,8 +8,8 @@
     <!-- Meta Tags สำหรับ Social Share ค่าเริ่มต้น -->
     <meta property="og:title" content="STARTUP UP - จุดเริ่มต้นของคนอยากมีบ้าน" />
     <meta property="og:description" content="จุดเริ่มต้นของคนอยากมีบ้าน ค้นหาบ้าน ทาวน์เฮาส์ บ้านเดี่ยว ทำเลดี" />
-    <!-- อัปเดตเป็นโลโก้ใหม่เป็นค่าเริ่มต้น -->
-    <meta property="og:image" content="https://lh3.googleusercontent.com/d/1EEAbI2a89rG4ii0Um0cfWdXLtcb6I_RU" />
+    <!-- อัปเดตเป็นโลโก้ใหม่เป็นค่าเริ่มต้น แปลงเป็น Direct Link ให้ดึงรูปได้ -->
+    <meta property="og:image" content="https://drive.google.com/uc?export=view&id=1_CeuqQ7b0UgssGmBp_IqP_i1Og16UAXn" />
     <meta property="og:type" content="website" />
     
     <!-- Tailwind CSS -->
@@ -302,15 +302,13 @@
                        .replace(/0/g, 'ศูนย์').replace(/\s+/g, '');
         };
 
-        // ฟังก์ชันสร้าง Slug จากชื่อโครงการและบ้านเลขที่สำหรับ URL
+        // ฟังก์ชันสร้าง Slug จากบ้านเลขที่สำหรับ URL ให้สั้นที่สุด
         const generatePropSlug = (p) => {
             if (!p) return '';
-            let slug = p.project_name || 'house';
             if (p.house_number) {
-                slug += `-${p.house_number}`;
+                return encodeURIComponent(p.house_number);
             }
-            // แทนที่ช่องว่างด้วยเครื่องหมายขีดกลาง และเข้ารหัส URL
-            return encodeURIComponent(slug.replace(/\s+/g, '-'));
+            return p.id;
         };
 
         // --- Hero Section (แทนที่ IntroOverlay แบบเดิม) ---
@@ -403,7 +401,7 @@
           // 2. Select property when properties data is ready
           useEffect(() => {
               if (requestedPropSlug && properties.length > 0) {
-                  // พยายามหาจาก Slug (ชื่อโครงการ-บ้านเลขที่)
+                  // พยายามหาจาก Slug (บ้านเลขที่)
                   let prop = properties.find(p => generatePropSlug(p) === requestedPropSlug);
                   
                   // สำรอง: เผื่อเป็นลิงก์เก่าที่ใช้ ID
@@ -445,7 +443,8 @@
           // 4. Dynamic Title & Meta Tags (เพื่อการแสดงผลใน Browser Tab และช่วยเรื่อง Social Preview บางส่วน)
           useEffect(() => {
               let title = companyInfo?.name || 'STARTUP UP - จุดเริ่มต้นของคนอยากมีบ้าน';
-              let ogImage = companyInfo?.logoUrl || 'https://lh3.googleusercontent.com/d/1EEAbI2a89rG4ii0Um0cfWdXLtcb6I_RU';
+              // ใช้รูปรถเป็น Default
+              let ogImage = companyInfo?.logoUrl || 'https://drive.google.com/uc?export=view&id=1_CeuqQ7b0UgssGmBp_IqP_i1Og16UAXn';
 
               if (selectedProperty) {
                   const propName = selectedProperty.project_name || '';

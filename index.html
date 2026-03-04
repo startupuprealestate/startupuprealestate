@@ -302,13 +302,13 @@
                        .replace(/0/g, 'ศูนย์').replace(/\s+/g, '');
         };
 
-        // ฟังก์ชันสร้าง Slug จากบ้านเลขที่สำหรับ URL ให้สั้นที่สุด
+        // ฟังก์ชันสร้าง Slug จาก ID บ้าน (กำหนดเอง)
         const generatePropSlug = (p) => {
             if (!p) return '';
-            if (p.house_number) {
-                return encodeURIComponent(p.house_number);
+            if (p.custom_id) {
+                return encodeURIComponent(p.custom_id);
             }
-            return p.id;
+            return p.id; // ใช้ ID ฐานข้อมูลสำรองหากไม่ได้ตั้ง custom_id
         };
 
         // --- Hero Section (แทนที่ IntroOverlay แบบเดิม) ---
@@ -401,13 +401,8 @@
           // 2. Select property when properties data is ready
           useEffect(() => {
               if (requestedPropSlug && properties.length > 0) {
-                  // พยายามหาจาก Slug (บ้านเลขที่)
-                  let prop = properties.find(p => generatePropSlug(p) === requestedPropSlug);
-                  
-                  // สำรอง: เผื่อเป็นลิงก์เก่าที่ใช้ ID
-                  if (!prop) {
-                      prop = properties.find(p => p.id === requestedPropSlug);
-                  }
+                  // พยายามหาจาก custom_id หรือ id หรือ fallback ไปที่ slug เดิม
+                  let prop = properties.find(p => (p.custom_id && p.custom_id === requestedPropSlug) || p.id === requestedPropSlug || generatePropSlug(p) === requestedPropSlug);
 
                   if (prop) {
                       setSelectedProperty(prop);
@@ -443,7 +438,7 @@
           // 4. Dynamic Title & Meta Tags (เพื่อการแสดงผลใน Browser Tab และช่วยเรื่อง Social Preview บางส่วน)
           useEffect(() => {
               let title = companyInfo?.name || 'STARTUP UP - จุดเริ่มต้นของคนอยากมีบ้าน';
-              // ใช้รูปรถเป็น Default
+              // ใช้โลโก้เป็น Default
               let ogImage = companyInfo?.logoUrl || 'https://drive.google.com/uc?export=view&id=1_CeuqQ7b0UgssGmBp_IqP_i1Og16UAXn';
 
               if (selectedProperty) {
@@ -1367,7 +1362,7 @@
             const [isUploadingPortfolio, setIsUploadingPortfolio] = useState({ state: false, index: -1 });
 
             // Forms
-            const initialForm = { project_name: '', category: 'ทาวน์เฮาส์', price: '', status: 'available', badge: '', house_number: '', soi: '', zipcode: '', subdistrict: '', district: '', province: '', area_wah: '', area_sqm: '', floors: '', bedrooms: '', bathrooms: '', parking: '', direction: '', lat: '', lng: '', highlights: '', facilitiesList: [], images: [], youtubeUrl: '', main_location: '', sub_location: '' };
+            const initialForm = { custom_id: '', project_name: '', category: 'ทาวน์เฮาส์', price: '', status: 'available', badge: '', house_number: '', soi: '', zipcode: '', subdistrict: '', district: '', province: '', area_wah: '', area_sqm: '', floors: '', bedrooms: '', bathrooms: '', parking: '', direction: '', lat: '', lng: '', highlights: '', facilitiesList: [], images: [], youtubeUrl: '', main_location: '', sub_location: '' };
             const [formData, setFormData] = useState(initialForm);
             const [imagesPreview, setImagesPreview] = useState([]);
             const [addressOptions, setAddressOptions] = useState([]);
@@ -1548,6 +1543,7 @@
                     
                     const dataToSave = {
                         ...formData,
+                        custom_id: formData.custom_id ? formData.custom_id.trim() : '',
                         project_name: formData.project_name.trim(),
                         lat: safeLat,
                         lng: safeLng,
@@ -1796,8 +1792,22 @@
                                             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                                                 <h4 className="font-medium mb-6 pb-2 border-b">รายละเอียด</h4>
                                                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                                                    <div className="col-span-2 sm:col-span-1"><label className="label">บ้านเลขที่</label><input className="input-modern" value={formData.house_number} onChange={e=>setFormData({...formData, house_number: e.target.value})}/></div>
-                                                    <div className="col-span-2 sm:col-span-2"><label className="label">ซอย</label><input className="input-modern" value={formData.soi} onChange={e=>setFormData({...formData, soi: e.target.value})}/></div>
+                                                    <div className="col-span-2 sm:col-span-1">
+                                                        <label className="label">ID บ้าน (กำหนดเอง)</label>
+                                                        <input className="input-modern" value={formData.custom_id || ''} onChange={e=>setFormData({...formData, custom_id: e.target.value})}/>
+                                                    </div>
+                                                    <div className="col-span-2 sm:col-span-1">
+                                                        <label className="label">บ้านเลขที่</label>
+                                                        <input className="input-modern" value={formData.house_number} onChange={e=>{ 
+                                                            const val = e.target.value; 
+                                                            // เปลี่ยน / เป็น - อัตโนมัติเมื่อพิมพ์บ้านเลขที่
+                                                            setFormData({...formData, house_number: val, custom_id: val.replace(/\//g, '-')}); 
+                                                        }}/>
+                                                    </div>
+                                                    <div className="col-span-2 sm:col-span-1">
+                                                        <label className="label">ซอย</label>
+                                                        <input className="input-modern" value={formData.soi} onChange={e=>setFormData({...formData, soi: e.target.value})}/>
+                                                    </div>
                                                     
                                                     <div><label className="label">ห้องนอน</label><input type="text" inputMode="numeric" className="input-modern" value={formData.bedrooms} onChange={e=>setFormData({...formData, bedrooms: e.target.value.replace(/[^0-9]/g, '')})}/></div>
                                                     <div><label className="label">ห้องน้ำ</label><input type="text" inputMode="numeric" className="input-modern" value={formData.bathrooms} onChange={e=>setFormData({...formData, bathrooms: e.target.value.replace(/[^0-9]/g, '')})}/></div>

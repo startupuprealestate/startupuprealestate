@@ -1801,7 +1801,7 @@
                                                         <input className="input-modern" value={formData.house_number} onChange={e=>{ 
                                                             const val = e.target.value; 
                                                             // เปลี่ยน / เป็น - อัตโนมัติเมื่อพิมพ์บ้านเลขที่
-                                                            setFormData({...formData, house_number: val, custom_id: val.replace(/\//g, '-')}); 
+                                                            setFormData({...formData, house_number: val, custom_id: val.replace(/\//g, '-').replace(/\s+/g, '')}); 
                                                         }}/>
                                                     </div>
                                                     <div className="col-span-2 sm:col-span-1">

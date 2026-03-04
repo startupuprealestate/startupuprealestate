@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>STARTUP UP - จุดเริ่มต้นของคนอยากมีบ้าน</title>
     
+    <!-- Meta Tags สำหรับ Social Share ค่าเริ่มต้น (จะถูกเปลี่ยนด้วย JS อีกครั้ง) -->
+    <meta property="og:title" content="STARTUP UP - จุดเริ่มต้นของคนอยากมีบ้าน" />
+    <meta property="og:description" content="จุดเริ่มต้นของคนอยากมีบ้าน ค้นหาบ้าน ทาวน์เฮาส์ บ้านเดี่ยว ทำเลดี" />
+    <meta property="og:image" content="https://lh3.googleusercontent.com/d/1EEAbI2a89rG4ii0Um0cfWdXLtcb6I_RU" />
+    <meta property="og:type" content="website" />
+    
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -410,16 +416,49 @@
                   const newUrl = window.location.pathname + queryString;
 
                   if (currentUrl !== newUrl && !requestedPropId) {
-                      // ดักจับ Error สำหรับกรณีรันใน iframe / blob (Preview mode)
                       window.history.pushState({}, '', newUrl);
                   }
               } catch (e) {
-                  // ปล่อยผ่านไปเงียบๆ เพื่อไม่ให้เว็บพังในหน้า Preview
-                  // เมื่อไปอยู่บน Server จริง URL จะเปลี่ยนตามปกติ
                   console.warn("URL routing is disabled in this preview environment, but will work when deployed.");
               }
           }, [activeTab, selectedProperty, searchParams, requestedPropId]);
 
+          // 4. Dynamic Title & Meta Tags (เพื่อการแสดงผลใน Browser Tab และ Social บางส่วน)
+          useEffect(() => {
+              let title = companyInfo?.name || 'STARTUP UP - จุดเริ่มต้นของคนอยากมีบ้าน';
+              let ogImage = companyInfo?.logoUrl || 'https://lh3.googleusercontent.com/d/1EEAbI2a89rG4ii0Um0cfWdXLtcb6I_RU';
+
+              if (selectedProperty) {
+                  const propName = selectedProperty.project_name || '';
+                  const houseNo = selectedProperty.house_number ? `บ้านเลขที่ ${selectedProperty.house_number}` : '';
+                  title = `${propName} ${houseNo} | ${companyInfo?.name || 'STARTUP UP'}`;
+                  ogImage = (selectedProperty.images && selectedProperty.images.length > 0) 
+                            ? selectedProperty.images[0] 
+                            : (selectedProperty.imageUrl || ogImage);
+              } else if (activeTab === 'location' && searchParams.value) {
+                  title = `ทำเล ${searchParams.value} | ${companyInfo?.name || 'STARTUP UP'}`;
+              } else if (activeTab === 'promo') {
+                  title = `โปรโมชั่นพิเศษ | ${companyInfo?.name || 'STARTUP UP'}`;
+              }
+
+              // อัปเดต Title
+              document.title = title;
+              
+              // อัปเดต Meta tags (OG:Image, OG:Title)
+              const setMeta = (property, content) => {
+                  let meta = document.querySelector(`meta[property="${property}"]`);
+                  if (!meta) {
+                      meta = document.createElement('meta');
+                      meta.setAttribute('property', property);
+                      document.head.appendChild(meta);
+                  }
+                  meta.setAttribute('content', content);
+              };
+
+              setMeta('og:title', title);
+              setMeta('og:image', ogImage);
+
+          }, [selectedProperty, activeTab, searchParams, companyInfo]);
 
           // ป้องกันการ Scroll แล้วตัวเลขเปลี่ยนในช่อง input number ในทุกๆ หน้า
           useEffect(() => {
@@ -625,13 +664,17 @@
                 )}
               </nav>
 
-              <div className="flex-grow pt-20">
-                {activeTab === 'home' && !selectedProperty && <HeroSection onSearch={handleGlobalSearch} />}
-                
-                {selectedProperty ? (
-                  <SalePage property={selectedProperty} companyInfo={companyInfo} onBack={() => setSelectedProperty(null)} properties={properties} onSelectProp={handleSelectProperty} />
+              <div className="flex-grow pt-20 flex flex-col">
+                {loading ? (
+                    <div className="min-h-[80vh] flex flex-col items-center justify-center">
+                        <Loader className="animate-spin text-brand-green mb-4" size={48} />
+                        <p className="text-gray-400 font-light tracking-wider animate-pulse">กำลังโหลดข้อมูล...</p>
+                    </div>
+                ) : selectedProperty ? (
+                  <SalePage property={selectedProperty} companyInfo={companyInfo} onBack={() => {setSelectedProperty(null); window.history.pushState({}, '', window.location.pathname);}} properties={properties} onSelectProp={handleSelectProperty} />
                 ) : (
                   <>
+                    {activeTab === 'home' && <HeroSection onSearch={handleGlobalSearch} />}
                     {activeTab === 'home' && <HomeSection properties={properties} loading={loading} onSelectProp={handleSelectProperty} setActiveTab={setActiveTab} />}
                     {activeTab === 'promo' && <PropertiesList properties={properties} searchParams={{ type: 'promo' }} onSelectProp={handleSelectProperty} />}
                     {activeTab === 'search_result' && <PropertiesList properties={properties} searchParams={searchParams} onSelectProp={handleSelectProperty} />}
@@ -642,7 +685,7 @@
                 )}
               </div>
 
-              <footer className="bg-brand-green text-brand-light py-12">
+              <footer className="bg-brand-green text-brand-light py-12 mt-auto">
                 <div className="max-w-7xl mx-auto px-6 lg:px-12">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 font-light">
                     <div>
@@ -812,7 +855,7 @@
           ).slice(0, 6);
 
           return (
-            <div className="bg-gray-50 min-h-screen pb-12 animate-in fade-in duration-300">
+            <div className="bg-gray-50 min-h-screen pb-12 animate-in fade-in duration-300 flex-grow">
               <div className="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
                  <div className="lg:col-span-2 space-y-8">
                     <button onClick={onBack} className="flex items-center gap-2 text-gray-500 hover:text-brand-green transition-colors text-sm uppercase tracking-wide">

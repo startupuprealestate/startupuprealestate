@@ -200,11 +200,11 @@
         
         import { 
             getAuth, 
-            signInWithEmailAndPassword, 
             onAuthStateChanged, 
             signOut, 
             signInAnonymously, 
-            signInWithCustomToken 
+            GoogleAuthProvider,
+            signInWithPopup
         } from 'firebase/auth';
 
         import { 
@@ -238,7 +238,7 @@
         const auth = getAuth(app);
 
         // --- Constants ---
-        const HOST_EMAIL = 'pepetchpunk@gmail.com';
+        const HOST_EMAIL = 'startup.up.real.estate@gmail.com';
         const appId = "startup-up-realestate";
 
         const DEFAULT_COMPANY_INFO = {
@@ -249,7 +249,7 @@
           line: 'https://line.me/R/ti/p/@SURE141',
           facebook: 'https://www.facebook.com/startupuprealestate/',
           description: 'จุดเริ่มต้นของคนอยากมีบ้าน',
-          logoUrl: 'https://lh3.googleusercontent.com/d/1EEAbI2a89rG4ii0Um0cfWdXLtcb6I_RU',
+          logoUrl: 'https://res.cloudinary.com/dm2wr55r5/image/upload/v1772615014/LOGO_%E0%B9%80%E0%B8%82%E0%B8%B5%E0%B8%A2%E0%B8%A7%E0%B8%AB%E0%B8%A5%E0%B8%B1%E0%B8%87%E0%B8%82%E0%B8%B2%E0%B8%A7_zhoefm.jpg',
           portfolio_years: []
         };
 
@@ -292,7 +292,6 @@
             return (match && match[2].length === 11) ? match[2] : null;
         };
 
-        // ฟังก์ชันแปลงและลบช่องว่าง สำหรับให้การค้นหาทำเลแม่นยำขึ้น
         const normalizeThaiSearch = (text) => {
             if (!text) return '';
             return text.toLowerCase()
@@ -302,19 +301,16 @@
                        .replace(/0/g, 'ศูนย์').replace(/\s+/g, '');
         };
 
-        // ฟังก์ชันสร้าง Slug จาก ID บ้าน (กำหนดเอง)
         const generatePropSlug = (p) => {
             if (!p) return '';
             if (p.custom_id) {
                 return encodeURIComponent(p.custom_id);
             }
-            return p.id; // ใช้ ID ฐานข้อมูลสำรองหากไม่ได้ตั้ง custom_id
+            return p.id; 
         };
 
-        // --- Hero Section (แทนที่ IntroOverlay แบบเดิม) ---
         function HeroSection({ onSearch }) {
             const [query, setQuery] = useState('');
-            
             const handleSearchSubmit = (e) => {
                 e.preventDefault();
                 if (query.trim()) {
@@ -331,7 +327,6 @@
                     <div className="relative z-10 text-center px-6 w-full max-w-2xl mt-12">
                         <h1 className="text-4xl md:text-6xl font-light text-white tracking-wide mb-4">STARTUP UP</h1>
                         <p className="text-gray-300 font-light tracking-[0.2em] uppercase text-sm md:text-base mb-10">จุดเริ่มต้นของคนอยากมีบ้าน</p>
-                        
                         <form onSubmit={handleSearchSubmit} className="relative flex items-center w-full max-w-lg mx-auto transform transition-transform hover:scale-[1.02]">
                             <input 
                                 type="text" 
@@ -349,7 +344,6 @@
             );
         }
 
-        // --- Main Application Component ---
         export default function App() {
           const [user, setUser] = useState(null);
           const [userRole, setUserRole] = useState(null); 
@@ -366,14 +360,11 @@
           const [showLoginModal, setShowLoginModal] = useState(false);
           const [showAdminPanel, setShowAdminPanel] = useState(false);
 
-          // --- URL Routing Logic ---
           const [requestedPropSlug, setRequestedPropSlug] = useState(null);
 
-          // 1. Read URL on mount & popstate
           useEffect(() => {
               const syncFromUrl = () => {
                   try {
-                      // ดักจับทั้งแบบ /?property=... และ /api/share?property=...
                       const params = new URLSearchParams(window.location.search);
                       const tab = params.get('tab') || 'home';
                       const propSlug = params.get('property');
@@ -393,18 +384,14 @@
                       console.warn("Cannot read URL parameters in this environment.");
                   }
               };
-
               syncFromUrl();
               window.addEventListener('popstate', syncFromUrl);
               return () => window.removeEventListener('popstate', syncFromUrl);
           }, []);
 
-          // 2. Select property when properties data is ready
           useEffect(() => {
               if (requestedPropSlug && properties.length > 0) {
-                  // พยายามหาจาก custom_id หรือ id หรือ fallback ไปที่ slug เดิม
                   let prop = properties.find(p => (p.custom_id && p.custom_id === requestedPropSlug) || p.id === requestedPropSlug || generatePropSlug(p) === requestedPropSlug);
-
                   if (prop) {
                       setSelectedProperty(prop);
                       setRequestedPropSlug(null);
@@ -412,19 +399,16 @@
               }
           }, [requestedPropSlug, properties]);
 
-          // 3. Update URL when state changes
           useEffect(() => {
               const params = new URLSearchParams();
-              let targetPath = window.location.pathname; // ค่าเริ่มต้นคือ path ปัจจุบัน
+              let targetPath = window.location.pathname;
 
               if (activeTab !== 'home') params.set('tab', activeTab);
               
               if (selectedProperty) {
                   params.set('property', generatePropSlug(selectedProperty));
-                  // *** จุดสำคัญ: ถ้าเลือกบ้าน ให้บังคับ Path เป็น /api/share เลย ***
                   targetPath = '/api/share'; 
               } else {
-                  // ถ้าไม่ได้เลือกบ้าน (อยู่หน้าหลัก หรือหน้าอื่นๆ) ให้กลับไปใช้ / ปกติ
                   targetPath = '/';
               }
 
@@ -438,7 +422,6 @@
               try {
                   const currentUrl = window.location.pathname + window.location.search;
                   const newUrl = targetPath + queryString;
-
                   if (currentUrl !== newUrl && !requestedPropSlug) {
                       window.history.pushState({}, '', newUrl);
                   }
@@ -447,10 +430,8 @@
               }
           }, [activeTab, selectedProperty, searchParams, requestedPropSlug]);
 
-          // 4. Dynamic Title & Meta Tags (เพื่อการแสดงผลใน Browser Tab และช่วยเรื่อง Social Preview บางส่วน)
           useEffect(() => {
               let title = companyInfo?.name || 'STARTUP UP - จุดเริ่มต้นของคนอยากมีบ้าน';
-              // ใช้โลโก้เป็น Default
               let ogImage = companyInfo?.logoUrl || 'https://res.cloudinary.com/dm2wr55r5/image/upload/v1772615014/LOGO_%E0%B9%80%E0%B8%82%E0%B8%B5%E0%B8%A2%E0%B8%A7%E0%B8%AB%E0%B8%A5%E0%B8%B1%E0%B8%87%E0%B8%82%E0%B8%B2%E0%B8%A7_zhoefm.jpg';
 
               if (selectedProperty) {
@@ -466,10 +447,7 @@
                   title = `โปรโมชั่นพิเศษ | ${companyInfo?.name || 'STARTUP UP'}`;
               }
 
-              // อัปเดต Title
               document.title = title;
-              
-              // อัปเดต Meta tags (OG:Image, OG:Title)
               const setMeta = (property, content) => {
                   let meta = document.querySelector(`meta[property="${property}"]`);
                   if (!meta) {
@@ -479,13 +457,10 @@
                   }
                   meta.setAttribute('content', content);
               };
-
               setMeta('og:title', title);
               setMeta('og:image', ogImage);
-
           }, [selectedProperty, activeTab, searchParams, companyInfo]);
 
-          // ป้องกันการ Scroll แล้วตัวเลขเปลี่ยนในช่อง input number ในทุกๆ หน้า
           useEffect(() => {
               const handleWheel = (e) => {
                   if (document.activeElement && document.activeElement.type === 'number') {
@@ -496,7 +471,7 @@
               return () => window.removeEventListener('wheel', handleWheel);
           }, []);
 
-          // Firebase Auth & Data Load
+          // Firebase Auth Init
           useEffect(() => {
             const storedEmail = localStorage.getItem('adminEmail');
             const storedRole = localStorage.getItem('adminRole');
@@ -504,7 +479,6 @@
 
             const initAuth = async () => {
                 try {
-                    // ตรวจสอบก่อนว่าล็อกอินค้างไว้หรือไม่ ถ้าไม่มีให้ล็อกอินแบบ Anonymous เพื่อดึงข้อมูล
                     if (!auth.currentUser) {
                         await signInAnonymously(auth);
                     }
@@ -550,56 +524,79 @@
           }, [user, userRole]);
 
           const handleLogout = async () => {
+            await signOut(auth);
             setUserRole(null); setUserEmail('');
             localStorage.removeItem('adminEmail'); localStorage.removeItem('adminRole');
             setShowAdminPanel(false); setActiveTab('home');
+            // Re-login anonymously so public data can still be read
+            await signInAnonymously(auth);
           };
 
-          const handleEmailSignup = async (email, password) => {
+          // ฟังก์ชันเข้าสู่ระบบด้วย Google
+          const handleGoogleLogin = async () => {
+            const provider = new GoogleAuthProvider();
             try {
-              if (!auth.currentUser) await signInAnonymously(auth);
-              const emailLower = email.toLowerCase().trim();
-              if (emailLower === HOST_EMAIL.toLowerCase()) throw new Error('อีเมลนี้เป็นของ Host');
-              if (password.length < 6) throw new Error('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร');
+                const result = await signInWithPopup(auth, provider);
+                const userEmail = result.user.email.toLowerCase();
 
-              const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', emailLower);
-              const userDocSnap = await getDoc(userDocRef);
-              if (userDocSnap.exists()) throw new Error('อีเมลนี้ถูกใช้งานไปแล้ว');
-              
-              await setDoc(userDocRef, { email: emailLower, password: password, role: 'pending', createdAt: serverTimestamp() });
-              return 'สมัครสมาชิกสำเร็จ! กรุณารอ Host อนุมัติสิทธิ์การใช้งาน';
-            } catch (error) { throw new Error(error.message || 'เกิดข้อผิดพลาด'); }
-          };
+                // 1. ตรวจสอบว่าเป็น Host หรือไม่
+                if (userEmail === HOST_EMAIL.toLowerCase()) {
+                    setUserRole('host'); 
+                    setUserEmail(userEmail);
+                    localStorage.setItem('adminEmail', userEmail); 
+                    localStorage.setItem('adminRole', 'host');
+                    setShowLoginModal(false); 
+                    setShowAdminPanel(true);
+                    
+                    // บันทึก Host ลง Firestore
+                    try { 
+                        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', userEmail), { 
+                            email: userEmail, role: 'host', name: result.user.displayName || 'Main Host', createdAt: serverTimestamp() 
+                        }, { merge: true }); 
+                    } catch (e) { console.error(e) }
+                    return;
+                }
 
-          const handleEmailLogin = async (email, password) => {
-            try {
-              const emailLower = email.toLowerCase().trim();
-              if (emailLower === HOST_EMAIL.toLowerCase() && password === '097918785') {
-                 setUserRole('host'); setUserEmail(emailLower);
-                 localStorage.setItem('adminEmail', emailLower); localStorage.setItem('adminRole', 'host');
-                 setShowLoginModal(false); setShowAdminPanel(true);
-                 if (!auth.currentUser) await signInAnonymously(auth);
-                 try { await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', emailLower), { email: emailLower, role: 'host', name: 'Main Host', createdAt: serverTimestamp() }, { merge: true }); } catch (e) {}
-                 return;
-              }
+                // 2. ถ้าไม่ใช่ Host ตรวจสอบว่ามีสิทธิ์ในระบบหรือไม่
+                const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', userEmail);
+                const userDocSnap = await getDoc(userDocRef);
 
-              if (!auth.currentUser) await signInAnonymously(auth);
-              const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', emailLower);
-              const userDocSnap = await getDoc(userDocRef);
-              if (!userDocSnap.exists()) throw new Error('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
-              
-              const userData = userDocSnap.data();
-              if (userData.password !== password) throw new Error('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
+                if (userDocSnap.exists()) {
+                    const userData = userDocSnap.data();
+                    const finalRole = userData.role || 'pending';
+                    
+                    if (finalRole === 'admin' || finalRole === 'host') {
+                        setUserRole(finalRole); 
+                        setUserEmail(userEmail);
+                        localStorage.setItem('adminEmail', userEmail); 
+                        localStorage.setItem('adminRole', finalRole);
+                        setShowLoginModal(false); 
+                        setShowAdminPanel(true);
+                    } else {
+                        // มีชื่อในระบบแต่สถานะเป็น Pending หรือถูกแบน
+                        await signOut(auth); // บังคับเตะออก
+                        await signInAnonymously(auth);
+                        throw new Error('บัญชีของคุณอยู่ระหว่างรอ Host อนุมัติ');
+                    }
+                } else {
+                    // 3. ไม่เคยมีชื่อในระบบ ให้สร้างคำขออัตโนมัติ (สถานะ Pending)
+                    await setDoc(userDocRef, { 
+                        email: userEmail, 
+                        role: 'pending', 
+                        name: result.user.displayName || '', 
+                        createdAt: serverTimestamp() 
+                    });
+                    await signOut(auth);
+                    await signInAnonymously(auth);
+                    throw new Error('ส่งคำขอเข้าใช้งานสำเร็จแล้ว กรุณารอ Host อนุมัติสิทธิ์');
+                }
 
-              const finalRole = userData.role || 'pending';
-              if (finalRole === 'admin' || finalRole === 'host') {
-                setUserRole(finalRole); setUserEmail(emailLower);
-                localStorage.setItem('adminEmail', emailLower); localStorage.setItem('adminRole', finalRole);
-                setShowLoginModal(false); setShowAdminPanel(true);
-              } else {
-                throw new Error('บัญชีของคุณอยู่ระหว่างรออนุมัติ');
-              }
-            } catch (error) { throw error; }
+            } catch (error) {
+                // ข้าม Error ถ้าผู้ใช้กดยกเลิกหน้าต่าง Popup เอง
+                if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
+                    throw new Error(error.message || 'การเข้าสู่ระบบผิดพลาด');
+                }
+            }
           };
 
           const handleLocationSelect = (type, value) => {
@@ -626,7 +623,6 @@
               <nav className="fixed w-full top-0 z-40 bg-white/90 backdrop-blur-md shadow-sm transition-all duration-300">
                 <div className="max-w-7xl mx-auto px-6 lg:px-12">
                   <div className="flex justify-between items-center h-20">
-                    {/* ส่วนซ้าย: โลโก้บริษัท */}
                     <div className="w-1/3 flex justify-start items-center cursor-pointer" onClick={() => {setActiveTab('home'); setSelectedProperty(null); window.scrollTo(0,0);}}>
                         {companyInfo?.logoUrl ? (
                             <img src={companyInfo.logoUrl} alt="Logo" className="h-10 md:h-12 object-contain" />
@@ -637,7 +633,6 @@
                         )}
                     </div>
 
-                    {/* ส่วนกลาง: เมนูนำทาง (แสดงเฉพาะ Desktop) */}
                     <div className="hidden lg:flex items-center justify-center space-x-4 xl:space-x-6 w-1/3">
                       <NavButton active={activeTab === 'home' && !selectedProperty} onClick={() => {setActiveTab('home'); setSelectedProperty(null); window.scrollTo(0,0);}}>หน้าหลัก</NavButton>
                       <NavButton active={activeTab === 'promo' && !selectedProperty} onClick={() => {setActiveTab('promo'); setSelectedProperty(null); window.scrollTo(0,0);}}>บ้านโปรโมชั่น</NavButton>
@@ -646,7 +641,6 @@
                       <NavButton active={activeTab === 'portfolio' && !selectedProperty} onClick={() => {setActiveTab('portfolio'); setSelectedProperty(null); window.scrollTo(0,0);}}>ผลงาน</NavButton>
                     </div>
 
-                    {/* ส่วนขวา: ระบบจัดการ / ปุ่มเมนูมือถือ */}
                     <div className="flex items-center justify-end w-1/3 gap-4">
                       <div className="hidden lg:block">
                         {userRole ? (
@@ -660,7 +654,6 @@
                         )}
                       </div>
                       
-                      {/* ไอคอนเมนูสำหรับมือถือ */}
                       <div className="lg:hidden flex items-center">
                         <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-gray-800 hover:text-brand-green focus:outline-none p-2 -mr-2">
                             {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -743,7 +736,7 @@
                 </div>
               </footer>
 
-              {showLoginModal && <LoginModal onClose={() => setShowLoginModal(false)} onLogin={handleEmailLogin} onSignup={handleEmailSignup} />}
+              {showLoginModal && <LoginModal onClose={() => setShowLoginModal(false)} onGoogleLogin={handleGoogleLogin} />}
               {showAdminPanel && (
                 <AdminPanel userRole={userRole} userEmail={userEmail} properties={properties} users={authorizedUsers} companyInfo={companyInfo} onClose={() => setShowAdminPanel(false)} onLogout={handleLogout} db={db} appId={appId} />
               )}
@@ -1289,27 +1282,52 @@
           return <button onClick={onClick} className="block w-full text-left py-2 text-base font-light text-gray-600 hover:text-brand-green">{children}</button>;
         }
 
-        function LoginModal({ onClose, onLogin, onSignup }) {
-           const [isLogin, setIsLogin] = useState(true); const [email, setEmail] = useState(''); const [password, setPassword] = useState(''); const [loading, setLoading] = useState(false); const [message, setMessage] = useState({ type: '', text: '' });
-           const handleSubmit = async (e) => {
-             e.preventDefault(); if (!email || !password) return; setLoading(true); setMessage({ type: '', text: '' });
-             try { if (isLogin) { await onLogin(email, password); } else { const msg = await onSignup(email, password); setMessage({ type: 'success', text: msg }); setTimeout(() => { if (onClose) onClose(); }, 3000); } } catch (err) { setMessage({ type: 'error', text: err.message }); } setLoading(false);
-           };
-           return (
-             <div className="fixed inset-0 z-[70] bg-black/50 flex items-center justify-center p-4 backdrop-blur-sm">
-               <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-8 relative">
-                 <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><X size={20}/></button>
-                 <h3 className="text-xl font-light text-brand-green mb-6 text-center">{isLogin ? 'ระบบจัดการหลังบ้าน' : 'สมัครสิทธิ์การเข้าใช้งาน'}</h3>
-                 {message.text && <div className={`p-3 rounded-lg mb-4 text-sm font-light ${message.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-brand-light text-brand-green'}`}>{message.text}</div>}
-                 <form onSubmit={handleSubmit} className="space-y-4">
-                   <input type="email" required placeholder="อีเมล" className="input-modern bg-gray-50 border-transparent" value={email} onChange={e => setEmail(e.target.value)} />
-                   <input type="password" required placeholder="รหัสผ่าน" className="input-modern bg-gray-50 border-transparent" value={password} onChange={e => setPassword(e.target.value)} />
-                   <button type="submit" disabled={loading} className="w-full bg-brand-green text-white py-3 rounded-full font-light mt-4 disabled:opacity-50">{loading ? 'กำลังโหลด...' : (isLogin ? 'เข้าสู่ระบบ' : 'ลงทะเบียน')}</button>
-                 </form>
-                 <div className="mt-6 text-center text-sm font-light"><span className="text-gray-400">{isLogin ? 'ยังไม่มีบัญชี?' : 'มีบัญชีอยู่แล้ว?'} </span><button onClick={() => { setIsLogin(!isLogin); setMessage({ type: '', text: '' }); }} className="text-brand-green hover:underline">{isLogin ? 'ลงทะเบียน' : 'เข้าสู่ระบบ'}</button></div>
-               </div>
-             </div>
-           );
+        function LoginModal({ onClose, onGoogleLogin }) {
+            const [loading, setLoading] = useState(false);
+            const [message, setMessage] = useState({ type: '', text: '' });
+
+            const handleLogin = async () => {
+                setLoading(true);
+                setMessage({ type: '', text: '' });
+                try {
+                    await onGoogleLogin();
+                } catch (err) {
+                    setMessage({ type: 'error', text: err.message });
+                }
+                setLoading(false);
+            };
+
+            return (
+                <div className="fixed inset-0 z-[70] bg-black/50 flex items-center justify-center p-4 backdrop-blur-sm">
+                    <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-8 relative">
+                        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><X size={20}/></button>
+                        <h3 className="text-xl font-light text-brand-green mb-6 text-center">ระบบจัดการหลังบ้าน</h3>
+                        {message.text && <div className={`p-3 rounded-lg mb-6 text-sm font-light ${message.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-brand-light text-brand-green'}`}>{message.text}</div>}
+                        
+                        <button 
+                            onClick={handleLogin} 
+                            disabled={loading} 
+                            className="w-full bg-white border border-gray-300 text-gray-700 py-3 rounded-full font-medium hover:bg-gray-50 transition flex items-center justify-center gap-3 disabled:opacity-50"
+                        >
+                            {loading ? (
+                                <Loader className="animate-spin" size={20} />
+                            ) : (
+                                <>
+                                    <svg viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
+                                        <g transform="matrix(1, 0, 0, 1, 27.009001, -39.238998)">
+                                            <path fill="#4285F4" d="M -3.264 51.509 C -3.264 50.719 -3.334 49.969 -3.454 49.239 L -14.754 49.239 L -14.754 53.749 L -8.284 53.749 C -8.574 55.229 -9.424 56.479 -10.684 57.329 L -10.684 60.329 L -6.824 60.329 C -4.564 58.239 -3.264 55.159 -3.264 51.509 Z"/>
+                                            <path fill="#34A853" d="M -14.754 63.239 C -11.514 63.239 -8.804 62.159 -6.824 60.329 L -10.684 57.329 C -11.764 58.049 -13.134 58.489 -14.754 58.489 C -17.884 58.489 -20.534 56.379 -21.484 53.529 L -25.464 53.529 L -25.464 56.619 C -23.494 60.539 -19.444 63.239 -14.754 63.239 Z"/>
+                                            <path fill="#FBBC05" d="M -21.484 53.529 C -21.734 52.809 -21.864 52.039 -21.864 51.239 C -21.864 50.439 -21.724 49.669 -21.484 48.949 L -21.484 45.859 L -25.464 45.859 C -26.284 47.479 -26.754 49.299 -26.754 51.239 C -26.754 53.179 -26.284 54.999 -25.464 56.619 L -21.484 53.529 Z"/>
+                                            <path fill="#EA4335" d="M -14.754 43.989 C -12.984 43.989 -11.404 44.599 -10.154 45.789 L -6.734 41.939 C -8.804 40.009 -11.514 38.889 -14.754 38.889 C -19.444 38.889 -23.494 41.589 -25.464 45.859 L -21.484 48.949 C -20.534 46.099 -17.884 43.989 -14.754 43.989 Z"/>
+                                        </g>
+                                    </svg>
+                                    เข้าสู่ระบบด้วย Google
+                                </>
+                            )}
+                        </button>
+                    </div>
+                </div>
+            );
         }
 
         // --- Custom Alert Modal Component ---
@@ -1380,7 +1398,7 @@
             const [addressOptions, setAddressOptions] = useState([]);
             const [companyForm, setCompanyForm] = useState(companyInfo || DEFAULT_COMPANY_INFO);
             const [newPortfolioYear, setNewPortfolioYear] = useState('');
-            const [inviteEmail, setInviteEmail] = useState(''); const [invitePassword, setPassword] = useState(''); const [inviteRole, setInviteRole] = useState('admin');
+            const [inviteEmail, setInviteEmail] = useState(''); const [inviteRole, setInviteRole] = useState('admin');
             const [newFacility, setNewFacility] = useState('');
             const [thaiAddressData, setThaiAddressData] = useState({});
 
@@ -1642,11 +1660,10 @@
 
             const handleAddUser = async (e) => { 
                 e.preventDefault(); 
-                if (!inviteEmail || !invitePassword) return; 
+                if (!inviteEmail) return; 
                 try { 
-                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', inviteEmail.toLowerCase().trim()), { email: inviteEmail.toLowerCase().trim(), password: invitePassword, role: inviteRole, addedBy: userEmail, createdAt: serverTimestamp() }); 
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', inviteEmail.toLowerCase().trim()), { email: inviteEmail.toLowerCase().trim(), role: inviteRole, addedBy: userEmail, createdAt: serverTimestamp() }); 
                     setInviteEmail(''); 
-                    setPassword(''); 
                     showAlert('สำเร็จ', 'เพิ่มผู้ใช้เรียบร้อยแล้ว', 'success'); 
                 } catch (err) { 
                     showAlert('ผิดพลาด', err.message, 'error'); 
@@ -1978,10 +1995,9 @@
                                 <div className="max-w-4xl mx-auto bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100">
                                     <h3 className="text-2xl font-light mb-8 border-b pb-4">จัดการผู้ดูแลระบบ</h3>
                                     <form onSubmit={handleAddUser} className="flex flex-col md:flex-row gap-4 items-start md:items-end mb-8 bg-gray-50 p-6 rounded-xl">
-                                        <div className="w-full md:flex-1"><label className="label">อีเมล</label><input type="email" required className="input-modern" value={inviteEmail} onChange={e=>setInviteEmail(e.target.value)}/></div>
-                                        <div className="w-full md:flex-1"><label className="label">รหัสผ่าน (ชั่วคราว)</label><input type="text" required minLength={6} className="input-modern" value={invitePassword} onChange={e=>setPassword(e.target.value)}/></div>
+                                        <div className="w-full md:flex-1"><label className="label">อีเมล Gmail เท่านั้น</label><input type="email" required className="input-modern" value={inviteEmail} onChange={e=>setInviteEmail(e.target.value)}/></div>
                                         <div className="w-full md:w-32"><label className="label">สิทธิ์</label><select className="input-modern" value={inviteRole} onChange={e=>setInviteRole(e.target.value)}><option value="admin">Admin</option><option value="host">Host</option></select></div>
-                                        <button type="submit" className="btn-primary py-2.5 w-full md:w-auto">เพิ่มผู้ใช้</button>
+                                        <button type="submit" className="btn-primary py-2.5 w-full md:w-auto">เพิ่มสิทธิ์</button>
                                     </form>
                                     <div className="overflow-x-auto">
                                         <table className="w-full text-left min-w-[500px]">

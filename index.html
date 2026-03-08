@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>STARTUP UP - จุดเริ่มต้นของคนอยากมีบ้าน</title>
     
+    <!-- Favicon -->
+    <link rel="icon" href="https://res.cloudinary.com/dm2wr55r5/image/upload/v1772615014/LOGO_%E0%B9%80%E0%B8%82%E0%B8%B5%E0%B8%A2%E0%B8%A7%E0%B8%AB%E0%B8%A5%E0%B8%B1%E0%B8%87%E0%B8%82%E0%B8%B2%E0%B8%A7_zhoefm.jpg" type="image/jpeg">
+
     <!-- Meta Tags สำหรับ Social Share ค่าเริ่มต้น -->
     <meta property="og:title" content="STARTUP UP - จุดเริ่มต้นของคนอยากมีบ้าน" />
     <meta property="og:description" content="ค้นหาบ้าน ทาวน์เฮาส์ บ้านเดี่ยว ทำเลดี พร้อมบริการสินเชื่อ" />
@@ -210,7 +213,6 @@
         .leaflet-popup-content-wrapper {
             border-radius: 12px;
         }
-        /* แก้ปัญหา Tooltip เล็กๆ */
         .leaflet-tooltip {
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -223,7 +225,7 @@
     <script type="text/babel" data-type="module">
         import { createRoot } from 'react-dom/client';
         import React, { useState, useEffect, useRef } from 'react';
-        import { Home, MapPin, Bed, Bath, Car, Maximize, Phone, MessageCircle, Menu, X, Plus, Trash2, ShieldCheck, CheckCircle, Calculator, Users, FileText, Settings, Edit, Save, Image as ImageIcon, Layout, ChevronLeft, ChevronRight, Upload, Briefcase, XCircle, Tag, Youtube, Loader, Facebook, Instagram, Video, Check, Calendar, FolderPlus, Map as MapIcon, Search, AlertTriangle, AlertCircle, Type } from 'lucide-react';
+        import { Home, MapPin, Bed, Bath, Car, Maximize, Phone, MessageCircle, Menu, X, Plus, Trash2, ShieldCheck, CheckCircle, Calculator, Users, FileText, Settings, Edit, Save, Image as ImageIcon, Layout, ChevronLeft, ChevronRight, Upload, Briefcase, XCircle, Tag, Youtube, Loader, Facebook, Instagram, Video, Check, Calendar, FolderPlus, Map as MapIcon, Search, AlertTriangle, AlertCircle, Star, ClipboardCheck } from 'lucide-react';
         import { initializeApp } from 'firebase/app';
         
         import { 
@@ -285,7 +287,11 @@
             heroTitle: 'STARTUP UP',
             heroSubtitle: 'จุดเริ่มต้นของคนอยากมีบ้าน',
             searchPlaceholder: 'ค้นหาทำเล, ชื่อโครงการ, หรือประเภทบ้าน...',
-            heroBg: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80',
+            heroBgs: [
+                'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80',
+                'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80',
+                'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'
+            ],
             homeTitle: 'ค้นหาบ้านที่ใช่สำหรับคุณ',
             mapTitle: 'ค้นหาทำเลจากแผนที่',
             mapSubtitle: 'คลิกที่ป้ายจำนวนโครงการ เพื่อดูรายละเอียดบ้านในทำเลนั้นๆ',
@@ -293,6 +299,33 @@
             calcTitle: 'คำนวณสินเชื่อเบื้องต้น',
             portfolioTitle: 'ผลงานของเรา',
             portfolioEmpty: 'ยังไม่มีรายการผลงานในขณะนี้',
+            
+            navHome: 'หน้าหลัก',
+            navPromo: 'บ้านโปรโมชั่น',
+            navLocation: 'ทำเล',
+            navCalc: 'คำนวณสินเชื่อ',
+            navPortfolio: 'ผลงาน',
+            contactTitle: 'ติดต่อเรา',
+            followTitle: 'ติดตามเรา',
+            
+            whyUsTitle: 'ซื้อบ้านกับ StartupUp ดีอย่างไร?',
+            whyUs1Title: 'One-Stop-Service',
+            whyUs1Desc: 'เราดูแลตั้งแต่นัดชมบ้าน จนสิ้นสุดกระบวนการ เมื่อได้ส่งมอบบ้านถึงมือลูกค้า',
+            whyUs2Title: 'นัดชมบ้าน',
+            whyUs2Desc: 'สามารถนัดชมบ้านกับทีมขายเพื่อให้ลูกค้าได้เลือกบ้านหลังที่ถูกใจที่สุด และตามงบประมาณที่กําหนด',
+            whyUs3Title: 'สินเชื่อ',
+            whyUs3Desc: 'เรามีทีมงานดูแลเรื่องสินเชื่อให้กับลูกค้าโดยเฉพาะ เพื่อให้ลูกค้าได้รับดอกเบี้ยที่ต่ำ และวงเงินตามที่ต้องการที่สุด',
+            whyUs4Title: 'ประเมินราคา',
+            whyUs4Desc: 'ทีมฝ่ายขายพร้อมนัดประเมินราคาบ้าน เมื่อลูกค้าผ่านเกณฑ์ตามที่ธนาคารกําหนด เพื่อกําหนดวงเงินในการกู้ต่อไป',
+            whyUs5Title: 'โอน / กรมที่ดิน',
+            whyUs5Desc: 'ทีมงานดูแล ให้บริการโอน กรรมสิทธิ์ของลูกค้า ณ กรมที่ดิน ให้ราบรื่นที่สุด และใช้ระยะเวลาน้อยที่สุด',
+            whyUs6Title: 'ดูแลหลังการขาย',
+            whyUs6Desc: 'เรามีการรับประกันหลังการขาย การรั่วซึมต่างๆ รวมถึงตัวบ้านให้สภาพพร้อมเข้าอยู่และใช้งานทุกจุด',
+            
+            secTownhouse: 'ทาวน์เฮาส์',
+            secTwinhouse: 'บ้านแฝด',
+            secSinglehouse: 'บ้านเดี่ยว',
+            btnSeeAll: 'ดูทั้งหมด',
         };
 
         const CATEGORIES = ['ทาวน์เฮาส์', 'ทาวน์เฮาส์ชั้นเดียว', 'ทาวน์เฮาส์หลังริม', 'บ้านแฝด', 'บ้านเดี่ยว'];
@@ -464,7 +497,7 @@
             if (isEditing) {
                 return <input 
                     autoFocus 
-                    className={`bg-white text-black border-2 border-blue-500 rounded px-2 py-1 w-full max-w-md shadow-lg ${className.replace(/text-white|text-brand-light|text-gray-\d+/g, 'text-gray-800')}`} 
+                    className={`bg-white text-black border-2 border-blue-500 rounded px-2 py-1 w-full max-w-md shadow-lg outline-none relative z-50 ${className.replace(/text-white|text-brand-light|text-gray-\d+/g, 'text-gray-800')}`} 
                     value={tempVal} 
                     onChange={e => setTempVal(e.target.value)}
                     onBlur={() => {
@@ -476,83 +509,88 @@
             }
 
             return <Tag 
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsEditing(true); }} 
-                className={`cursor-pointer hover:outline outline-2 outline-blue-500 outline-offset-4 hover:bg-blue-500/20 transition-all rounded px-1 ${className}`}
+                onClick={(e) => { 
+                    e.preventDefault(); 
+                    e.stopPropagation(); 
+                    setIsEditing(true); 
+                }} 
+                className={`cursor-pointer hover:outline outline-2 outline-blue-500 outline-offset-4 hover:bg-blue-500/20 transition-all rounded px-1 relative z-50 ${className}`}
                 title="คลิกเพื่อแก้ไข"
             >
                 {content[fieldKey]}
             </Tag>
         }
 
-        function EditableImageBg({ fieldKey, content, updateContent, isEditMode, children, className, uploadFn }) {
-            const [uploading, setUploading] = useState(false);
+        function HeroSection({ visualContent, updateVisualContent, isEditMode }) {
+            const [currentIndex, setCurrentIndex] = useState(0);
+            
+            // ใช้ fallback เป็นอาร์เรย์เดิมที่มี หรือรูปเดียวจากระบบเก่า
+            const heroBgs = Array.isArray(visualContent.heroBgs) ? visualContent.heroBgs : (visualContent.heroBg ? [visualContent.heroBg] : DEFAULT_VISUAL_CONTENT.heroBgs);
 
-            const handleFile = async (e) => {
+            useEffect(() => {
+                if (heroBgs.length <= 1) return;
+                const interval = setInterval(() => {
+                    setCurrentIndex(prev => (prev + 1) % heroBgs.length);
+                }, 5000);
+                return () => clearInterval(interval);
+            }, [heroBgs.length]);
+
+            const handleAddFile = async (e) => {
                 const file = e.target.files[0];
                 if(!file) return;
-                setUploading(true);
                 try {
-                    const url = await uploadFn(file);
-                    updateContent({ ...content, [fieldKey]: url });
+                    const url = await uploadFileToCloudinary(file);
+                    updateVisualContent({ ...visualContent, heroBgs: [...heroBgs, url] });
                 } catch(err) {
                     alert("Upload failed: " + err.message);
                 }
-                setUploading(false);
-            }
-
-            return (
-                <div className={`relative ${className}`}>
-                    {children}
-                    {isEditMode && (
-                        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/40 opacity-0 hover:opacity-100 transition-opacity outline outline-4 -outline-offset-4 outline-blue-500">
-                            {uploading ? <Loader className="animate-spin text-white" size={32} /> : (
-                                <label className="bg-blue-600 text-white px-6 py-3 rounded-full cursor-pointer flex items-center gap-2 shadow-2xl hover:bg-blue-700 transition transform hover:scale-105 font-medium">
-                                    <Upload size={20} /> เปลี่ยนรูปพื้นหลัง
-                                    <input type="file" accept="image/*" className="hidden" onChange={handleFile} />
-                                </label>
-                            )}
-                        </div>
-                    )}
-                </div>
-            )
-        }
-
-        function HeroSection({ onSearch, visualContent, updateVisualContent, isEditMode }) {
-            const [query, setQuery] = useState('');
-            const handleSearchSubmit = (e) => {
-                e.preventDefault();
-                if (query.trim() && !isEditMode) onSearch(query.trim());
+            };
+            
+            const handleRemoveCurrent = () => {
+                if(heroBgs.length <= 1) {
+                    alert("ต้องมีอย่างน้อย 1 รูปครับ"); return;
+                }
+                const newBgs = heroBgs.filter((_, i) => i !== currentIndex);
+                updateVisualContent({ ...visualContent, heroBgs: newBgs });
+                setCurrentIndex(0);
             };
 
             return (
-                <EditableImageBg fieldKey="heroBg" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} uploadFn={uploadFileToCloudinary} className="w-full h-[50vh] md:h-[60vh] flex flex-col items-center justify-center overflow-hidden bg-black">
-                    <div className="absolute inset-0 w-full h-full">
-                        <img src={visualContent.heroBg} alt="Modern House Background" className="w-full h-full object-cover opacity-50" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30"></div>
-                    </div>
-                    <div className="relative z-10 text-center px-6 w-full max-w-2xl mt-12">
-                        <EditableText tag="h1" fieldKey="heroTitle" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-4xl md:text-6xl font-light text-white tracking-wide mb-4 inline-block" />
+                <div className="w-full flex flex-col bg-white">
+                    {/* ส่วนข้อความถูกย้ายมาอยู่ด้านบน */}
+                    <div className="w-full text-center px-6 py-10 md:py-16 bg-white z-10 relative">
+                        <EditableText tag="h1" fieldKey="heroTitle" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-3xl md:text-4xl font-medium text-brand-green tracking-wide mb-3 inline-block" />
                         <br/>
-                        <EditableText tag="p" fieldKey="heroSubtitle" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-gray-300 font-light tracking-[0.2em] uppercase text-sm md:text-base mb-10 inline-block" />
-                        
-                        <form onSubmit={handleSearchSubmit} className="relative flex items-center w-full max-w-lg mx-auto transform transition-transform hover:scale-[1.02]">
-                            <input 
-                                type="text" 
-                                placeholder={visualContent.searchPlaceholder} 
-                                className={`w-full pl-6 pr-14 py-4 rounded-full outline-none shadow-2xl text-gray-700 font-light text-sm md:text-base focus:ring-4 focus:ring-brand-green/30 transition-all ${isEditMode ? 'pointer-events-none' : ''}`}
-                                value={query} 
-                                onChange={e => setQuery(e.target.value)} 
-                                disabled={isEditMode}
-                            />
-                            <button type="submit" disabled={isEditMode} className="absolute right-2 bg-brand-green text-white p-2.5 rounded-full hover:bg-[#135c2a] transition-colors disabled:opacity-50">
-                                <Search size={20} />
-                            </button>
-                            {isEditMode && (
-                                <button type="button" onClick={(e) => { e.preventDefault(); const newVal = prompt('แก้ไขข้อความช่องค้นหา:', visualContent.searchPlaceholder); if(newVal) updateVisualContent({...visualContent, searchPlaceholder: newVal}); }} className="absolute -top-12 right-0 bg-blue-600 text-white px-3 py-1.5 rounded-full text-xs shadow-lg flex gap-1 items-center hover:bg-blue-700"><Edit size={14}/> แก้ไขคำใบ้ค้นหา</button>
-                            )}
-                        </form>
+                        <EditableText tag="p" fieldKey="heroSubtitle" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-gray-500 font-light tracking-[0.2em] uppercase text-xs md:text-sm inline-block" />
                     </div>
-                </EditableImageBg>
+
+                    {/* ส่วนรูปภาพสไลด์ */}
+                    <div className="relative w-full h-[50vh] md:h-[70vh] flex flex-col items-center justify-center overflow-hidden bg-gray-100">
+                        <div className="absolute inset-0 w-full h-full">
+                            {heroBgs.map((img, idx) => (
+                                <img 
+                                    key={idx}
+                                    src={img} 
+                                    alt={`Hero ${idx}`} 
+                                    className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out ${idx === currentIndex ? 'opacity-100' : 'opacity-0'}`} 
+                                />
+                            ))}
+                        </div>
+                        
+                        {/* ปุ่มแก้ไขรูปภาพสไลด์ (เห็นเฉพาะตอน Edit Mode) */}
+                        {isEditMode && (
+                            <div className="absolute top-4 right-4 z-50 flex gap-2">
+                                <label className="bg-blue-600 text-white px-4 py-2 rounded-lg cursor-pointer flex items-center gap-2 shadow hover:bg-blue-700 transition text-sm">
+                                    <Upload size={16} /> เพิ่มรูปสไลด์
+                                    <input type="file" accept="image/*" className="hidden" onChange={handleAddFile} />
+                                </label>
+                                <button onClick={handleRemoveCurrent} className="bg-red-600 text-white px-4 py-2 rounded-lg cursor-pointer flex items-center gap-2 shadow hover:bg-red-700 transition text-sm">
+                                    <Trash2 size={16} /> ลบรูปที่แสดงอยู่
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
             );
         }
 
@@ -765,7 +803,9 @@
             }, (error) => console.warn(error));
 
             const unsubVisual = onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'site_settings', 'visual'), (docSnap) => {
-                if (docSnap.exists()) setVisualContent({ ...DEFAULT_VISUAL_CONTENT, ...docSnap.data() });
+                if (docSnap.exists()) {
+                    setVisualContent({ ...DEFAULT_VISUAL_CONTENT, ...docSnap.data() });
+                }
             }, (error) => console.warn(error));
 
             let unsubUsers = () => {};
@@ -829,24 +869,21 @@
           };
 
           const handleLocationSelect = (type, value) => {
-            if (isVisualEditMode) return;
             setSearchParams({ type, value }); setActiveTab('search_result'); setSelectedProperty(null); window.scrollTo(0, 0);
           };
           const handleGlobalSearch = (query) => {
-            if (isVisualEditMode) return;
             setSearchParams({ type: 'keyword', value: query }); setActiveTab('search_result'); setSelectedProperty(null); window.scrollTo(0, 0);
           };
           const handleSelectProperty = (p) => {
-            if (isVisualEditMode) return;
             setSelectedProperty(p); window.scrollTo(0, 0);
           };
 
           return (
-            <div className={`text-gray-800 bg-white min-h-screen flex flex-col font-sans relative ${isVisualEditMode ? 'pb-24' : ''}`}>
+            <div className={`text-gray-800 bg-white min-h-screen flex flex-col font-sans relative ${isVisualEditMode ? 'pb-24 border-4 border-blue-500' : ''}`}>
               <nav className="fixed w-full top-0 z-40 bg-white/90 backdrop-blur-md shadow-sm transition-all duration-300">
                 <div className="max-w-7xl mx-auto px-6 lg:px-12">
                   <div className="flex justify-between items-center h-20">
-                    <div className="w-1/3 flex justify-start items-center cursor-pointer" onClick={() => {if(isVisualEditMode)return; setActiveTab('home'); setSelectedProperty(null); window.scrollTo(0,0);}}>
+                    <div className="w-1/3 flex justify-start items-center cursor-pointer" onClick={() => {setActiveTab('home'); setSelectedProperty(null); window.scrollTo(0,0);}}>
                         {companyInfo?.logoUrl ? (
                             <img src={companyInfo.logoUrl} alt="Logo" className="h-10 md:h-12 object-contain" />
                         ) : (
@@ -855,11 +892,21 @@
                     </div>
 
                     <div className="hidden lg:flex items-center justify-center space-x-4 xl:space-x-6 w-1/3">
-                      <NavButton active={activeTab === 'home' && !selectedProperty} onClick={() => {if(isVisualEditMode)return; setActiveTab('home'); setSelectedProperty(null); window.scrollTo(0,0);}}>หน้าหลัก</NavButton>
-                      <NavButton active={activeTab === 'promo' && !selectedProperty} onClick={() => {if(isVisualEditMode)return; setActiveTab('promo'); setSelectedProperty(null); window.scrollTo(0,0);}}>บ้านโปรโมชั่น</NavButton>
-                      <NavButton active={activeTab === 'location' && !selectedProperty} onClick={() => {if(isVisualEditMode)return; setActiveTab('location'); setSelectedProperty(null); window.scrollTo(0,0);}}>ทำเล</NavButton>
-                      <NavButton active={activeTab === 'calculator' && !selectedProperty} onClick={() => {if(isVisualEditMode)return; setActiveTab('calculator'); setSelectedProperty(null); window.scrollTo(0,0);}}>คำนวณสินเชื่อ</NavButton>
-                      <NavButton active={activeTab === 'portfolio' && !selectedProperty} onClick={() => {if(isVisualEditMode)return; setActiveTab('portfolio'); setSelectedProperty(null); window.scrollTo(0,0);}}>ผลงาน</NavButton>
+                      <NavButton active={activeTab === 'home' && !selectedProperty} onClick={() => {setActiveTab('home'); setSelectedProperty(null); window.scrollTo(0,0);}}>
+                          <EditableText tag="span" fieldKey="navHome" content={visualContent} updateContent={updateVisualContent} isEditMode={isVisualEditMode} />
+                      </NavButton>
+                      <NavButton active={activeTab === 'promo' && !selectedProperty} onClick={() => {setActiveTab('promo'); setSelectedProperty(null); window.scrollTo(0,0);}}>
+                          <EditableText tag="span" fieldKey="navPromo" content={visualContent} updateContent={updateVisualContent} isEditMode={isVisualEditMode} />
+                      </NavButton>
+                      <NavButton active={activeTab === 'location' && !selectedProperty} onClick={() => {setActiveTab('location'); setSelectedProperty(null); window.scrollTo(0,0);}}>
+                          <EditableText tag="span" fieldKey="navLocation" content={visualContent} updateContent={updateVisualContent} isEditMode={isVisualEditMode} />
+                      </NavButton>
+                      <NavButton active={activeTab === 'calculator' && !selectedProperty} onClick={() => {setActiveTab('calculator'); setSelectedProperty(null); window.scrollTo(0,0);}}>
+                          <EditableText tag="span" fieldKey="navCalc" content={visualContent} updateContent={updateVisualContent} isEditMode={isVisualEditMode} />
+                      </NavButton>
+                      <NavButton active={activeTab === 'portfolio' && !selectedProperty} onClick={() => {setActiveTab('portfolio'); setSelectedProperty(null); window.scrollTo(0,0);}}>
+                          <EditableText tag="span" fieldKey="navPortfolio" content={visualContent} updateContent={updateVisualContent} isEditMode={isVisualEditMode} />
+                      </NavButton>
                     </div>
 
                     <div className="flex items-center justify-end w-1/3 gap-4">
@@ -884,11 +931,11 @@
                 {isMenuOpen && (
                   <div className="lg:hidden bg-white border-t border-gray-100 py-4 absolute w-full shadow-lg">
                     <div className="px-6 space-y-4 flex flex-col">
-                      <MobileNavBtn onClick={() => {setActiveTab('home'); setSelectedProperty(null); setIsMenuOpen(false); window.scrollTo(0,0);}}>หน้าหลัก</MobileNavBtn>
-                      <MobileNavBtn onClick={() => {setActiveTab('promo'); setSelectedProperty(null); setIsMenuOpen(false); window.scrollTo(0,0);}}>บ้านจัดโปรโมชั่น</MobileNavBtn>
-                      <MobileNavBtn onClick={() => {setActiveTab('location'); setSelectedProperty(null); setIsMenuOpen(false); window.scrollTo(0,0);}}>ทำเล</MobileNavBtn>
-                      <MobileNavBtn onClick={() => {setActiveTab('calculator'); setSelectedProperty(null); setIsMenuOpen(false); window.scrollTo(0,0);}}>คำนวณสินเชื่อ</MobileNavBtn>
-                      <MobileNavBtn onClick={() => {setActiveTab('portfolio'); setSelectedProperty(null); setIsMenuOpen(false); window.scrollTo(0,0);}}>ผลงาน</MobileNavBtn>
+                      <MobileNavBtn onClick={() => {setActiveTab('home'); setSelectedProperty(null); setIsMenuOpen(false); window.scrollTo(0,0);}}>{visualContent.navHome}</MobileNavBtn>
+                      <MobileNavBtn onClick={() => {setActiveTab('promo'); setSelectedProperty(null); setIsMenuOpen(false); window.scrollTo(0,0);}}>{visualContent.navPromo}</MobileNavBtn>
+                      <MobileNavBtn onClick={() => {setActiveTab('location'); setSelectedProperty(null); setIsMenuOpen(false); window.scrollTo(0,0);}}>{visualContent.navLocation}</MobileNavBtn>
+                      <MobileNavBtn onClick={() => {setActiveTab('calculator'); setSelectedProperty(null); setIsMenuOpen(false); window.scrollTo(0,0);}}>{visualContent.navCalc}</MobileNavBtn>
+                      <MobileNavBtn onClick={() => {setActiveTab('portfolio'); setSelectedProperty(null); setIsMenuOpen(false); window.scrollTo(0,0);}}>{visualContent.navPortfolio}</MobileNavBtn>
                       <div className="h-px bg-gray-100 my-2"></div>
                       {userRole ? (
                         <button onClick={() => {setShowAdminPanel(true); setIsMenuOpen(false)}} className="w-full text-left py-2 text-brand-green font-medium">เข้าสู่ระบบหลังบ้าน</button>
@@ -907,13 +954,13 @@
                         <p className="text-gray-400 font-light tracking-wider animate-pulse">กำลังโหลดข้อมูล...</p>
                     </div>
                 ) : selectedProperty ? (
-                  <SalePage property={selectedProperty} companyInfo={companyInfo} onBack={() => {setSelectedProperty(null); window.history.pushState({}, '', window.location.pathname);}} properties={properties} onSelectProp={handleSelectProperty} />
+                  <SalePage property={selectedProperty} companyInfo={companyInfo} onBack={() => {setSelectedProperty(null); window.history.pushState({}, '', window.location.pathname);}} properties={properties} onSelectProp={handleSelectProperty} visualContent={visualContent} updateVisualContent={updateVisualContent} isEditMode={isVisualEditMode} />
                 ) : (
                   <>
-                    {activeTab === 'home' && <HeroSection onSearch={handleGlobalSearch} visualContent={visualContent} updateVisualContent={updateVisualContent} isEditMode={isVisualEditMode} />}
-                    {activeTab === 'home' && <HomeSection properties={properties} loading={loading} onSelectProp={handleSelectProperty} setActiveTab={setActiveTab} onSelectLocation={handleLocationSelect} visualContent={visualContent} updateVisualContent={updateVisualContent} isEditMode={isVisualEditMode} />}
-                    {activeTab === 'promo' && <PropertiesList properties={properties} searchParams={{ type: 'promo' }} onSelectProp={handleSelectProperty} />}
-                    {activeTab === 'search_result' && <PropertiesList properties={properties} searchParams={searchParams} onSelectProp={handleSelectProperty} />}
+                    {activeTab === 'home' && <HeroSection visualContent={visualContent} updateVisualContent={updateVisualContent} isEditMode={isVisualEditMode} />}
+                    {activeTab === 'home' && <HomeSection properties={properties} loading={loading} onSelectProp={handleSelectProperty} setActiveTab={setActiveTab} onSelectLocation={handleLocationSelect} onSearch={handleGlobalSearch} visualContent={visualContent} updateVisualContent={updateVisualContent} isEditMode={isVisualEditMode} />}
+                    {activeTab === 'promo' && <PropertiesList properties={properties} searchParams={{ type: 'promo' }} onSelectProp={handleSelectProperty} visualContent={visualContent} updateVisualContent={updateVisualContent} isEditMode={isVisualEditMode} />}
+                    {activeTab === 'search_result' && <PropertiesList properties={properties} searchParams={searchParams} onSelectProp={handleSelectProperty} visualContent={visualContent} updateVisualContent={updateVisualContent} isEditMode={isVisualEditMode} />}
                     {activeTab === 'location' && <LocationSection onSelectLocation={handleLocationSelect} visualContent={visualContent} updateVisualContent={updateVisualContent} isEditMode={isVisualEditMode} />}
                     {activeTab === 'calculator' && <div className="py-16 bg-gray-50"><CalculatorSection visualContent={visualContent} updateVisualContent={updateVisualContent} isEditMode={isVisualEditMode} /></div>}
                     {activeTab === 'portfolio' && <PortfolioSection companyInfo={companyInfo} properties={properties} visualContent={visualContent} updateVisualContent={updateVisualContent} isEditMode={isVisualEditMode} />}
@@ -921,7 +968,7 @@
                 )}
               </div>
 
-              <footer className="bg-brand-green text-brand-light py-12 mt-auto">
+              <footer className="bg-brand-green text-brand-light py-12 mt-auto relative z-30">
                 <div className="max-w-7xl mx-auto px-6 lg:px-12">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 font-light">
                     <div>
@@ -931,7 +978,9 @@
                       <p className="text-sm leading-relaxed opacity-80">{companyInfo?.description || 'จุดเริ่มต้นของคนอยากมีบ้าน'}</p>
                     </div>
                     <div>
-                      <h4 className="font-normal mb-4 tracking-wider uppercase text-sm">ติดต่อเรา</h4>
+                      <h4 className="font-normal mb-4 tracking-wider uppercase text-sm">
+                          <EditableText tag="span" fieldKey="contactTitle" content={visualContent} updateContent={updateVisualContent} isEditMode={isVisualEditMode} />
+                      </h4>
                       <a href="https://www.google.com/maps/search/?api=1&query=14.043534,100.655848" target="_blank" rel="noopener noreferrer" className="mb-2 text-sm opacity-80 hover:text-white hover:underline block">
                           {companyInfo?.address}
                       </a>
@@ -939,7 +988,9 @@
                       <p className="text-sm opacity-80">Email: {companyInfo?.email}</p>
                     </div>
                     <div>
-                       <h4 className="font-normal mb-4 tracking-wider uppercase text-sm">ติดตามเรา</h4>
+                       <h4 className="font-normal mb-4 tracking-wider uppercase text-sm">
+                          <EditableText tag="span" fieldKey="followTitle" content={visualContent} updateContent={updateVisualContent} isEditMode={isVisualEditMode} />
+                       </h4>
                        <div className="flex gap-4">
                          <a href={companyInfo?.facebook} target="_blank" className="hover:text-white opacity-80 transition"><Facebook size={20}/></a>
                          <a href={companyInfo?.line} target="_blank" className="hover:text-white opacity-80 transition"><MessageCircle size={20}/></a>
@@ -961,7 +1012,7 @@
                         <div className="flex items-center gap-2 bg-blue-600 px-3 py-1.5 rounded-lg text-sm font-medium shadow">
                             <Layout size={16} /> โหมดแก้ไขหน้าตาเว็บไซต์
                         </div>
-                        <span className="text-gray-400 text-sm hidden md:inline">นำเมาส์ไปชี้และคลิกที่ข้อความ หรือรูปภาพเพื่อแก้ไข</span>
+                        <span className="text-gray-400 text-sm hidden md:inline"><Type size={14} className="inline mr-1"/> นำเมาส์ไปชี้และคลิกที่ข้อความ หรือรูปภาพเพื่อแก้ไข</span>
                     </div>
                     
                     <div className="flex gap-2 bg-slate-800 p-1 rounded-lg">
@@ -1000,116 +1051,74 @@
         }
 
         // --- Component: Interactive Property Map ---
-        function PropertyMap({ properties, onSelectProp, isEditMode }) {
+        function PropertyMap({ properties, onSelectProp }) {
             const mapRef = useRef(null);
             const mapInstance = useRef(null);
 
             useEffect(() => {
                 if (!mapRef.current) return;
                 
-                // ถ้ายอดแผนที่ยังไม่ถูกสร้าง
                 if (!mapInstance.current) {
-                    // กำหนดจุดศูนย์กลางของแผนที่ให้ขยับมาตรงกลางระหว่าง ปทุมธานี-รังสิต มากขึ้น
                     mapInstance.current = L.map(mapRef.current, {
-                        center: [13.980, 100.615], // ขยับให้อยู่ตรงกลางมากขึ้น
+                        center: [13.980, 100.615], 
                         zoom: 11,
-                        scrollWheelZoom: false // ป้องกันการซูมตอนเลื่อนหน้าเว็บ
+                        scrollWheelZoom: false 
                     });
 
-                    // เพิ่ม Layer แผนที่ (เปลี่ยนเป็นโทนสว่างขาว-เทา เพื่อให้อ่านง่ายขึ้น)
                     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
                         attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
                     }).addTo(mapInstance.current);
 
-                    // วาดเส้นทางรถไฟฟ้า 4 สาย และใส่จุดสถานีสำคัญ
                     TRANSIT_LINES.forEach(line => {
-                        // แยก array พิกัดสำหรับลากเส้น
                         const lineCoords = line.stations.map(st => [st.lat, st.lng]);
-                        
-                        // ลากเส้นเชื่อมทุกสถานีเข้าด้วยกัน
-                        L.polyline(lineCoords, {
-                            color: line.color,
-                            weight: 6,
-                            opacity: 0.9,
-                            lineCap: 'round',
-                            lineJoin: 'round'
-                        }).addTo(mapInstance.current);
+                        L.polyline(lineCoords, { color: line.color, weight: 6, opacity: 0.9, lineCap: 'round', lineJoin: 'round' }).addTo(mapInstance.current);
 
-                        // ใส่จุดวงกลมบอกชื่อ "ทุกสถานี"
                         if(line.stations) {
                             line.stations.forEach(st => {
-                                L.circleMarker([st.lat, st.lng], {
-                                    radius: 5,
-                                    fillColor: 'white',
-                                    color: line.color,
-                                    weight: 2,
-                                    fillOpacity: 1
-                                }).bindTooltip(st.name, {
-                                    permanent: false, 
-                                    direction: 'top',
-                                    offset: [0, -5],
-                                    className: 'font-sans font-medium text-gray-700 text-[12px] px-2 py-1 border-gray-100 shadow-md'
-                                }).addTo(mapInstance.current);
+                                L.circleMarker([st.lat, st.lng], { radius: 5, fillColor: 'white', color: line.color, weight: 2, fillOpacity: 1 })
+                                 .bindTooltip(st.name, { permanent: false, direction: 'top', offset: [0, -5], className: 'font-sans font-medium text-gray-700 text-[12px] px-2 py-1 border-gray-100 shadow-md' })
+                                 .addTo(mapInstance.current);
                             });
                         }
                     });
                 }
 
-                // --- จัดการข้อมูลบ้านบนแผนที่ ---
                 const map = mapInstance.current;
-                
-                // ล้าง marker เก่าออกให้หมดก่อน
                 map.eachLayer(layer => {
-                    // ลบเฉพาะ Marker ของบ้าน ไม่ลบ Tile หรือ Polyline/Circle ของรถไฟฟ้า
-                    if (layer instanceof L.Marker && !(layer instanceof L.CircleMarker)) {
-                        map.removeLayer(layer);
-                    }
+                    if (layer instanceof L.Marker && !(layer instanceof L.CircleMarker)) map.removeLayer(layer);
                 });
 
-                // กรองเฉพาะบ้านที่ยังไม่ Sold Out
                 const validProps = properties.filter(p => p.badge !== 'Sold Out');
-                
-                // จัดกลุ่มบ้าน
                 const clusters = {};
+                
                 validProps.forEach(p => {
-                    // แก้ปัญหาคนพิมพ์ลูกน้ำ (,) แทนจุด (.) หรือเผลอเว้นวรรค
                     let rawLat = p.lat ? String(p.lat).replace(/,/g, '.').replace(/\s/g, '') : '';
                     let rawLng = p.lng ? String(p.lng).replace(/,/g, '.').replace(/\s/g, '') : '';
                     
                     let lat = parseFloat(rawLat);
                     let lng = parseFloat(rawLng);
                     
-                    // ระบบพิกัดสำรองอัจฉริยะ (Fallback) ป้องกันหมุดไปโผล่ที่อื่น หรือใส่ค่าผิด
                     if (!lat || !lng || isNaN(lat) || isNaN(lng) || lat > 25 || lat < 5 || lng < 90 || lng > 110) {
                         const fallback = DISTRICT_COORDS[p.district] || DISTRICT_COORDS[p.main_location] || DISTRICT_COORDS[p.subdistrict] || [14.020, 100.650];
-                        // ใส่ค่าคลาดเคลื่อนนิดหน่อย เพื่อไม่ให้หมุดซ้อนกันเป๊ะเกินไปกรณีที่ใช้ Fallback เดียวกัน
                         lat = fallback[0] + (Math.random() - 0.5) * 0.02;
                         lng = fallback[1] + (Math.random() - 0.5) * 0.02;
                     }
 
-                    // จัดกลุ่มตามพิกัด (ทศนิยม 4 ตำแหน่ง ให้บ้านโครงการเดียวกันหรือใกล้กันอยู่กลุ่มเดียวกัน)
                     const key = `${lat.toFixed(4)}_${lng.toFixed(4)}`;
-                    if (!clusters[key]) {
-                        clusters[key] = { lat: lat, lng: lng, items: [] };
-                    }
+                    if (!clusters[key]) clusters[key] = { lat: lat, lng: lng, items: [] };
                     clusters[key].items.push(p);
                 });
 
-                // นำกลุ่มมาสร้าง Marker บนแผนที่
                 Object.values(clusters).forEach(cluster => {
                     const count = cluster.items.length;
-                    
-                    // สร้างป้าย Marker แบบ Custom HTML
                     const customIcon = L.divIcon({
-                        className: '', // ปิดคลาสตั้งต้น
-                        html: `<div class="custom-map-marker shadow-lg border-2 hover:scale-105 transition ${isEditMode ? 'pointer-events-none' : ''}">${count} รายการ</div>`,
-                        iconSize: null, // ให้ขนาดปรับตามเนื้อหา
-                        iconAnchor: [45, 15] // จุดยึดกึ่งกลางล่าง
+                        className: '', 
+                        html: `<div class="custom-map-marker shadow-lg border-2 hover:scale-105 transition">${count} รายการ</div>`,
+                        iconSize: null, iconAnchor: [45, 15] 
                     });
 
                     const marker = L.marker([cluster.lat, cluster.lng], { icon: customIcon }).addTo(map);
 
-                    // สร้างเนื้อหาใน Popup เมื่อกดที่ Marker
                     const popupContent = document.createElement('div');
                     popupContent.className = 'w-64 max-h-64 overflow-y-auto pr-2 py-2';
                     
@@ -1127,7 +1136,6 @@
                         img.className = 'w-16 h-16 object-cover rounded-md flex-shrink-0';
                         
                         const infoDiv = document.createElement('div');
-                        
                         const name = document.createElement('div');
                         name.className = 'font-medium text-sm text-gray-800 line-clamp-1';
                         name.innerText = p.project_name;
@@ -1136,52 +1144,41 @@
                         price.className = 'text-brand-green text-xs font-bold mt-1';
                         price.innerText = `฿ ${Number(p.price).toLocaleString()}`;
                         
-                        infoDiv.appendChild(name);
-                        infoDiv.appendChild(price);
-                        itemDiv.appendChild(img);
-                        itemDiv.appendChild(infoDiv);
+                        infoDiv.appendChild(name); infoDiv.appendChild(price);
+                        itemDiv.appendChild(img); itemDiv.appendChild(infoDiv);
 
-                        // เมื่อกดที่บ้านแต่ละหลัง ให้เรียก onSelectProp (เพื่อเปิดหน้าดูบ้าน)
-                        itemDiv.onclick = () => {
-                            if (isEditMode) return;
-                            map.closePopup();
-                            onSelectProp(p);
-                        };
-                        
+                        itemDiv.onclick = () => { map.closePopup(); onSelectProp(p); };
                         popupContent.appendChild(itemDiv);
                     });
 
                     marker.bindPopup(popupContent);
                 });
-
-            }, [properties, isEditMode]);
+            }, [properties]);
 
             return (
                 <div className="w-full relative border border-gray-200 rounded-[20px] overflow-hidden shadow-sm bg-gray-50 z-0">
-                    <div ref={mapRef} className={`w-full h-[350px] md:h-[450px] z-0 ${isEditMode ? 'pointer-events-none opacity-80' : ''}`}></div>
+                    <div ref={mapRef} className="w-full h-[350px] md:h-[450px] z-0"></div>
                 </div>
             );
         }
 
         // --- View Components ---
-        function HomeSection({ properties, loading, onSelectProp, setActiveTab, onSelectLocation, visualContent, updateVisualContent, isEditMode }) {
+        function HomeSection({ properties, loading, onSelectProp, setActiveTab, onSelectLocation, onSearch, visualContent, updateVisualContent, isEditMode }) {
+          const [query, setQuery] = useState('');
+          const handleSearchSubmit = (e) => { e.preventDefault(); if (query.trim() && !isEditMode) onSearch(query.trim()); };
+
           const availableProps = properties.filter(p => p.badge !== 'Sold Out');
           if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader className="animate-spin text-brand-green" size={48} /></div>;
 
-          // คำนวณจำนวนบ้านสำหรับแต่ละทำเล
           const locationCards = LOCATIONS_DATA.map(loc => {
               const count = availableProps.filter(p => p.main_location === loc.area || (!p.main_location && p.district === loc.area)).length;
               return { ...loc, count };
           });
-          
-          // เพื่อให้เลื่อนวนลูปได้เนียนขึ้น จะทำการสร้างอาร์เรย์ที่ซ้ำกัน 2 ชุด
           const marqueeItems = [...locationCards, ...locationCards];
 
           const padArray = (arr, length) => {
               const result = [...arr];
-              while (result.length < length) {
-                  result.push(null); 
-              }
+              while (result.length < length) result.push(null); 
               return result.slice(0, length);
           };
 
@@ -1190,17 +1187,32 @@
           const singleHouses = padArray(availableProps.filter(p => p.category === 'บ้านเดี่ยว'), 3);
 
           const sections = [
-              { title: 'ทาวน์เฮาส์', data: townhouses },
-              { title: 'บ้านแฝด', data: twinHouses },
-              { title: 'บ้านเดี่ยว', data: singleHouses },
+              { key: 'secTownhouse', title: visualContent.secTownhouse, data: townhouses },
+              { key: 'secTwinhouse', title: visualContent.secTwinhouse, data: twinHouses },
+              { key: 'secSinglehouse', title: visualContent.secSinglehouse, data: singleHouses },
           ];
 
           return (
             <main className="py-16 w-full max-w-full overflow-hidden min-h-screen">
                 <div className="max-w-screen-xl mx-auto px-4 md:px-6">
-                    <div className="text-center mb-8">
+                    <div className="text-center mb-4">
                         <EditableText tag="h2" fieldKey="homeTitle" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-3xl font-light text-brand-green mb-4 inline-block" />
                     </div>
+                    
+                    {/* ย้ายช่องค้นหามาตรงนี้ */}
+                    <form onSubmit={handleSearchSubmit} className="relative flex items-center w-full max-w-2xl mx-auto transform transition-transform hover:scale-[1.01] mb-12">
+                        <input 
+                            type="text" 
+                            placeholder={visualContent.searchPlaceholder} 
+                            className={`w-full pl-6 pr-14 py-4 rounded-full outline-none shadow-lg border border-gray-100 text-gray-700 font-light text-sm md:text-base focus:ring-4 focus:ring-brand-green/20 transition-all ${isEditMode ? 'pointer-events-none' : ''}`}
+                            value={query} 
+                            onChange={e => setQuery(e.target.value)} 
+                            disabled={isEditMode}
+                        />
+                        <button type="submit" disabled={isEditMode} className="absolute right-2 bg-brand-green text-white p-2.5 rounded-full hover:bg-[#135c2a] transition-colors disabled:opacity-50">
+                            <Search size={20} />
+                        </button>
+                    </form>
                 </div>
 
                 {/* แถบทำเลเลื่อนอัตโนมัติ (Marquee) ปรับขนาดใหญ่ขึ้น */}
@@ -1209,19 +1221,14 @@
                         {marqueeItems.map((loc, idx) => (
                             <div 
                                 key={idx} 
-                                onClick={() => {
-                                    if (onSelectLocation && !isEditMode) onSelectLocation('main_location', loc.area);
-                                }}
-                                className={`relative rounded-[24px] overflow-hidden w-[360px] md:w-[450px] h-[240px] md:h-[280px] flex-shrink-0 mx-3 md:mx-4 group shadow-md hover:shadow-xl transition-all ${isEditMode ? 'cursor-default' : 'cursor-pointer'}`}
+                                onClick={() => { if (onSelectLocation && !isEditMode) onSelectLocation('main_location', loc.area); }}
+                                className="relative rounded-[24px] overflow-hidden w-[360px] md:w-[450px] h-[240px] md:h-[280px] flex-shrink-0 mx-3 md:mx-4 cursor-pointer group shadow-md hover:shadow-xl transition-all"
                             >
-                                <img src={loc.img} alt={loc.area} className="w-full h-full object-cover group-hover:scale-110 transition duration-700" />
-                                {/* ไล่สีดำจากล่างขึ้นบนเพื่อให้อ่านข้อความชัด */}
+                                <img src={loc.img} alt={loc.area} className="w-full h-full object-cover group-hover:scale-110 transition duration-700 pointer-events-none" />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80 pointer-events-none"></div>
                                 <div className="absolute bottom-6 left-6 right-6 flex justify-between items-end pointer-events-none">
                                     <div className="text-white">
-                                        <h4 className="font-medium text-2xl flex items-center gap-2 mb-2">
-                                            <MapPin size={24} /> {loc.area}
-                                        </h4>
+                                        <h4 className="font-medium text-2xl flex items-center gap-2 mb-2"><MapPin size={24} /> {loc.area}</h4>
                                         <p className="text-base font-light opacity-90">จำนวน {loc.count} โครงการ</p>
                                     </div>
                                     <div className="bg-white/20 backdrop-blur-md p-3 rounded-full text-white group-hover:bg-white group-hover:text-brand-green transition-colors shadow-lg">
@@ -1233,88 +1240,54 @@
                     </div>
                 </div>
                 
-                {/* ส่วนแผนที่ค้นหาบ้าน Interactive Map - กรอบเล็กลง และจัดกลาง */}
-                <div className="max-w-6xl mx-auto px-4 md:px-6 w-full mb-20 overflow-hidden">
+                {/* ส่วนแผนที่ค้นหาบ้าน Interactive Map */}
+                <div className="max-w-6xl mx-auto px-4 md:px-6 w-full mb-20 overflow-hidden relative z-10">
                     <div className="flex flex-col items-center justify-center text-center mb-8">
                         <EditableText tag="h2" fieldKey="mapTitle" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-2xl font-bold text-brand-green mb-2 flex items-center gap-2 inline-flex" />
                         <br/>
                         <EditableText tag="p" fieldKey="mapSubtitle" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-gray-500 font-light text-sm inline-block" />
                     </div>
-                    <PropertyMap properties={availableProps} onSelectProp={onSelectProp} isEditMode={isEditMode} />
+                    {/* ไม่ส่ง isEditMode ไปยัง PropertyMap เพื่อให้แผนที่ใช้งานได้ตลอดเวลา */}
+                    <PropertyMap properties={availableProps} onSelectProp={onSelectProp} />
                 </div>
 
                 <div className="max-w-screen-xl mx-auto px-4 md:px-6 space-y-16">
                     {sections.map((section, sIdx) => (
-                        <div key={section.title} className="w-full max-w-full overflow-hidden">
+                        <div key={section.key} className="w-full max-w-full overflow-hidden">
                             <div className="flex justify-between items-center mb-6 px-2 md:px-0">
                                 <div className="flex items-center gap-2">
                                      <Home size={30} className="text-brand-green" />
-                                     <h3 className="text-2xl font-bold text-brand-green">{section.title}</h3>
+                                     <EditableText tag="h3" fieldKey={section.key} content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-2xl font-bold text-brand-green inline-block" />
                                 </div>
-                                <button disabled={isEditMode} onClick={() => { setActiveTab('search_result'); window.scrollTo(0,0); }} className="bg-[#1b5e20] text-white px-4 md:px-5 py-1.5 md:py-2 rounded-full text-[13px] md:text-sm font-light hover:bg-opacity-90 transition flex items-center gap-1 disabled:opacity-50">
-                                    ดูทั้งหมด <ChevronRight size={16} />
+                                <button onClick={() => { if(!isEditMode){setActiveTab('search_result'); window.scrollTo(0,0);} }} className="bg-[#1b5e20] text-white px-4 md:px-5 py-1.5 md:py-2 rounded-full text-[13px] md:text-sm font-light hover:bg-opacity-90 transition flex items-center gap-1">
+                                    <EditableText tag="span" fieldKey="btnSeeAll" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="inline-block" />
+                                    <ChevronRight size={16} />
                                 </button>
                             </div>
                             
-                            {/* เปลี่ยน Grid เป็นแนวนอนสำหรับ Mobile และ Grid แถวละ 3 การ์ดสำหรับ Desktop */}
                             <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 md:gap-8 pb-6 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-3 md:overflow-visible">
                                 {section.data.map((p, index) => {
                                     if (!p) {
-                                        // กรอบว่างสำหรับรอข้อมูล (Skeleton card)
                                         return (
                                             <div key={`empty-${index}`} className="bg-white border-2 border-dashed border-gray-200 rounded-2xl flex flex-col h-full min-h-[350px] opacity-60 min-w-[80vw] sm:min-w-[45vw] md:min-w-0 snap-center flex-shrink-0">
-                                                 <div className="aspect-[4/3] bg-gray-50 rounded-t-2xl flex items-center justify-center">
-                                                     <ImageIcon size={48} className="text-gray-300" />
-                                                 </div>
-                                                 <div className="p-5 flex flex-col flex-grow">
-                                                     <div className="h-5 bg-gray-200 rounded w-3/4 mb-3"></div>
-                                                     <div className="h-4 bg-gray-100 rounded w-full mb-4"></div>
-                                                     <div className="mt-auto pt-4 border-t border-gray-100">
-                                                         <div className="h-6 bg-gray-200 rounded w-1/3"></div>
-                                                     </div>
-                                                 </div>
+                                                 <div className="aspect-[4/3] bg-gray-50 rounded-t-2xl flex items-center justify-center"><ImageIcon size={48} className="text-gray-300" /></div>
+                                                 <div className="p-5 flex flex-col flex-grow"><div className="h-5 bg-gray-200 rounded w-3/4 mb-3"></div><div className="h-4 bg-gray-100 rounded w-full mb-4"></div><div className="mt-auto pt-4 border-t border-gray-100"><div className="h-6 bg-gray-200 rounded w-1/3"></div></div></div>
                                             </div>
                                         );
                                     }
                                     return (
-                                        <div key={p.id} onClick={() => { if(!isEditMode) onSelectProp(p) }} className={`bg-white border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-lg transition-all duration-300 rounded-2xl overflow-hidden flex flex-col h-full min-w-[80vw] sm:min-w-[45vw] md:min-w-0 snap-center flex-shrink-0 ${isEditMode ? 'cursor-default' : 'cursor-pointer'}`} style={{ animation: `fadeUpAnim 0.8s ease forwards ${index * 50}ms`, opacity: 0, transform: 'translateY(20px)' }}>
+                                        <div key={p.id} onClick={() => { if(!isEditMode) onSelectProp(p) }} className="bg-white border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-lg transition-all duration-300 rounded-2xl overflow-hidden cursor-pointer flex flex-col h-full min-w-[80vw] sm:min-w-[45vw] md:min-w-0 snap-center flex-shrink-0" style={{ animation: `fadeUpAnim 0.8s ease forwards ${index * 50}ms`, opacity: 0, transform: 'translateY(20px)' }}>
                                             <div className="aspect-[4/3] relative overflow-hidden bg-gray-100 pointer-events-none">
                                                 <img src={p.images?.[0] || p.imageUrl || "https://placehold.co/600x400"} alt={p.project_name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
-                                                
-                                                <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm text-gray-700 px-3 py-1.5 rounded-full font-medium text-xs shadow-sm z-10 flex items-center gap-1.5">
-                                                    <Home size={14} className="text-brand-green" />
-                                                    {p.category}
-                                                </div>
-
-                                                {p.badge && (
-                                                    <div className={`absolute top-3 right-3 px-3 py-1.5 rounded-full font-medium text-xs shadow-sm z-10 ${
-                                                        p.badge === 'Promotion' ? 'bg-[#c8ff00] text-black' : 
-                                                        p.badge === 'Sold Out' ? 'bg-red-600 text-white' : 
-                                                        'bg-blue-500 text-white'
-                                                    }`}>
-                                                        {p.badge}
-                                                    </div>
-                                                )}
+                                                <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm text-gray-700 px-3 py-1.5 rounded-full font-medium text-xs shadow-sm z-10 flex items-center gap-1.5"><Home size={14} className="text-brand-green" />{p.category}</div>
+                                                {p.badge && <div className={`absolute top-3 right-3 px-3 py-1.5 rounded-full font-medium text-xs shadow-sm z-10 text-white ${p.badge === 'Promotion' ? 'bg-red-600' : p.badge === 'New' ? 'bg-blue-600' : p.badge === 'Sold Out' ? 'bg-gray-600' : 'bg-brand-green'}`}>{p.badge}</div>}
                                             </div>
                                             <div className="p-5 flex flex-col flex-grow pointer-events-none">
                                                 <h4 className="font-bold text-gray-800 text-[18px] mb-2 line-clamp-2 leading-snug">{p.project_name}</h4>
-                                                
-                                                <div className="text-[13px] text-gray-500 flex items-center gap-1.5 mb-4">
-                                                    <MapPin size={15} className="flex-shrink-0 text-gray-400" />
-                                                    <span className="font-light truncate">
-                                                        {p.main_location || p.district} {p.sub_location || p.subdistrict ? `- ${p.sub_location || p.subdistrict}` : ''}
-                                                    </span>
-                                                </div>
-                                                
+                                                <div className="text-[13px] text-gray-500 flex items-center gap-1.5 mb-4"><MapPin size={15} className="flex-shrink-0 text-gray-400" /><span className="font-light truncate">{p.main_location || p.district} {p.sub_location || p.subdistrict ? `- ${p.sub_location || p.subdistrict}` : ''}</span></div>
                                                 <div className="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between">
-                                                    <span className="text-[20px] font-bold text-brand-green">
-                                                        <span className="text-[16px] mr-1">฿</span>{Number(p.price).toLocaleString()}
-                                                    </span>
-                                                    <div className="flex items-center gap-2 md:gap-3 text-gray-500 text-[12px] md:text-[13px]">
-                                                        <div className="flex items-center gap-1" title="พื้นที่"><Maximize size={14} /> {p.area_wah}</div>
-                                                        <div className="flex items-center gap-1" title="ห้องนอน"><Bed size={14} /> {p.bedrooms}</div>
-                                                        <div className="flex items-center gap-1" title="ห้องน้ำ"><Bath size={14} /> {p.bathrooms}</div>
-                                                    </div>
+                                                    <span className="text-[20px] font-bold text-brand-green"><span className="text-[16px] mr-1">฿</span>{Number(p.price).toLocaleString()}</span>
+                                                    <div className="flex items-center gap-2 md:gap-3 text-gray-500 text-[12px] md:text-[13px]"><div className="flex items-center gap-1" title="พื้นที่"><Maximize size={14} /> {p.area_wah}</div><div className="flex items-center gap-1" title="ห้องนอน"><Bed size={14} /> {p.bedrooms}</div><div className="flex items-center gap-1" title="ห้องน้ำ"><Bath size={14} /> {p.bathrooms}</div></div>
                                                 </div>
                                             </div>
                                         </div>
@@ -1324,22 +1297,57 @@
                         </div>
                     ))}
                 </div>
+
+                {/* --- เพิ่มส่วน Why Us ด้านล่างบ้านเดี่ยว --- */}
+                <div className="bg-gray-50 py-20 mt-12 mb-16 rounded-[40px] px-6 md:px-12 max-w-7xl mx-auto shadow-sm border border-gray-100">
+                    <div className="text-center mb-12">
+                        <EditableText tag="h2" fieldKey="whyUsTitle" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-3xl font-bold text-brand-green inline-block" />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        <div className="bg-white p-8 rounded-3xl shadow-sm hover:shadow-md transition">
+                            <div className="w-14 h-14 bg-brand-light text-brand-green rounded-2xl flex items-center justify-center mb-6"><Star size={28} /></div>
+                            <EditableText tag="h3" fieldKey="whyUs1Title" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-xl font-bold text-gray-800 mb-3 block" />
+                            <EditableText tag="p" fieldKey="whyUs1Desc" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-gray-500 font-light leading-relaxed block" />
+                        </div>
+                        <div className="bg-white p-8 rounded-3xl shadow-sm hover:shadow-md transition">
+                            <div className="w-14 h-14 bg-brand-light text-brand-green rounded-2xl flex items-center justify-center mb-6"><Home size={28} /></div>
+                            <EditableText tag="h3" fieldKey="whyUs2Title" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-xl font-bold text-gray-800 mb-3 block" />
+                            <EditableText tag="p" fieldKey="whyUs2Desc" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-gray-500 font-light leading-relaxed block" />
+                        </div>
+                        <div className="bg-white p-8 rounded-3xl shadow-sm hover:shadow-md transition">
+                            <div className="w-14 h-14 bg-brand-light text-brand-green rounded-2xl flex items-center justify-center mb-6"><Calculator size={28} /></div>
+                            <EditableText tag="h3" fieldKey="whyUs3Title" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-xl font-bold text-gray-800 mb-3 block" />
+                            <EditableText tag="p" fieldKey="whyUs3Desc" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-gray-500 font-light leading-relaxed block" />
+                        </div>
+                        <div className="bg-white p-8 rounded-3xl shadow-sm hover:shadow-md transition">
+                            <div className="w-14 h-14 bg-brand-light text-brand-green rounded-2xl flex items-center justify-center mb-6"><ClipboardCheck size={28} /></div>
+                            <EditableText tag="h3" fieldKey="whyUs4Title" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-xl font-bold text-gray-800 mb-3 block" />
+                            <EditableText tag="p" fieldKey="whyUs4Desc" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-gray-500 font-light leading-relaxed block" />
+                        </div>
+                        <div className="bg-white p-8 rounded-3xl shadow-sm hover:shadow-md transition">
+                            <div className="w-14 h-14 bg-brand-light text-brand-green rounded-2xl flex items-center justify-center mb-6"><FileText size={28} /></div>
+                            <EditableText tag="h3" fieldKey="whyUs5Title" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-xl font-bold text-gray-800 mb-3 block" />
+                            <EditableText tag="p" fieldKey="whyUs5Desc" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-gray-500 font-light leading-relaxed block" />
+                        </div>
+                        <div className="bg-white p-8 rounded-3xl shadow-sm hover:shadow-md transition">
+                            <div className="w-14 h-14 bg-brand-light text-brand-green rounded-2xl flex items-center justify-center mb-6"><ShieldCheck size={28} /></div>
+                            <EditableText tag="h3" fieldKey="whyUs6Title" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-xl font-bold text-gray-800 mb-3 block" />
+                            <EditableText tag="p" fieldKey="whyUs6Desc" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-gray-500 font-light leading-relaxed block" />
+                        </div>
+                    </div>
+                </div>
+
             </main>
           );
         }
 
-        function SalePage({ property, companyInfo, onBack, properties, onSelectProp }) {
+        function SalePage({ property, companyInfo, onBack, properties, onSelectProp, visualContent, updateVisualContent, isEditMode }) {
           const [activeImg, setActiveImg] = useState(0);
-          const [isVideoPlaying, setIsVideoPlaying] = useState(false); // เพิ่ม State สำหรับเช็คสถานะการกดเล่นวิดีโอ
+          const [isVideoPlaying, setIsVideoPlaying] = useState(false);
           const images = property.images && property.images.length > 0 ? property.images : [property.imageUrl || "https://placehold.co/600x400"];
           const youtubeId = getYoutubeId(property.youtubeUrl);
 
-          // คำนวณบ้านที่คุณอาจสนใจ (ทำเลเดียวกัน หรือ ประเภทเดียวกัน ไม่เอาหลังเดิม ไม่เอาอันที่ Sold Out)
-          const relatedProps = properties.filter(p => 
-              p.id !== property.id && 
-              p.badge !== 'Sold Out' && 
-              (p.sub_location === property.sub_location || p.category === property.category)
-          ).slice(0, 6);
+          const relatedProps = properties.filter(p => p.id !== property.id && p.badge !== 'Sold Out' && (p.sub_location === property.sub_location || p.category === property.category)).slice(0, 6);
 
           return (
             <div className="bg-gray-50 min-h-screen pb-12 animate-in fade-in duration-300 flex-grow">
@@ -1357,10 +1365,7 @@
                               <button onClick={() => setActiveImg(prev => (prev === images.length - 1 ? 0 : prev + 1))} className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 text-brand-green p-2 rounded-full hover:bg-white transition"><ChevronRight /></button>
                             </>
                           )}
-                          {property.badge && <div className={`absolute top-4 right-4 px-4 py-1.5 rounded-full font-medium text-xs shadow-lg z-10 text-white ${
-                              property.badge === 'Promotion' ? 'bg-[#c8ff00] text-black' : 
-                              property.badge === 'Sold Out' ? 'bg-red-600' : 'bg-blue-500'
-                          }`}>{property.badge}</div>}
+                          {property.badge && <div className={`absolute top-4 right-4 px-4 py-1.5 rounded-full font-medium text-xs shadow-lg z-10 text-white ${property.badge === 'Promotion' ? 'bg-red-600' : property.badge === 'New' ? 'bg-blue-600' : property.badge === 'Sold Out' ? 'bg-gray-600' : 'bg-brand-green'}`}>{property.badge}</div>}
                        </div>
                        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                           {images.map((img, idx) => (
@@ -1380,12 +1385,8 @@
                                 <MapPin size={16} className="text-brand-green" />
                                 <span>{property.main_location || property.district} {property.sub_location || property.subdistrict ? `- ${property.sub_location || property.subdistrict}` : ''}</span>
                             </div>
-                            {/* แสดงผลบ้านเลขที่และซอย ถ้ามีข้อมูล */}
                             {(property.house_number || property.soi) && (
-                                <p className="text-gray-500 text-sm mt-2 font-light">
-                                    {property.house_number && `บ้านเลขที่ ${property.house_number} `} 
-                                    {property.soi && `ซอย ${property.soi}`}
-                                </p>
+                                <p className="text-gray-500 text-sm mt-2 font-light">{property.house_number && `บ้านเลขที่ ${property.house_number} `} {property.soi && `ซอย ${property.soi}`}</p>
                             )}
                           </div>
                           <div className="text-right">
@@ -1415,105 +1416,49 @@
                            </>
                        )}
 
-                        {/* --- ส่วนวิดีโอที่แก้ไขใหม่ --- */}
                         {youtubeId && (
                             <div className="mb-8">
                                 <h3 className="text-lg font-medium text-brand-green mb-4">วิดีโอแนะนำ</h3>
                                 <div className="aspect-video rounded-xl overflow-hidden bg-black shadow-sm relative">
                                     {!isVideoPlaying ? (
-                                        <div 
-                                            className="w-full h-full cursor-pointer group relative"
-                                            onClick={() => setIsVideoPlaying(true)}
-                                        >
-                                            <img 
-                                                src={`https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg`} 
-                                                className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
-                                                alt="Video Preview"
-                                                onError={(e) => { e.target.src = `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`; }} 
-                                            />
-                                            <div className="absolute inset-0 flex items-center justify-center">
-                                                <div className="w-16 h-12 bg-red-600 rounded-xl flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform">
-                                                    <svg className="w-8 h-8 text-white fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                                                </div>
-                                            </div>
+                                        <div className="w-full h-full cursor-pointer group relative" onClick={() => setIsVideoPlaying(true)}>
+                                            <img src={`https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg`} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" alt="Video Preview" onError={(e) => { e.target.src = `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`; }} />
+                                            <div className="absolute inset-0 flex items-center justify-center"><div className="w-16 h-12 bg-red-600 rounded-xl flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform"><svg className="w-8 h-8 text-white fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>
                                         </div>
                                     ) : (
-                                        <iframe 
-                                            width="100%" 
-                                            height="100%" 
-                                            src={`https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=1&rel=0&modestbranding=1&playsinline=1`} 
-                                            title="YouTube video player" 
-                                            frameBorder="0" 
-                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                                            allowFullScreen>
-                                        </iframe>
+                                        <iframe width="100%" height="100%" src={`https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=1&rel=0&modestbranding=1&playsinline=1`} title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
                                     )}
                                 </div>
                             </div>
                         )}
 
-                        {/* --- ส่วนแผนที่ที่แก้ไข URL ที่พิมพ์ผิด --- */}
                         {property.lat && property.lng && property.lat.trim() !== '' && property.lng.trim() !== '' && (
                             <div className="mb-8">
                                 <h3 className="text-lg font-medium text-brand-green mb-4">ที่ตั้งโครงการ</h3>
-                                <div className="aspect-video md:aspect-[21/9] rounded-xl overflow-hidden bg-gray-100 border border-gray-200">
-                                    <iframe 
-                                        width="100%" 
-                                        height="100%" 
-                                        frameBorder="0" 
-                                        style={{ border: 0 }} 
-                                        src={`https://www.google.com/maps?q=${String(property.lat).replace(/,/g, '.')},${String(property.lng).replace(/,/g, '.')}&hl=th&z=16&output=embed`} 
-                                        allowFullScreen
-                                    ></iframe>
+                                <div className="aspect-video md:aspect-[21/9] rounded-xl overflow-hidden bg-gray-100 border border-gray-200 pointer-events-none">
+                                    <iframe width="100%" height="100%" frameBorder="0" style={{ border: 0 }} src={`https://www.google.com/maps?q=${String(property.lat).replace(/,/g, '.')},${String(property.lng).replace(/,/g, '.')}&hl=th&z=16&output=embed`} allowFullScreen></iframe>
                                 </div>
                             </div>
                         )}
                     </div>
 
-                    {/* --- ส่วนบ้านที่คุณอาจสนใจ (แนวนอน เลื่อนได้) ขนาดเท่าหน้าแรก --- */}
                     {relatedProps.length > 0 && (
                         <div className="mt-12 mb-8 px-4 md:px-0">
                             <h3 className="text-xl font-medium text-brand-green mb-6 border-l-4 border-brand-green pl-3">โครงการที่คุณอาจสนใจ</h3>
                             <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 md:gap-6 pb-6 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
                                 {relatedProps.map((p, index) => (
-                                    <div key={p.id} onClick={() => onSelectProp(p)} className="bg-white border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-lg transition-all duration-300 rounded-2xl overflow-hidden cursor-pointer flex flex-col h-full min-w-[85vw] sm:min-w-[45vw] md:min-w-[calc(33.333%-1rem)] lg:min-w-[calc(33.333%-1.33rem)] snap-center flex-shrink-0" style={{ animation: `fadeUpAnim 0.5s ease forwards ${index * 50}ms`, opacity: 0, transform: 'translateY(20px)' }}>
-                                        <div className="aspect-[4/3] relative overflow-hidden bg-gray-100">
+                                    <div key={p.id} onClick={() => {if(!isEditMode) onSelectProp(p)}} className={`bg-white border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-lg transition-all duration-300 rounded-2xl overflow-hidden flex flex-col h-full min-w-[85vw] sm:min-w-[45vw] md:min-w-[calc(33.333%-1rem)] lg:min-w-[calc(33.333%-1.33rem)] snap-center flex-shrink-0 ${isEditMode ? 'cursor-default' : 'cursor-pointer'}`} style={{ animation: `fadeUpAnim 0.5s ease forwards ${index * 50}ms`, opacity: 0, transform: 'translateY(20px)' }}>
+                                        <div className="aspect-[4/3] relative overflow-hidden bg-gray-100 pointer-events-none">
                                             <img src={p.images?.[0] || p.imageUrl || "https://placehold.co/600x400"} alt={p.project_name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
-                                            
-                                            <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm text-gray-700 px-3 py-1.5 rounded-full font-medium text-xs shadow-sm z-10 flex items-center gap-1.5">
-                                                <Home size={14} className="text-brand-green" />
-                                                {p.category}
-                                            </div>
-
-                                            {p.badge && (
-                                                <div className={`absolute top-3 right-3 px-3 py-1.5 rounded-full font-medium text-xs shadow-sm z-10 ${
-                                                    p.badge === 'Promotion' ? 'bg-[#c8ff00] text-black' : 
-                                                    p.badge === 'Sold Out' ? 'bg-red-600 text-white' : 
-                                                    'bg-blue-500 text-white'
-                                                }`}>
-                                                    {p.badge}
-                                                </div>
-                                            )}
+                                            <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm text-gray-700 px-3 py-1.5 rounded-full font-medium text-xs shadow-sm z-10 flex items-center gap-1.5"><Home size={14} className="text-brand-green" />{p.category}</div>
+                                            {p.badge && <div className={`absolute top-3 right-3 px-3 py-1.5 rounded-full font-medium text-xs shadow-sm z-10 text-white ${p.badge === 'Promotion' ? 'bg-red-600' : p.badge === 'New' ? 'bg-blue-600' : p.badge === 'Sold Out' ? 'bg-gray-600' : 'bg-brand-green'}`}>{p.badge}</div>}
                                         </div>
-                                        <div className="p-5 flex flex-col flex-grow">
+                                        <div className="p-5 flex flex-col flex-grow pointer-events-none">
                                             <h4 className="font-bold text-gray-800 text-[18px] mb-2 line-clamp-2 leading-snug">{p.project_name}</h4>
-                                            
-                                            <div className="text-[13px] text-gray-500 flex items-center gap-1.5 mb-4">
-                                                <MapPin size={15} className="flex-shrink-0 text-gray-400" />
-                                                <span className="font-light truncate">
-                                                    {p.main_location || p.district} {p.sub_location || p.subdistrict ? `- ${p.sub_location || p.subdistrict}` : ''}
-                                                </span>
-                                            </div>
-                                            
+                                            <div className="text-[13px] text-gray-500 flex items-center gap-1.5 mb-4"><MapPin size={15} className="flex-shrink-0 text-gray-400" /><span className="font-light truncate">{p.main_location || p.district} {p.sub_location || p.subdistrict ? `- ${p.sub_location || p.subdistrict}` : ''}</span></div>
                                             <div className="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between">
-                                                <span className="text-[20px] font-bold text-brand-green">
-                                                    <span className="text-[16px] mr-1">฿</span>{Number(p.price).toLocaleString()}
-                                                </span>
-                                                <div className="flex items-center gap-2 md:gap-3 text-gray-500 text-[12px] md:text-[13px]">
-                                                    <div className="flex items-center gap-1" title="พื้นที่"><Maximize size={14} /> {p.area_wah}</div>
-                                                    <div className="flex items-center gap-1" title="ห้องนอน"><Bed size={14} /> {p.bedrooms}</div>
-                                                    <div className="flex items-center gap-1" title="ห้องน้ำ"><Bath size={14} /> {p.bathrooms}</div>
-                                                </div>
+                                                <span className="text-[20px] font-bold text-brand-green"><span className="text-[16px] mr-1">฿</span>{Number(p.price).toLocaleString()}</span>
+                                                <div className="flex items-center gap-2 md:gap-3 text-gray-500 text-[12px] md:text-[13px]"><div className="flex items-center gap-1" title="พื้นที่"><Maximize size={14} /> {p.area_wah}</div><div className="flex items-center gap-1" title="ห้องนอน"><Bed size={14} /> {p.bedrooms}</div><div className="flex items-center gap-1" title="ห้องน้ำ"><Bath size={14} /> {p.bathrooms}</div></div>
                                             </div>
                                         </div>
                                     </div>
@@ -1525,20 +1470,14 @@
 
                  <div className="space-y-6">
                     <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 sticky top-24 text-center">
-                        {companyInfo?.logoUrl && (
-                            <img src={companyInfo.logoUrl} alt="Logo" className="h-16 mx-auto mb-4 object-contain" />
-                        )}
+                        {companyInfo?.logoUrl && (<img src={companyInfo.logoUrl} alt="Logo" className="h-16 mx-auto mb-4 object-contain" />)}
                         <h3 className="font-medium text-lg mb-6">สนใจติดต่อ</h3>
                         <div className="space-y-3 mb-8">
-                            <a href={`tel:${companyInfo?.phone}`} className="flex items-center justify-center gap-2 w-full bg-brand-green text-white py-3.5 rounded-full font-light hover:bg-opacity-90 transition">
-                                <Phone size={18} /> {companyInfo?.phone}
-                            </a>
-                            <a href={companyInfo?.line} target="_blank" className="flex items-center justify-center gap-2 w-full bg-[#06C755] text-white py-3.5 rounded-full font-light hover:bg-opacity-90 transition">
-                                <MessageCircle size={18} /> ทักไลน์
-                            </a>
+                            <a href={`tel:${companyInfo?.phone}`} className="flex items-center justify-center gap-2 w-full bg-brand-green text-white py-3.5 rounded-full font-light hover:bg-opacity-90 transition"><Phone size={18} /> {companyInfo?.phone}</a>
+                            <a href={companyInfo?.line} target="_blank" className="flex items-center justify-center gap-2 w-full bg-[#06C755] text-white py-3.5 rounded-full font-light hover:bg-opacity-90 transition"><MessageCircle size={18} /> ทักไลน์</a>
                         </div>
                         <div className="border-t border-gray-100 pt-6 text-left">
-                            <CalculatorSection defaultPrice={property.price} minimalist={true} />
+                            <CalculatorSection defaultPrice={property.price} minimalist={true} visualContent={visualContent} updateVisualContent={updateVisualContent} isEditMode={isEditMode} />
                         </div>
                     </div>
                  </div>
@@ -1547,30 +1486,17 @@
           );
         }
 
-        function PropertiesList({ properties, searchParams, onSelectProp }) {
+        function PropertiesList({ properties, searchParams, onSelectProp, visualContent, updateVisualContent, isEditMode }) {
           let displayProps = properties.filter(p => p.badge !== 'Sold Out');
           let title = 'รายการทั้งหมด';
 
           if (searchParams?.type === 'promo') {
               displayProps = properties.filter(p => p.badge === 'Promotion');
-              title = 'โปรโมชั่นพิเศษ';
-          } else if (searchParams?.type === 'main_location') {
-              displayProps = properties.filter(p => p.main_location === searchParams.value || (!p.main_location && p.district === searchParams.value));
+              title = visualContent.navPromo;
+          } else if (searchParams?.type === 'main_location' || searchParams?.type === 'sub_location' || searchParams?.type === 'district') {
+              displayProps = properties.filter(p => p.main_location === searchParams.value || (!p.main_location && p.district === searchParams.value) || p.sub_location === searchParams.value || (!p.sub_location && p.subdistrict === searchParams.value) || (p.subdistrict === 'คูคต' && searchParams.value === 'ลำลูกกา'));
               title = `ทำเล: ${searchParams.value}`;
-          } else if (searchParams?.type === 'sub_location') {
-              displayProps = properties.filter(p => p.sub_location === searchParams.value || (!p.sub_location && p.subdistrict === searchParams.value));
-              title = `ทำเล: ${searchParams.value}`;
-          } else if (searchParams?.type === 'district') {
-              displayProps = properties.filter(p => p.district === searchParams.value || (p.subdistrict === 'คูคต' && searchParams.value === 'ลำลูกกา'));
-              title = `ทำเล: ${searchParams.value}`;
-          } else if (searchParams?.type === 'subdistrict') {
-              const keyword = normalizeThaiSearch(searchParams.value); 
-              displayProps = properties.filter(p => {
-                  const propString = normalizeThaiSearch(`${p.district} ${p.subdistrict} ${p.project_name} ${p.house_number} ${p.soi} ${p.highlights} ${p.category}`);
-                  return propString.includes(keyword);
-              });
-              title = `ผลการค้นหา: ${searchParams.value}`;
-          } else if (searchParams?.type === 'keyword') {
+          } else if (searchParams?.type === 'subdistrict' || searchParams?.type === 'keyword') {
               const keyword = normalizeThaiSearch(searchParams.value); 
               displayProps = properties.filter(p => {
                   const propString = normalizeThaiSearch(`${p.main_location} ${p.sub_location} ${p.district} ${p.subdistrict} ${p.project_name} ${p.house_number} ${p.soi} ${p.highlights} ${p.category}`);
@@ -1584,34 +1510,18 @@
               <h2 className="text-2xl font-light text-brand-green mb-10">{title} <span className="text-sm text-gray-400 ml-2">({displayProps.length} รายการ)</span></h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {displayProps.length > 0 ? displayProps.map(p => (
-                   <div key={p.id} onClick={() => onSelectProp(p)} className="bg-white border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-lg transition-all duration-300 rounded-2xl overflow-hidden cursor-pointer flex flex-col h-full" style={{ animation: `fadeUpAnim 0.5s ease forwards`, opacity: 0, transform: 'translateY(20px)' }}>
-                       <div className="aspect-[4/3] relative overflow-hidden bg-gray-100">
+                   <div key={p.id} onClick={() => {if(!isEditMode) onSelectProp(p)}} className={`bg-white border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-lg transition-all duration-300 rounded-2xl overflow-hidden flex flex-col h-full ${isEditMode ? 'cursor-default' : 'cursor-pointer'}`} style={{ animation: `fadeUpAnim 0.5s ease forwards`, opacity: 0, transform: 'translateY(20px)' }}>
+                       <div className="aspect-[4/3] relative overflow-hidden bg-gray-100 pointer-events-none">
                            <img src={p.images?.[0] || p.imageUrl || "https://placehold.co/600x400"} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
-                           <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm text-gray-700 px-3 py-1.5 rounded-full font-medium text-xs shadow-sm z-10 flex items-center gap-1.5">
-                               <Home size={14} className="text-brand-green" />
-                               {p.category}
-                           </div>
-                           {p.badge && <div className={`absolute top-3 right-3 px-3 py-1.5 rounded-full font-medium text-xs shadow-sm z-10 ${
-                                p.badge === 'Promotion' ? 'bg-[#c8ff00] text-black' : 
-                                p.badge === 'Sold Out' ? 'bg-red-600 text-white' : 
-                                'bg-blue-500 text-white'
-                            }`}>{p.badge}</div>}
+                           <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm text-gray-700 px-3 py-1.5 rounded-full font-medium text-xs shadow-sm z-10 flex items-center gap-1.5"><Home size={14} className="text-brand-green" />{p.category}</div>
+                           {p.badge && <div className={`absolute top-3 right-3 px-3 py-1.5 rounded-full font-medium text-xs shadow-sm z-10 text-white ${p.badge === 'Promotion' ? 'bg-red-600' : p.badge === 'New' ? 'bg-blue-600' : p.badge === 'Sold Out' ? 'bg-gray-600' : 'bg-brand-green'}`}>{p.badge}</div>}
                        </div>
-                       <div className="p-5 flex flex-col flex-grow">
+                       <div className="p-5 flex flex-col flex-grow pointer-events-none">
                            <h4 className="font-bold text-gray-800 text-[18px] mb-2 line-clamp-2 leading-snug">{p.project_name}</h4>
-                           <div className="text-[13px] text-gray-500 flex items-center gap-1.5 mb-4">
-                               <MapPin size={15} className="flex-shrink-0 text-gray-400" />
-                               <span className="font-light truncate">
-                                   {p.main_location || p.district} {p.sub_location || p.subdistrict ? `- ${p.sub_location || p.subdistrict}` : ''}
-                               </span>
-                           </div>
+                           <div className="text-[13px] text-gray-500 flex items-center gap-1.5 mb-4"><MapPin size={15} className="flex-shrink-0 text-gray-400" /><span className="font-light truncate">{p.main_location || p.district} {p.sub_location || p.subdistrict ? `- ${p.sub_location || p.subdistrict}` : ''}</span></div>
                            <div className="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between">
                                <span className="text-[20px] font-bold text-brand-green"><span className="text-[16px] mr-1">฿</span>{Number(p.price).toLocaleString()}</span>
-                               <div className="flex items-center gap-3 text-gray-500 text-[13px]">
-                                   <div className="flex items-center gap-1.5" title="พื้นที่"><Maximize size={15} /> {p.area_wah}</div>
-                                   <div className="flex items-center gap-1.5" title="ห้องนอน"><Bed size={15} /> {p.bedrooms}</div>
-                                   <div className="flex items-center gap-1.5" title="ห้องน้ำ"><Bath size={15} /> {p.bathrooms}</div>
-                               </div>
+                               <div className="flex items-center gap-3 text-gray-500 text-[13px]"><div className="flex items-center gap-1.5" title="พื้นที่"><Maximize size={15} /> {p.area_wah}</div><div className="flex items-center gap-1.5" title="ห้องนอน"><Bed size={15} /> {p.bedrooms}</div><div className="flex items-center gap-1.5" title="ห้องน้ำ"><Bath size={15} /> {p.bathrooms}</div></div>
                            </div>
                        </div>
                    </div>

@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>STARTUP UP - จุดเริ่มต้นของคนอยากมีบ้าน</title>
     
     <!-- Meta Tags สำหรับ Social Share ค่าเริ่มต้น -->
@@ -22,6 +22,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Leaflet CSS & JS สำหรับระบบแผนที่ -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
     <!-- Import Map for ES Modules -->
     <script type="importmap">
@@ -60,10 +64,13 @@
     </script>
 
     <style>
-        body {
+        html, body {
             font-family: 'Prompt', sans-serif;
             background-color: #ffffff;
+            /* ป้องกันการเลื่อนซ้าย-ขวา 100% */
             overflow-x: hidden;
+            width: 100%;
+            position: relative;
         }
 
         /* ซ่อนลูกศรขึ้นลงของ input type number อย่างเด็ดขาด */
@@ -137,36 +144,6 @@
             transform: scale(1.05);
         }
 
-        .warm-light-overlay {
-            position: absolute;
-            inset: 0;
-            opacity: 0;
-            transition: opacity 0.7s cubic-bezier(0.4, 0, 0.2, 1);
-            background: radial-gradient(circle at 50% 70%, rgba(255, 165, 0, 0.45) 0%, rgba(255, 100, 0, 0.15) 40%, transparent 70%);
-            mix-blend-mode: color-dodge;
-            pointer-events: none;
-            z-index: 10;
-        }
-
-        .house-card:hover .warm-light-overlay {
-            opacity: 1;
-        }
-
-        .window-glow {
-            position: absolute;
-            inset: 0;
-            opacity: 0;
-            transition: opacity 0.8s ease-in-out;
-            background: radial-gradient(ellipse at 50% 50%, rgba(255, 220, 130, 0.3) 0%, transparent 50%);
-            mix-blend-mode: screen;
-            z-index: 11;
-            pointer-events: none;
-        }
-
-        .house-card:hover .window-glow {
-            opacity: 1;
-        }
-
         /* เพิ่ม Keyframes สำหรับให้บ้านที่โหลดมาแสดงผลได้ตามปกติ */
         @keyframes fadeUpAnim {
             from {
@@ -179,6 +156,21 @@
             }
         }
 
+        /* --- Animations สำหรับแถบทำเล (Marquee) --- */
+        @keyframes scrollMarquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        .animate-marquee {
+            display: flex;
+            width: max-content;
+            animation: scrollMarquee 40s linear infinite;
+        }
+        /* เมื่อเอาเมาส์ชี้ให้หยุดวิ่ง */
+        .animate-marquee:hover {
+            animation-play-state: paused;
+        }
+
         /* ซ่อน Scrollbar สำหรับแนวนอน (Carousel) */
         .scrollbar-hide::-webkit-scrollbar {
             display: none;
@@ -187,15 +179,51 @@
             -ms-overflow-style: none;  /* IE and Edge */
             scrollbar-width: none;  /* Firefox */
         }
+
+        /* Styles สำหรับ Custom Marker ในแผนที่ Leaflet */
+        .custom-map-marker {
+            background-color: white;
+            border: 2px solid #0b3d1b;
+            color: #0b3d1b;
+            font-family: 'Prompt', sans-serif;
+            font-weight: 600;
+            font-size: 13px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .custom-map-marker:hover {
+            transform: scale(1.1);
+            background-color: #0b3d1b;
+            color: white;
+        }
+        .leaflet-container {
+            z-index: 10;
+            font-family: 'Prompt', sans-serif;
+        }
+        .leaflet-popup-content-wrapper {
+            border-radius: 12px;
+        }
+        /* แก้ปัญหา Tooltip เล็กๆ */
+        .leaflet-tooltip {
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
     </style>
 </head>
-<body class="text-gray-800 antialiased selection:bg-brand-green selection:text-white">
-    <div id="root"></div>
+<body class="text-gray-800 antialiased selection:bg-brand-green selection:text-white relative">
+    <div id="root" class="max-w-full overflow-hidden"></div>
 
     <script type="text/babel" data-type="module">
         import { createRoot } from 'react-dom/client';
-        import React, { useState, useEffect } from 'react';
-        import { Home, MapPin, Bed, Bath, Car, Maximize, Phone, MessageCircle, Menu, X, Plus, Trash2, ShieldCheck, CheckCircle, Calculator, Users, FileText, Settings, Edit, Save, Image as ImageIcon, Layout, ChevronLeft, ChevronRight, Upload, Briefcase, XCircle, Tag, Youtube, Loader, Facebook, Instagram, Video, Check, Calendar, FolderPlus, Map, Search, AlertTriangle, AlertCircle } from 'lucide-react';
+        import React, { useState, useEffect, useRef } from 'react';
+        import { Home, MapPin, Bed, Bath, Car, Maximize, Phone, MessageCircle, Menu, X, Plus, Trash2, ShieldCheck, CheckCircle, Calculator, Users, FileText, Settings, Edit, Save, Image as ImageIcon, Layout, ChevronLeft, ChevronRight, Upload, Briefcase, XCircle, Tag, Youtube, Loader, Facebook, Instagram, Video, Check, Calendar, FolderPlus, Map as MapIcon, Search, AlertTriangle, AlertCircle } from 'lucide-react';
         import { initializeApp } from 'firebase/app';
         
         import { 
@@ -273,13 +301,104 @@
           { area: 'นนทบุรี', sub_areas: ['บางบัวทอง', 'ปากเกร็ด - ติวานนท์'], img: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' }
         ];
 
-        // ฐานข้อมูลรหัสไปรษณีย์
-        const THAI_ADDRESS_DB = {
-          '12120': [{ subdistrict: 'คลองสาม', district: 'คลองหลวง', province: 'ปทุมธานี' }, { subdistrict: 'คลองสี่', district: 'คลองหลวง', province: 'ปทุมธานี' }, { subdistrict: 'คลองหนึ่ง', district: 'คลองหลวง', province: 'ปทุมธานี' }, { subdistrict: 'คลองสอง', district: 'คลองหลวง', province: 'ปทุมธานี' }],
-          '12110': [{ subdistrict: 'บางคูวัด', district: 'เมืองปทุมธานี', province: 'ปทุมธานี' }, { subdistrict: 'บางขะแยง', district: 'เมืองปทุมธานี', province: 'ปทุมธานี' }],
-          '12130': [{ subdistrict: 'ประชาธิปัตย์', district: 'ธัญบุรี', province: 'ปทุมธานี' }, { subdistrict: 'บึงยี่โถ', district: 'ธัญบุรี', province: 'ปทุมธานี' }, { subdistrict: 'รังสิต', district: 'ธัญบุรี', province: 'ปทุมธานี' }], 
-          '12150': [{ subdistrict: 'คูคต', district: 'ลำลูกกา', province: 'ปทุมธานี' }, { subdistrict: 'ลาดสวาย', district: 'ลำลูกกา', province: 'ปทุมธานี' }, { subdistrict: 'บึงคำพร้อย', district: 'ลำลูกกา', province: 'ปทุมธานี' }, { subdistrict: 'ลำลูกกา', district: 'ลำลูกกา', province: 'ปทุมธานี' }],
+        // พิกัดสำรองสำหรับแต่ละอำเภอ (แก้อาการบ้านกระโดดไปทำเลผิด)
+        const DISTRICT_COORDS = {
+            'คลองหลวง': [14.043, 100.655], // เล็งไปที่คลอง 3
+            'คลองสาม': [14.043, 100.655],
+            'คลองสอง': [13.985, 100.635],
+            'ธัญบุรี': [14.000, 100.680],
+            'ลำลูกกา': [13.935, 100.655],
+            'เมืองปทุมธานี': [13.990, 100.525],
+            'ดอนเมือง': [13.923, 100.597],
+            'บางเขน': [13.871, 100.600],
+            'สายไหม': [13.921, 100.642],
+            'บางบัวทอง': [13.915, 100.418],
+            'ปากเกร็ด': [13.912, 100.498],
+            'รังสิต': [13.985, 100.615],
+            'คลองสี่': [14.045, 100.685]
         };
+
+        // --- พิกัดแม่นยำของรถไฟฟ้า 4 สาย แบบจัดเต็มทุกสถานี ---
+        const TRANSIT_LINES = [
+            { 
+                name: 'สายสีเขียว (BTS)', color: '#047857', // Dark Green
+                stations: [
+                    {name: 'ห้าแยกลาดพร้าว', lat: 13.8157, lng: 100.5615},
+                    {name: 'พหลโยธิน 24', lat: 13.8228, lng: 100.5658},
+                    {name: 'รัชโยธิน', lat: 13.8286, lng: 100.5683},
+                    {name: 'เสนานิคม', lat: 13.8378, lng: 100.5738},
+                    {name: 'ม.เกษตรศาสตร์', lat: 13.8465, lng: 100.5786},
+                    {name: 'กรมป่าไม้', lat: 13.8546, lng: 100.5828},
+                    {name: 'บางบัว', lat: 13.8643, lng: 100.5882},
+                    {name: 'กรมทหารราบที่ 11', lat: 13.8703, lng: 100.5915},
+                    {name: 'วัดพระศรีมหาธาตุ', lat: 13.8752, lng: 100.5968},
+                    {name: 'พหลโยธิน 59', lat: 13.8821, lng: 100.6015},
+                    {name: 'สายหยุด', lat: 13.8893, lng: 100.6053},
+                    {name: 'สะพานใหม่', lat: 13.8965, lng: 100.6083},
+                    {name: 'รพ.ภูมิพลอดุลยเดช', lat: 13.9042, lng: 100.6125},
+                    {name: 'พิพิธภัณฑ์กองทัพอากาศ', lat: 13.9125, lng: 100.6186},
+                    {name: 'แยก คปอ.', lat: 13.9238, lng: 100.6256},
+                    {name: 'คูคต', lat: 13.9314, lng: 100.6455}
+                ]
+            },
+            { 
+                name: 'สายสีแดง (SRT)', color: '#b91c1c', // Dark Red
+                stations: [
+                    {name: 'บางซื่อ', lat: 13.8033, lng: 100.5398},
+                    {name: 'จตุจักร', lat: 13.8291, lng: 100.5546},
+                    {name: 'วัดเสมียนนารี', lat: 13.8407, lng: 100.5583},
+                    {name: 'บางเขน', lat: 13.8617, lng: 100.5739},
+                    {name: 'ทุ่งสองห้อง', lat: 13.8741, lng: 100.5807},
+                    {name: 'หลักสี่', lat: 13.8833, lng: 100.5843},
+                    {name: 'การเคหะ', lat: 13.8967, lng: 100.5888},
+                    {name: 'ดอนเมือง', lat: 13.9221, lng: 100.5966},
+                    {name: 'หลักหก (ม.รังสิต)', lat: 13.9620, lng: 100.5950},
+                    {name: 'รังสิต', lat: 13.9845, lng: 100.5992}
+                ]
+            },
+            { 
+                name: 'สายสีชมพู (MRT)', color: '#db2777', // Dark Pink
+                stations: [
+                    {name: 'ศูนย์ราชการนนทบุรี', lat: 13.8601, lng: 100.5144},
+                    {name: 'แคราย', lat: 13.8727, lng: 100.5192},
+                    {name: 'เลี่ยงเมืองปากเกร็ด', lat: 13.8965, lng: 100.5050},
+                    {name: 'ปากเกร็ด', lat: 13.9069, lng: 100.4988},
+                    {name: 'แจ้งวัฒนะ-ปากเกร็ด 28', lat: 13.9038, lng: 100.5255},
+                    {name: 'ศรีรัช', lat: 13.9002, lng: 100.5365},
+                    {name: 'เมืองทองธานี', lat: 13.8973, lng: 100.5463},
+                    {name: 'ศูนย์ราชการเฉลิมพระเกียรติ', lat: 13.8906, lng: 100.5658},
+                    {name: 'หลักสี่', lat: 13.8829, lng: 100.5843},
+                    {name: 'ราชภัฏพระนคร', lat: 13.8797, lng: 100.5905},
+                    {name: 'วัดพระศรีมหาธาตุ', lat: 13.8755, lng: 100.5971},
+                    {name: 'รามอินทรา 3', lat: 13.8715, lng: 100.6125},
+                    {name: 'ลาดปลาเค้า', lat: 13.8690, lng: 100.6225},
+                    {name: 'รามอินทรา กม.4', lat: 13.8643, lng: 100.6335},
+                    {name: 'มัยลาภ', lat: 13.8580, lng: 100.6405},
+                    {name: 'วัชรพล', lat: 13.8540, lng: 100.6448}
+                ]
+            },
+            { 
+                name: 'สายสีม่วง (MRT)', color: '#7e22ce', // Dark Purple
+                stations: [
+                    {name: 'คลองบางไผ่', lat: 13.8906, lng: 100.4035},
+                    {name: 'ตลาดบางใหญ่', lat: 13.8805, lng: 100.4125},
+                    {name: 'สามแยกบางใหญ่', lat: 13.8793, lng: 100.4190},
+                    {name: 'บางพลู', lat: 13.8795, lng: 100.4320},
+                    {name: 'บางรักใหญ่', lat: 13.8778, lng: 100.4435},
+                    {name: 'บางรักน้อยท่าอิฐ', lat: 13.8750, lng: 100.4550},
+                    {name: 'ไทรม้า', lat: 13.8735, lng: 100.4682},
+                    {name: 'สะพานพระนั่งเกล้า', lat: 13.8716, lng: 100.4815},
+                    {name: 'แยกนนทบุรี 1', lat: 13.8680, lng: 100.4950},
+                    {name: 'บางกระสอ', lat: 13.8631, lng: 100.5028},
+                    {name: 'ศูนย์ราชการนนทบุรี', lat: 13.8601, lng: 100.5144},
+                    {name: 'กระทรวงสาธารณสุข', lat: 13.8493, lng: 100.5152},
+                    {name: 'แยกติวานนท์', lat: 13.8395, lng: 100.5150},
+                    {name: 'วงศ์สว่าง', lat: 13.8288, lng: 100.5270},
+                    {name: 'บางซ่อน', lat: 13.8208, lng: 100.5330},
+                    {name: 'เตาปูน', lat: 13.8058, lng: 100.5312}
+                ]
+            }
+        ];
 
         const getYoutubeId = (url) => {
             if (!url) return null;
@@ -461,16 +580,6 @@
               setMeta('og:image', ogImage);
           }, [selectedProperty, activeTab, searchParams, companyInfo]);
 
-          useEffect(() => {
-              const handleWheel = (e) => {
-                  if (document.activeElement && document.activeElement.type === 'number') {
-                      document.activeElement.blur();
-                  }
-              };
-              window.addEventListener('wheel', handleWheel, { passive: false });
-              return () => window.removeEventListener('wheel', handleWheel);
-          }, []);
-
           // Firebase Auth Init
           useEffect(() => {
             const storedEmail = localStorage.getItem('adminEmail');
@@ -528,18 +637,15 @@
             setUserRole(null); setUserEmail('');
             localStorage.removeItem('adminEmail'); localStorage.removeItem('adminRole');
             setShowAdminPanel(false); setActiveTab('home');
-            // Re-login anonymously so public data can still be read
             await signInAnonymously(auth);
           };
 
-          // ฟังก์ชันเข้าสู่ระบบด้วย Google
           const handleGoogleLogin = async () => {
             const provider = new GoogleAuthProvider();
             try {
                 const result = await signInWithPopup(auth, provider);
                 const userEmail = result.user.email.toLowerCase();
 
-                // 1. ตรวจสอบว่าเป็น Host หรือไม่
                 if (userEmail === HOST_EMAIL.toLowerCase()) {
                     setUserRole('host'); 
                     setUserEmail(userEmail);
@@ -548,7 +654,6 @@
                     setShowLoginModal(false); 
                     setShowAdminPanel(true);
                     
-                    // บันทึก Host ลง Firestore
                     try { 
                         await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', userEmail), { 
                             email: userEmail, role: 'host', name: result.user.displayName || 'Main Host', createdAt: serverTimestamp() 
@@ -557,7 +662,6 @@
                     return;
                 }
 
-                // 2. ถ้าไม่ใช่ Host ตรวจสอบว่ามีสิทธิ์ในระบบหรือไม่
                 const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', userEmail);
                 const userDocSnap = await getDoc(userDocRef);
 
@@ -573,13 +677,11 @@
                         setShowLoginModal(false); 
                         setShowAdminPanel(true);
                     } else {
-                        // มีชื่อในระบบแต่สถานะเป็น Pending หรือถูกแบน
-                        await signOut(auth); // บังคับเตะออก
+                        await signOut(auth);
                         await signInAnonymously(auth);
                         throw new Error('บัญชีของคุณอยู่ระหว่างรอ Host อนุมัติ');
                     }
                 } else {
-                    // 3. ไม่เคยมีชื่อในระบบ ให้สร้างคำขออัตโนมัติ (สถานะ Pending)
                     await setDoc(userDocRef, { 
                         email: userEmail, 
                         role: 'pending', 
@@ -592,7 +694,6 @@
                 }
 
             } catch (error) {
-                // ข้าม Error ถ้าผู้ใช้กดยกเลิกหน้าต่าง Popup เอง
                 if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
                     throw new Error(error.message || 'การเข้าสู่ระบบผิดพลาด');
                 }
@@ -693,7 +794,8 @@
                 ) : (
                   <>
                     {activeTab === 'home' && <HeroSection onSearch={handleGlobalSearch} />}
-                    {activeTab === 'home' && <HomeSection properties={properties} loading={loading} onSelectProp={handleSelectProperty} setActiveTab={setActiveTab} />}
+                    {/* ส่ง handleLocationSelect เข้าไปใน HomeSection เพื่อให้คลิกทำเลแล้วค้นหาได้ */}
+                    {activeTab === 'home' && <HomeSection properties={properties} loading={loading} onSelectProp={handleSelectProperty} setActiveTab={setActiveTab} onSelectLocation={handleLocationSelect} />}
                     {activeTab === 'promo' && <PropertiesList properties={properties} searchParams={{ type: 'promo' }} onSelectProp={handleSelectProperty} />}
                     {activeTab === 'search_result' && <PropertiesList properties={properties} searchParams={searchParams} onSelectProp={handleSelectProperty} />}
                     {activeTab === 'location' && <LocationSection onSelectLocation={handleLocationSelect} />}
@@ -744,16 +846,183 @@
           );
         }
 
+        // --- Component: Interactive Property Map ---
+        function PropertyMap({ properties, onSelectProp }) {
+            const mapRef = useRef(null);
+            const mapInstance = useRef(null);
+
+            useEffect(() => {
+                if (!mapRef.current) return;
+                
+                // ถ้ายอดแผนที่ยังไม่ถูกสร้าง
+                if (!mapInstance.current) {
+                    // กำหนดจุดศูนย์กลางของแผนที่ให้ขยับมาตรงกลางระหว่าง ปทุมธานี-รังสิต มากขึ้น
+                    mapInstance.current = L.map(mapRef.current, {
+                        center: [14.000, 100.615], // ขยับให้อยู่ตรงกลางมากขึ้น
+                        zoom: 11,
+                        scrollWheelZoom: false // ป้องกันการซูมตอนเลื่อนหน้าเว็บ
+                    });
+
+                    // เพิ่ม Layer แผนที่ (เปลี่ยนเป็นโทนสว่างขาว-เทา เพื่อให้อ่านง่ายขึ้น)
+                    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                        attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+                    }).addTo(mapInstance.current);
+
+                    // วาดเส้นทางรถไฟฟ้า 4 สาย และใส่จุดสถานีสำคัญ
+                    TRANSIT_LINES.forEach(line => {
+                        // แยก array พิกัดสำหรับลากเส้น
+                        const lineCoords = line.stations.map(st => [st.lat, st.lng]);
+                        
+                        // ลากเส้นเชื่อมทุกสถานีเข้าด้วยกัน
+                        L.polyline(lineCoords, {
+                            color: line.color,
+                            weight: 6,
+                            opacity: 0.9,
+                            lineCap: 'round',
+                            lineJoin: 'round'
+                        }).addTo(mapInstance.current);
+
+                        // ใส่จุดวงกลมบอกชื่อ "ทุกสถานี"
+                        if(line.stations) {
+                            line.stations.forEach(st => {
+                                L.circleMarker([st.lat, st.lng], {
+                                    radius: 5,
+                                    fillColor: 'white',
+                                    color: line.color,
+                                    weight: 2,
+                                    fillOpacity: 1
+                                }).bindTooltip(st.name, {
+                                    permanent: false, 
+                                    direction: 'top',
+                                    offset: [0, -5],
+                                    className: 'font-sans font-medium text-gray-700 text-[12px] px-2 py-1 border-gray-100 shadow-md'
+                                }).addTo(mapInstance.current);
+                            });
+                        }
+                    });
+                }
+
+                // --- จัดการข้อมูลบ้านบนแผนที่ ---
+                const map = mapInstance.current;
+                
+                // ล้าง marker เก่าออกให้หมดก่อน
+                map.eachLayer(layer => {
+                    // ลบเฉพาะ Marker ของบ้าน ไม่ลบ Tile หรือ Polyline/Circle ของรถไฟฟ้า
+                    if (layer instanceof L.Marker && !(layer instanceof L.CircleMarker)) {
+                        map.removeLayer(layer);
+                    }
+                });
+
+                // กรองเฉพาะบ้านที่ยังไม่ Sold Out
+                const validProps = properties.filter(p => p.badge !== 'Sold Out');
+                
+                // จัดกลุ่มบ้าน
+                const clusters = {};
+                validProps.forEach(p => {
+                    let lat = parseFloat(p.lat);
+                    let lng = parseFloat(p.lng);
+                    
+                    // ระบบพิกัดสำรองอัจฉริยะ (Fallback) ป้องกันหมุดไปโผล่ที่อื่น หรือใส่ค่าผิด
+                    if (!lat || !lng || isNaN(lat) || isNaN(lng) || lat > 25 || lat < 5 || lng < 90 || lng > 110) {
+                        const fallback = DISTRICT_COORDS[p.district] || DISTRICT_COORDS[p.main_location] || DISTRICT_COORDS[p.subdistrict] || [14.020, 100.650];
+                        // ใส่ค่าคลาดเคลื่อนนิดหน่อย เพื่อไม่ให้หมุดซ้อนกันเป๊ะเกินไปกรณีที่ใช้ Fallback เดียวกัน
+                        lat = fallback[0] + (Math.random() - 0.5) * 0.02;
+                        lng = fallback[1] + (Math.random() - 0.5) * 0.02;
+                    }
+
+                    // จัดกลุ่มตามพิกัด (ทศนิยม 3 ตำแหน่ง ให้บ้านโครงการเดียวกันหรือใกล้กันอยู่กลุ่มเดียวกัน)
+                    const key = `${lat.toFixed(3)}_${lng.toFixed(3)}`;
+                    if (!clusters[key]) {
+                        clusters[key] = { lat: lat, lng: lng, items: [] };
+                    }
+                    clusters[key].items.push(p);
+                });
+
+                // นำกลุ่มมาสร้าง Marker บนแผนที่
+                Object.values(clusters).forEach(cluster => {
+                    const count = cluster.items.length;
+                    
+                    // สร้างป้าย Marker แบบ Custom HTML
+                    const customIcon = L.divIcon({
+                        className: '', // ปิดคลาสตั้งต้น
+                        html: `<div class="custom-map-marker shadow-lg border-2 hover:scale-105 transition">${count} รายการ</div>`,
+                        iconSize: null, // ให้ขนาดปรับตามเนื้อหา
+                        iconAnchor: [45, 15] // จุดยึดกึ่งกลางล่าง
+                    });
+
+                    const marker = L.marker([cluster.lat, cluster.lng], { icon: customIcon }).addTo(map);
+
+                    // สร้างเนื้อหาใน Popup เมื่อกดที่ Marker
+                    const popupContent = document.createElement('div');
+                    popupContent.className = 'w-64 max-h-64 overflow-y-auto pr-2 py-2';
+                    
+                    const title = document.createElement('h4');
+                    title.className = 'font-bold text-brand-green mb-3 border-b pb-2 sticky top-0 bg-white z-10';
+                    title.innerText = `พบบ้าน ${count} รายการในบริเวณนี้`;
+                    popupContent.appendChild(title);
+
+                    cluster.items.forEach(p => {
+                        const itemDiv = document.createElement('div');
+                        itemDiv.className = 'flex items-start gap-3 mb-3 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition';
+                        
+                        const img = document.createElement('img');
+                        img.src = p.images?.[0] || p.imageUrl || "https://placehold.co/100x100";
+                        img.className = 'w-16 h-16 object-cover rounded-md flex-shrink-0';
+                        
+                        const infoDiv = document.createElement('div');
+                        
+                        const name = document.createElement('div');
+                        name.className = 'font-medium text-sm text-gray-800 line-clamp-1';
+                        name.innerText = p.project_name;
+                        
+                        const price = document.createElement('div');
+                        price.className = 'text-brand-green text-xs font-bold mt-1';
+                        price.innerText = `฿ ${Number(p.price).toLocaleString()}`;
+                        
+                        infoDiv.appendChild(name);
+                        infoDiv.appendChild(price);
+                        itemDiv.appendChild(img);
+                        itemDiv.appendChild(infoDiv);
+
+                        // เมื่อกดที่บ้านแต่ละหลัง ให้เรียก onSelectProp (เพื่อเปิดหน้าดูบ้าน)
+                        itemDiv.onclick = () => {
+                            map.closePopup();
+                            onSelectProp(p);
+                        };
+                        
+                        popupContent.appendChild(itemDiv);
+                    });
+
+                    marker.bindPopup(popupContent);
+                });
+
+            }, [properties]);
+
+            return (
+                <div className="w-full relative border border-gray-200 rounded-[20px] overflow-hidden shadow-sm bg-gray-50 z-0">
+                    <div ref={mapRef} className="w-full h-[350px] md:h-[450px] z-0"></div>
+                </div>
+            );
+        }
+
         // --- View Components ---
-        function HomeSection({ properties, loading, onSelectProp, setActiveTab }) {
+        function HomeSection({ properties, loading, onSelectProp, setActiveTab, onSelectLocation }) {
           const availableProps = properties.filter(p => p.badge !== 'Sold Out');
           if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader className="animate-spin text-brand-green" size={48} /></div>;
 
-          // ฟังก์ชันสำหรับจัดกลุ่มให้มีครบ 3 กรอบเสมอ (เตรียมพื้นที่ว่างไว้)
+          // คำนวณจำนวนบ้านสำหรับแต่ละทำเล
+          const locationCards = LOCATIONS_DATA.map(loc => {
+              const count = availableProps.filter(p => p.main_location === loc.area || (!p.main_location && p.district === loc.area)).length;
+              return { ...loc, count };
+          });
+          
+          // เพื่อให้เลื่อนวนลูปได้เนียนขึ้น จะทำการสร้างอาร์เรย์ที่ซ้ำกัน 2 ชุด
+          const marqueeItems = [...locationCards, ...locationCards];
+
           const padArray = (arr, length) => {
               const result = [...arr];
               while (result.length < length) {
-                  result.push(null); // ใส่ null เป็นกรอบว่าง
+                  result.push(null); 
               }
               return result.slice(0, length);
           };
@@ -769,14 +1038,57 @@
           ];
 
           return (
-            <main className="py-16 px-4 md:px-6 max-w-screen-xl mx-auto min-h-screen">
-                <div className="text-center mb-16">
-                    <h2 className="text-3xl font-light text-brand-green mb-4">ค้นพบบ้านที่ใช่สำหรับคุณ</h2>
+            <main className="py-16 w-full max-w-full overflow-hidden min-h-screen">
+                <div className="max-w-screen-xl mx-auto px-4 md:px-6">
+                    <div className="text-center mb-8">
+                        <h2 className="text-3xl font-light text-brand-green mb-4">ค้นหาบ้านที่ใช่สำหรับคุณ</h2>
+                    </div>
+                </div>
+
+                {/* แถบทำเลเลื่อนอัตโนมัติ (Marquee) ปรับขนาดใหญ่ขึ้น */}
+                <div className="w-full max-w-[100vw] overflow-hidden mb-16 relative py-4">
+                    <div className="animate-marquee">
+                        {marqueeItems.map((loc, idx) => (
+                            <div 
+                                key={idx} 
+                                onClick={() => {
+                                    if (onSelectLocation) onSelectLocation('main_location', loc.area);
+                                }}
+                                className="relative rounded-[24px] overflow-hidden w-[360px] md:w-[450px] h-[240px] md:h-[280px] flex-shrink-0 mx-3 md:mx-4 cursor-pointer group shadow-md hover:shadow-xl transition-all"
+                            >
+                                <img src={loc.img} alt={loc.area} className="w-full h-full object-cover group-hover:scale-110 transition duration-700" />
+                                {/* ไล่สีดำจากล่างขึ้นบนเพื่อให้อ่านข้อความชัด */}
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80"></div>
+                                <div className="absolute bottom-6 left-6 right-6 flex justify-between items-end">
+                                    <div className="text-white">
+                                        <h4 className="font-medium text-2xl flex items-center gap-2 mb-2">
+                                            <MapPin size={24} /> {loc.area}
+                                        </h4>
+                                        <p className="text-base font-light opacity-90">จำนวน {loc.count} โครงการ</p>
+                                    </div>
+                                    <div className="bg-white/20 backdrop-blur-md p-3 rounded-full text-white group-hover:bg-white group-hover:text-brand-green transition-colors shadow-lg">
+                                        <ChevronRight size={24} />
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
                 
-                <div className="space-y-16">
+                {/* ส่วนแผนที่ค้นหาบ้าน Interactive Map - กรอบเล็กลง และจัดกลาง */}
+                <div className="max-w-6xl mx-auto px-4 md:px-6 w-full mb-20 overflow-hidden">
+                    <div className="flex flex-col items-center justify-center text-center mb-8">
+                        <h2 className="text-2xl font-bold text-brand-green mb-2 flex items-center gap-2">
+                            <MapIcon size={28} /> ค้นหาทำเลจากแผนที่
+                        </h2>
+                        <p className="text-gray-500 font-light text-sm">คลิกที่ป้ายจำนวนโครงการ เพื่อดูรายละเอียดบ้านในทำเลนั้นๆ</p>
+                    </div>
+                    <PropertyMap properties={availableProps} onSelectProp={onSelectProp} />
+                </div>
+
+                <div className="max-w-screen-xl mx-auto px-4 md:px-6 space-y-16">
                     {sections.map((section, sIdx) => (
-                        <div key={section.title}>
+                        <div key={section.title} className="w-full max-w-full overflow-hidden">
                             <div className="flex justify-between items-center mb-6 px-2 md:px-0">
                                 <div className="flex items-center gap-2">
                                      <Home size={30} className="text-brand-green" />
@@ -1567,9 +1879,9 @@
                 setIsSaving(true); // เริ่มแสดงหน้าจอโหลด (ตัวหมุนจะเริ่มทำงาน)
                 
                 try {
-                    // 2. เตรียมข้อมูลและจัดการค่า Lat/Lng, ตัวเลข ให้ปลอดภัย
-                    const safeLat = formData.lat ? String(formData.lat).trim() : '';
-                    const safeLng = formData.lng ? String(formData.lng).trim() : '';
+                    // 2. เตรียมข้อมูลและจัดการค่า Lat/Lng, ตัวเลข ให้ปลอดภัย (ลบลูกน้ำ และช่องว่างทิ้ง)
+                    const safeLat = formData.lat ? String(formData.lat).replace(/,/g, '.').replace(/\s/g, '') : '';
+                    const safeLng = formData.lng ? String(formData.lng).replace(/,/g, '.').replace(/\s/g, '') : '';
                     
                     const dataToSave = {
                         ...formData,

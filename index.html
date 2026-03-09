@@ -225,7 +225,7 @@
     <script type="text/babel" data-type="module">
         import { createRoot } from 'react-dom/client';
         import React, { useState, useEffect, useRef } from 'react';
-        import { Home, MapPin, Bed, Bath, Car, Maximize, Phone, MessageCircle, Menu, X, Plus, Trash2, ShieldCheck, CheckCircle, Calculator, Users, FileText, Settings, Edit, Save, Image as ImageIcon, Layout, ChevronLeft, ChevronRight, Upload, Briefcase, XCircle, Tag, Youtube, Loader, Facebook, Instagram, Video, Check, Calendar, FolderPlus, Map as MapIcon, Search, AlertTriangle, AlertCircle, Star, ClipboardCheck } from 'lucide-react';
+        import { Home, MapPin, Bed, Bath, Car, Maximize, Phone, MessageCircle, Menu, X, Plus, Trash2, ShieldCheck, CheckCircle, Calculator, Users, FileText, Settings, Edit, Save, Image as ImageIcon, Layout, ChevronLeft, ChevronRight, Upload, Briefcase, XCircle, Tag, Youtube, Loader, Facebook, Instagram, Video, Check, Calendar, FolderPlus, Map as MapIcon, Search, AlertTriangle, AlertCircle, Star, ClipboardCheck, Type } from 'lucide-react';
         import { initializeApp } from 'firebase/app';
         
         import { 
@@ -488,9 +488,15 @@
         // --- Visual Editor Components ---
         function EditableText({ tag: Tag = 'span', fieldKey, content, updateContent, isEditMode, className }) {
             const [isEditing, setIsEditing] = useState(false);
-            const [tempVal, setTempVal] = useState(content[fieldKey] || '');
+            const [tempVal, setTempVal] = useState('');
 
-            useEffect(() => { setTempVal(content[fieldKey] || ''); }, [content[fieldKey]]);
+            useEffect(() => { 
+                if (content && content[fieldKey] !== undefined) {
+                    setTempVal(content[fieldKey]); 
+                }
+            }, [content, fieldKey]);
+
+            if (!content || content[fieldKey] === undefined) return null;
 
             if (!isEditMode) return <Tag className={className}>{content[fieldKey]}</Tag>;
 
@@ -524,8 +530,7 @@
         function HeroSection({ visualContent, updateVisualContent, isEditMode }) {
             const [currentIndex, setCurrentIndex] = useState(0);
             
-            // ใช้ fallback เป็นอาร์เรย์เดิมที่มี หรือรูปเดียวจากระบบเก่า
-            const heroBgs = Array.isArray(visualContent.heroBgs) ? visualContent.heroBgs : (visualContent.heroBg ? [visualContent.heroBg] : DEFAULT_VISUAL_CONTENT.heroBgs);
+            const heroBgs = Array.isArray(visualContent?.heroBgs) ? visualContent.heroBgs : (visualContent?.heroBg ? [visualContent.heroBg] : DEFAULT_VISUAL_CONTENT.heroBgs);
 
             useEffect(() => {
                 if (heroBgs.length <= 1) return;
@@ -939,11 +944,11 @@
                 {isMenuOpen && (
                   <div className="lg:hidden bg-white border-t border-gray-100 py-4 absolute w-full shadow-lg">
                     <div className="px-6 space-y-4 flex flex-col">
-                      <MobileNavBtn href="?tab=home" onClick={() => {setActiveTab('home'); setSelectedProperty(null); setIsMenuOpen(false); window.scrollTo(0,0);}}>{visualContent.navHome}</MobileNavBtn>
-                      <MobileNavBtn href="?tab=promo" onClick={() => {setActiveTab('promo'); setSelectedProperty(null); setIsMenuOpen(false); window.scrollTo(0,0);}}>{visualContent.navPromo}</MobileNavBtn>
-                      <MobileNavBtn href="?tab=location" onClick={() => {setActiveTab('location'); setSelectedProperty(null); setIsMenuOpen(false); window.scrollTo(0,0);}}>{visualContent.navLocation}</MobileNavBtn>
-                      <MobileNavBtn href="?tab=calculator" onClick={() => {setActiveTab('calculator'); setSelectedProperty(null); setIsMenuOpen(false); window.scrollTo(0,0);}}>{visualContent.navCalc}</MobileNavBtn>
-                      <MobileNavBtn href="?tab=portfolio" onClick={() => {setActiveTab('portfolio'); setSelectedProperty(null); setIsMenuOpen(false); window.scrollTo(0,0);}}>{visualContent.navPortfolio}</MobileNavBtn>
+                      <MobileNavBtn href="?tab=home" onClick={() => {setActiveTab('home'); setSelectedProperty(null); setIsMenuOpen(false); window.scrollTo(0,0);}}>{visualContent?.navHome || DEFAULT_VISUAL_CONTENT.navHome}</MobileNavBtn>
+                      <MobileNavBtn href="?tab=promo" onClick={() => {setActiveTab('promo'); setSelectedProperty(null); setIsMenuOpen(false); window.scrollTo(0,0);}}>{visualContent?.navPromo || DEFAULT_VISUAL_CONTENT.navPromo}</MobileNavBtn>
+                      <MobileNavBtn href="?tab=location" onClick={() => {setActiveTab('location'); setSelectedProperty(null); setIsMenuOpen(false); window.scrollTo(0,0);}}>{visualContent?.navLocation || DEFAULT_VISUAL_CONTENT.navLocation}</MobileNavBtn>
+                      <MobileNavBtn href="?tab=calculator" onClick={() => {setActiveTab('calculator'); setSelectedProperty(null); setIsMenuOpen(false); window.scrollTo(0,0);}}>{visualContent?.navCalc || DEFAULT_VISUAL_CONTENT.navCalc}</MobileNavBtn>
+                      <MobileNavBtn href="?tab=portfolio" onClick={() => {setActiveTab('portfolio'); setSelectedProperty(null); setIsMenuOpen(false); window.scrollTo(0,0);}}>{visualContent?.navPortfolio || DEFAULT_VISUAL_CONTENT.navPortfolio}</MobileNavBtn>
                       <div className="h-px bg-gray-100 my-2"></div>
                       {userRole ? (
                         <button onClick={() => {setShowAdminPanel(true); setIsMenuOpen(false)}} className="w-full text-left py-2 text-brand-green font-medium">เข้าสู่ระบบหลังบ้าน</button>
@@ -1050,7 +1055,15 @@
                 <AdminPanel 
                     userRole={userRole} userEmail={userEmail} properties={properties} users={authorizedUsers} companyInfo={companyInfo} 
                     onClose={() => setShowAdminPanel(false)} onLogout={handleLogout} db={db} appId={appId} 
-                    enterVisualEditMode={() => { setShowAdminPanel(false); setIsVisualEditMode(true); setActiveTab('home'); window.scrollTo(0,0); }}
+                    enterVisualEditMode={() => { 
+                        setShowAdminPanel(false); 
+                        setSelectedProperty(null);
+                        setActiveTab('home'); 
+                        setTimeout(() => {
+                            setIsVisualEditMode(true); 
+                            window.scrollTo(0,0);
+                        }, 50); 
+                    }}
                     showAlert={showGlobalAlert} showConfirm={showGlobalConfirm}
                 />
               )}
@@ -1378,8 +1391,8 @@
                        <ChevronLeft size={16} /> ย้อนกลับ
                     </a>
                     <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
-                       <div className="h-[250px] sm:h-[350px] md:h-[500px] lg:h-[600px] bg-gray-100 rounded-xl overflow-hidden mb-4 relative group">
-                          <img src={images[activeImg]} className="w-full h-full object-cover transition duration-500" alt="Main" />
+                       <div className="aspect-[4/3] md:aspect-video w-full bg-[#f8faf9] border border-gray-100 rounded-xl overflow-hidden mb-4 relative group flex items-center justify-center">
+                          <img src={images[activeImg]} className="max-w-full max-h-full object-contain transition duration-500" alt="Main" />
                           {images.length > 1 && (
                             <>
                               <button onClick={() => setActiveImg(prev => (prev === 0 ? images.length - 1 : prev - 1))} className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 text-brand-green p-2 rounded-full hover:bg-white transition"><ChevronLeft /></button>
@@ -1453,7 +1466,7 @@
                             </div>
                         )}
 
-                        {property.lat && property.lng && property.lat.trim() !== '' && property.lng.trim() !== '' && (
+                        {property.lat && property.lng && String(property.lat).trim() !== '' && String(property.lng).trim() !== '' && (
                             <div className="mb-8">
                                 <h3 className="text-lg font-medium text-brand-green mb-4">ที่ตั้งโครงการ</h3>
                                 <div className="aspect-video md:aspect-[21/9] rounded-xl overflow-hidden bg-gray-100 border border-gray-200 pointer-events-none">
@@ -2187,8 +2200,8 @@
                                                 <h4 className="font-medium mb-6 pb-2 border-b">รายละเอียด</h4>
                                                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                                                     <div className="col-span-2 sm:col-span-1">
-                                                        <label className="label">ID บ้าน (กำหนดเอง)</label>
-                                                        <input className="input-modern" value={formData.custom_id || ''} onChange={e=>setFormData({...formData, custom_id: e.target.value})}/>
+                                                        <label className="label">ID บ้าน (กำหนดอัตโนมัติ)</label>
+                                                        <input className="input-modern bg-gray-100 cursor-not-allowed text-gray-500" value={formData.custom_id || ''} readOnly disabled />
                                                     </div>
                                                     <div className="col-span-2 sm:col-span-1">
                                                         <label className="label">บ้านเลขที่</label>

@@ -891,7 +891,6 @@
                     <a href="/" onClick={(e) => { 
                         if (!e.ctrlKey && !e.metaKey && !e.button) { 
                             e.preventDefault(); 
-                            if(isVisualEditMode)return; 
                             setActiveTab('home'); 
                             setSelectedProperty(null); 
                             window.scrollTo(0,0); 
@@ -905,19 +904,19 @@
                     </a>
 
                     <div className="hidden lg:flex items-center justify-center space-x-4 xl:space-x-6 w-1/3">
-                      <NavButton href="?tab=home" active={activeTab === 'home' && !selectedProperty} onClick={() => {if(isVisualEditMode)return; setActiveTab('home'); setSelectedProperty(null); window.scrollTo(0,0);}}>
+                      <NavButton href="?tab=home" active={activeTab === 'home' && !selectedProperty} onClick={() => {setActiveTab('home'); setSelectedProperty(null); window.scrollTo(0,0);}}>
                           <EditableText tag="span" fieldKey="navHome" content={visualContent} updateContent={updateVisualContent} isEditMode={isVisualEditMode} />
                       </NavButton>
-                      <NavButton href="?tab=promo" active={activeTab === 'promo' && !selectedProperty} onClick={() => {if(isVisualEditMode)return; setActiveTab('promo'); setSelectedProperty(null); window.scrollTo(0,0);}}>
+                      <NavButton href="?tab=promo" active={activeTab === 'promo' && !selectedProperty} onClick={() => {setActiveTab('promo'); setSelectedProperty(null); window.scrollTo(0,0);}}>
                           <EditableText tag="span" fieldKey="navPromo" content={visualContent} updateContent={updateVisualContent} isEditMode={isVisualEditMode} />
                       </NavButton>
-                      <NavButton href="?tab=location" active={activeTab === 'location' && !selectedProperty} onClick={() => {if(isVisualEditMode)return; setActiveTab('location'); setSelectedProperty(null); window.scrollTo(0,0);}}>
+                      <NavButton href="?tab=location" active={activeTab === 'location' && !selectedProperty} onClick={() => {setActiveTab('location'); setSelectedProperty(null); window.scrollTo(0,0);}}>
                           <EditableText tag="span" fieldKey="navLocation" content={visualContent} updateContent={updateVisualContent} isEditMode={isVisualEditMode} />
                       </NavButton>
-                      <NavButton href="?tab=calculator" active={activeTab === 'calculator' && !selectedProperty} onClick={() => {if(isVisualEditMode)return; setActiveTab('calculator'); setSelectedProperty(null); window.scrollTo(0,0);}}>
+                      <NavButton href="?tab=calculator" active={activeTab === 'calculator' && !selectedProperty} onClick={() => {setActiveTab('calculator'); setSelectedProperty(null); window.scrollTo(0,0);}}>
                           <EditableText tag="span" fieldKey="navCalc" content={visualContent} updateContent={updateVisualContent} isEditMode={isVisualEditMode} />
                       </NavButton>
-                      <NavButton href="?tab=portfolio" active={activeTab === 'portfolio' && !selectedProperty} onClick={() => {if(isVisualEditMode)return; setActiveTab('portfolio'); setSelectedProperty(null); window.scrollTo(0,0);}}>
+                      <NavButton href="?tab=portfolio" active={activeTab === 'portfolio' && !selectedProperty} onClick={() => {setActiveTab('portfolio'); setSelectedProperty(null); window.scrollTo(0,0);}}>
                           <EditableText tag="span" fieldKey="navPortfolio" content={visualContent} updateContent={updateVisualContent} isEditMode={isVisualEditMode} />
                       </NavButton>
                     </div>
@@ -1062,7 +1061,7 @@
                         setTimeout(() => {
                             setIsVisualEditMode(true); 
                             window.scrollTo(0,0);
-                        }, 50); 
+                        }, 100); 
                     }}
                     showAlert={showGlobalAlert} showConfirm={showGlobalConfirm}
                 />
@@ -1296,8 +1295,8 @@
                                 {section.data.map((p, index) => {
                                     if (!p) {
                                         return (
-                                            <div key={`empty-${index}`} className="bg-white border-2 border-dashed border-gray-200 rounded-2xl flex flex-col h-full min-h-[350px] opacity-60 w-[260px] min-w-[260px] sm:min-w-[320px] md:w-auto md:min-w-[calc(33.333%-1rem)] lg:min-w-[calc(33.333%-1.33rem)] snap-center flex-shrink-0">
-                                                 <div className="aspect-[4/3] bg-gray-50 rounded-t-2xl flex items-center justify-center"><ImageIcon size={48} className="text-gray-300" /></div>
+                                            <div key={`empty-${index}`} className="bg-white border-2 border-dashed border-gray-200 rounded-2xl flex flex-col w-[300px] min-w-[300px] h-[400px] min-h-[400px] opacity-60 snap-center flex-shrink-0">
+                                                 <div className="h-[220px] w-full bg-gray-50 rounded-t-2xl flex items-center justify-center"><ImageIcon size={48} className="text-gray-300" /></div>
                                                  <div className="p-5 flex flex-col flex-grow"><div className="h-5 bg-gray-200 rounded w-3/4 mb-3"></div><div className="h-4 bg-gray-100 rounded w-full mb-4"></div><div className="mt-auto pt-4 border-t border-gray-100"><div className="h-6 bg-gray-200 rounded w-1/3"></div></div></div>
                                             </div>
                                         );
@@ -1306,20 +1305,20 @@
                                         <a href={`?property=${generatePropSlug(p)}`} key={p.id} onClick={(e) => { 
                                             if (!e.ctrlKey && !e.metaKey && !e.button) {
                                                 e.preventDefault(); 
-                                                if(!isEditMode) onSelectProp(p);
+                                                onSelectProp(p);
                                             }
-                                        }} className={`block bg-white border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-lg transition-all duration-300 rounded-2xl overflow-hidden flex flex-col h-full w-[260px] min-w-[260px] sm:min-w-[320px] md:w-auto md:min-w-[calc(33.333%-1rem)] lg:min-w-[calc(33.333%-1.33rem)] snap-center flex-shrink-0 ${isEditMode ? 'cursor-default pointer-events-none' : 'cursor-pointer'}`} style={{ animation: `fadeUpAnim 0.5s ease forwards ${index * 50}ms`, opacity: 0, transform: 'translateY(20px)' }}>
-                                            <div className="aspect-[4/3] relative overflow-hidden bg-gray-100 pointer-events-none">
+                                        }} className="block bg-white border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-lg transition-all duration-300 rounded-2xl overflow-hidden flex flex-col w-[300px] min-w-[300px] h-[400px] min-h-[400px] snap-center flex-shrink-0 cursor-pointer" style={{ animation: `fadeUpAnim 0.5s ease forwards ${index * 50}ms`, opacity: 0, transform: 'translateY(20px)' }}>
+                                            <div className="h-[220px] w-full relative overflow-hidden bg-gray-100 pointer-events-none">
                                                 <img src={p.images?.[0] || p.imageUrl || "https://placehold.co/600x400"} alt={p.project_name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
                                                 <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm text-gray-700 px-3 py-1.5 rounded-full font-medium text-xs shadow-sm z-10 flex items-center gap-1.5"><Home size={14} className="text-brand-green" />{p.category}</div>
                                                 {p.badge && <div className={`absolute top-3 right-3 px-3 py-1.5 rounded-full font-medium text-xs shadow-sm z-10 text-white ${p.badge === 'Promotion' ? 'bg-red-600' : p.badge === 'New' ? 'bg-blue-600' : p.badge === 'Sold Out' ? 'bg-gray-600' : 'bg-brand-green'}`}>{p.badge}</div>}
                                             </div>
                                             <div className="p-5 flex flex-col flex-grow pointer-events-none">
-                                                <h4 className="font-bold text-gray-800 text-[16px] md:text-[18px] mb-2 line-clamp-2 leading-snug">{p.project_name}</h4>
-                                                <div className="text-[12px] md:text-[13px] text-gray-500 flex items-center gap-1.5 mb-4"><MapPin size={15} className="flex-shrink-0 text-gray-400" /><span className="font-light truncate">{p.main_location || p.district} {p.sub_location || p.subdistrict ? `- ${p.sub_location || p.subdistrict}` : ''}</span></div>
+                                                <h4 className="font-bold text-gray-800 text-[18px] mb-2 line-clamp-2 leading-snug">{p.project_name}</h4>
+                                                <div className="text-[13px] text-gray-500 flex items-center gap-1.5 mb-4"><MapPin size={15} className="flex-shrink-0 text-gray-400" /><span className="font-light truncate">{p.main_location || p.district} {p.sub_location || p.subdistrict ? `- ${p.sub_location || p.subdistrict}` : ''}</span></div>
                                                 <div className="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between">
-                                                    <span className="text-[18px] md:text-[20px] font-bold text-brand-green"><span className="text-[14px] md:text-[16px] mr-1">฿</span>{Number(p.price).toLocaleString()}</span>
-                                                    <div className="flex items-center gap-1.5 md:gap-3 text-gray-500 text-[11px] md:text-[13px]"><div className="flex items-center gap-1" title="พื้นที่"><Maximize size={12} className="md:w-3.5 md:h-3.5" /> {p.area_wah}</div><div className="flex items-center gap-1" title="ห้องนอน"><Bed size={12} className="md:w-3.5 md:h-3.5" /> {p.bedrooms}</div><div className="flex items-center gap-1" title="ห้องน้ำ"><Bath size={12} className="md:w-3.5 md:h-3.5" /> {p.bathrooms}</div></div>
+                                                    <span className="text-[20px] font-bold text-brand-green"><span className="text-[16px] mr-1">฿</span>{Number(p.price).toLocaleString()}</span>
+                                                    <div className="flex items-center gap-3 text-gray-500 text-[13px]"><div className="flex items-center gap-1.5" title="พื้นที่"><Maximize size={15} /> {p.area_wah}</div><div className="flex items-center gap-1.5" title="ห้องนอน"><Bed size={15} /> {p.bedrooms}</div><div className="flex items-center gap-1.5" title="ห้องน้ำ"><Bath size={15} /> {p.bathrooms}</div></div>
                                                 </div>
                                             </div>
                                         </a>
@@ -1390,24 +1389,25 @@
                     }} className="flex items-center gap-2 text-gray-500 hover:text-brand-green transition-colors text-sm uppercase tracking-wide inline-flex">
                        <ChevronLeft size={16} /> ย้อนกลับ
                     </a>
-                    <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
-                       <div className="aspect-[4/3] md:aspect-video w-full bg-[#f8faf9] border border-gray-100 rounded-xl overflow-hidden mb-4 relative group flex items-center justify-center">
-                          <img src={images[activeImg]} className="max-w-full max-h-full object-contain transition duration-500" alt="Main" />
-                          {images.length > 1 && (
+                    
+                    {/* เปลี่ยนการแสดงรูปให้แสดงเต็มรูป ไม่ครอปและไม่มีกรอบ */}
+                    <div className="w-full rounded-2xl overflow-hidden mb-4 relative group shadow-sm bg-black/5">
+                        <img src={images[activeImg]} className="w-full h-auto max-h-[80vh] object-contain transition duration-500" alt="Main" />
+                        {images.length > 1 && (
                             <>
-                              <button onClick={() => setActiveImg(prev => (prev === 0 ? images.length - 1 : prev - 1))} className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 text-brand-green p-2 rounded-full hover:bg-white transition"><ChevronLeft /></button>
-                              <button onClick={() => setActiveImg(prev => (prev === images.length - 1 ? 0 : prev + 1))} className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 text-brand-green p-2 rounded-full hover:bg-white transition"><ChevronRight /></button>
+                                <button onClick={() => setActiveImg(prev => (prev === 0 ? images.length - 1 : prev - 1))} className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 text-brand-green p-2 rounded-full hover:bg-white transition"><ChevronLeft /></button>
+                                <button onClick={() => setActiveImg(prev => (prev === images.length - 1 ? 0 : prev + 1))} className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 text-brand-green p-2 rounded-full hover:bg-white transition"><ChevronRight /></button>
                             </>
-                          )}
-                          {property.badge && <div className={`absolute top-4 right-4 px-4 py-1.5 rounded-full font-medium text-xs shadow-lg z-10 text-white ${property.badge === 'Promotion' ? 'bg-red-600' : property.badge === 'New' ? 'bg-blue-600' : property.badge === 'Sold Out' ? 'bg-gray-600' : 'bg-brand-green'}`}>{property.badge}</div>}
-                       </div>
-                       <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                          {images.map((img, idx) => (
-                            <button key={idx} onClick={() => setActiveImg(idx)} className={`w-20 h-20 md:w-24 md:h-24 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all ${activeImg === idx ? 'border-brand-green opacity-100' : 'border-transparent opacity-60 hover:opacity-100'}`}>
-                               <img src={img} className="w-full h-full object-cover" alt={`Thumb ${idx}`} />
+                        )}
+                        {property.badge && <div className={`absolute top-4 right-4 px-4 py-1.5 rounded-full font-medium text-xs shadow-lg z-10 text-white ${property.badge === 'Promotion' ? 'bg-red-600' : property.badge === 'New' ? 'bg-blue-600' : property.badge === 'Sold Out' ? 'bg-gray-600' : 'bg-brand-green'}`}>{property.badge}</div>}
+                    </div>
+                    
+                    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                        {images.map((img, idx) => (
+                            <button key={idx} onClick={() => setActiveImg(idx)} className={`w-20 h-20 md:w-24 md:h-24 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all bg-gray-100 ${activeImg === idx ? 'border-brand-green opacity-100' : 'border-transparent opacity-60 hover:opacity-100'}`}>
+                                <img src={img} className="w-full h-full object-cover" alt={`Thumb ${idx}`} />
                             </button>
-                          ))}
-                       </div>
+                        ))}
                     </div>
                     
                     <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100">
@@ -1484,20 +1484,20 @@
                                     <a href={`?property=${generatePropSlug(p)}`} key={p.id} onClick={(e) => {
                                         if (!e.ctrlKey && !e.metaKey && !e.button) {
                                             e.preventDefault(); 
-                                            if(!isEditMode) onSelectProp(p);
+                                            onSelectProp(p);
                                         }
-                                    }} className={`block bg-white border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-lg transition-all duration-300 rounded-2xl overflow-hidden flex flex-col h-full w-[260px] min-w-[260px] sm:min-w-[320px] md:w-auto md:min-w-[calc(33.333%-1rem)] lg:min-w-[calc(33.333%-1.33rem)] snap-center flex-shrink-0 ${isEditMode ? 'cursor-default pointer-events-none' : 'cursor-pointer'}`} style={{ animation: `fadeUpAnim 0.5s ease forwards ${index * 50}ms`, opacity: 0, transform: 'translateY(20px)' }}>
-                                        <div className="aspect-[4/3] relative overflow-hidden bg-gray-100 pointer-events-none">
+                                    }} className="block bg-white border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-lg transition-all duration-300 rounded-2xl overflow-hidden flex flex-col w-[300px] min-w-[300px] h-[400px] min-h-[400px] snap-center flex-shrink-0 cursor-pointer" style={{ animation: `fadeUpAnim 0.5s ease forwards ${index * 50}ms`, opacity: 0, transform: 'translateY(20px)' }}>
+                                        <div className="h-[220px] w-full relative overflow-hidden bg-gray-100 pointer-events-none">
                                             <img src={p.images?.[0] || p.imageUrl || "https://placehold.co/600x400"} alt={p.project_name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
                                             <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm text-gray-700 px-3 py-1.5 rounded-full font-medium text-xs shadow-sm z-10 flex items-center gap-1.5"><Home size={14} className="text-brand-green" />{p.category}</div>
                                             {p.badge && <div className={`absolute top-3 right-3 px-3 py-1.5 rounded-full font-medium text-xs shadow-sm z-10 text-white ${p.badge === 'Promotion' ? 'bg-red-600' : p.badge === 'New' ? 'bg-blue-600' : p.badge === 'Sold Out' ? 'bg-gray-600' : 'bg-brand-green'}`}>{p.badge}</div>}
                                         </div>
                                         <div className="p-5 flex flex-col flex-grow pointer-events-none">
-                                            <h4 className="font-bold text-gray-800 text-[16px] md:text-[18px] mb-2 line-clamp-2 leading-snug">{p.project_name}</h4>
-                                            <div className="text-[12px] md:text-[13px] text-gray-500 flex items-center gap-1.5 mb-4"><MapPin size={15} className="flex-shrink-0 text-gray-400" /><span className="font-light truncate">{p.main_location || p.district} {p.sub_location || p.subdistrict ? `- ${p.sub_location || p.subdistrict}` : ''}</span></div>
+                                            <h4 className="font-bold text-gray-800 text-[18px] mb-2 line-clamp-2 leading-snug">{p.project_name}</h4>
+                                            <div className="text-[13px] text-gray-500 flex items-center gap-1.5 mb-4"><MapPin size={15} className="flex-shrink-0 text-gray-400" /><span className="font-light truncate">{p.main_location || p.district} {p.sub_location || p.subdistrict ? `- ${p.sub_location || p.subdistrict}` : ''}</span></div>
                                             <div className="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between">
-                                                <span className="text-[18px] md:text-[20px] font-bold text-brand-green"><span className="text-[14px] md:text-[16px] mr-1">฿</span>{Number(p.price).toLocaleString()}</span>
-                                                <div className="flex items-center gap-1.5 md:gap-3 text-gray-500 text-[11px] md:text-[13px]"><div className="flex items-center gap-1" title="พื้นที่"><Maximize size={12} className="md:w-3.5 md:h-3.5" /> {p.area_wah}</div><div className="flex items-center gap-1" title="ห้องนอน"><Bed size={12} className="md:w-3.5 md:h-3.5" /> {p.bedrooms}</div><div className="flex items-center gap-1" title="ห้องน้ำ"><Bath size={12} className="md:w-3.5 md:h-3.5" /> {p.bathrooms}</div></div>
+                                                <span className="text-[20px] font-bold text-brand-green"><span className="text-[16px] mr-1">฿</span>{Number(p.price).toLocaleString()}</span>
+                                                <div className="flex items-center gap-3 text-gray-500 text-[13px]"><div className="flex items-center gap-1.5" title="พื้นที่"><Maximize size={15} /> {p.area_wah}</div><div className="flex items-center gap-1.5" title="ห้องนอน"><Bed size={15} /> {p.bedrooms}</div><div className="flex items-center gap-1.5" title="ห้องน้ำ"><Bath size={15} /> {p.bathrooms}</div></div>
                                             </div>
                                         </div>
                                     </a>
@@ -1547,15 +1547,15 @@
           return (
             <div className="max-w-7xl mx-auto px-4 py-16 min-h-screen">
               <h2 className="text-2xl font-light text-brand-green mb-10">{title} <span className="text-sm text-gray-400 ml-2">({displayProps.length} รายการ)</span></h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              <div className="flex flex-wrap gap-6 justify-center md:justify-start">
                 {displayProps.length > 0 ? displayProps.map(p => (
                    <a href={`?property=${generatePropSlug(p)}`} key={p.id} onClick={(e) => {
                        if (!e.ctrlKey && !e.metaKey && !e.button) {
                            e.preventDefault(); 
-                           if(!isEditMode) onSelectProp(p);
+                           onSelectProp(p);
                        }
-                   }} className={`block bg-white border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-lg transition-all duration-300 rounded-2xl overflow-hidden flex flex-col h-full ${isEditMode ? 'cursor-default pointer-events-none' : 'cursor-pointer'}`} style={{ animation: `fadeUpAnim 0.5s ease forwards`, opacity: 0, transform: 'translateY(20px)' }}>
-                       <div className="aspect-[4/3] relative overflow-hidden bg-gray-100 pointer-events-none">
+                   }} className="block bg-white border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-lg transition-all duration-300 rounded-2xl overflow-hidden flex flex-col w-[300px] min-w-[300px] h-[400px] min-h-[400px] cursor-pointer" style={{ animation: `fadeUpAnim 0.5s ease forwards`, opacity: 0, transform: 'translateY(20px)' }}>
+                       <div className="h-[220px] w-full relative overflow-hidden bg-gray-100 pointer-events-none">
                            <img src={p.images?.[0] || p.imageUrl || "https://placehold.co/600x400"} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
                            <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm text-gray-700 px-3 py-1.5 rounded-full font-medium text-xs shadow-sm z-10 flex items-center gap-1.5"><Home size={14} className="text-brand-green" />{p.category}</div>
                            {p.badge && <div className={`absolute top-3 right-3 px-3 py-1.5 rounded-full font-medium text-xs shadow-sm z-10 text-white ${p.badge === 'Promotion' ? 'bg-red-600' : p.badge === 'New' ? 'bg-blue-600' : p.badge === 'Sold Out' ? 'bg-gray-600' : 'bg-brand-green'}`}>{p.badge}</div>}
@@ -1569,7 +1569,7 @@
                            </div>
                        </div>
                    </a>
-                )) : <p className="text-gray-400 col-span-full text-center py-20 font-light">ไม่พบรายการในหมวดหมู่นี้</p>}
+                )) : <p className="text-gray-400 col-span-full text-center py-20 font-light w-full">ไม่พบรายการในหมวดหมู่นี้</p>}
               </div>
             </div>
           );
@@ -1583,13 +1583,13 @@
               </div>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
                 {LOCATIONS_DATA.map((loc, idx) => (
-                  <div key={idx} className={`group ${isEditMode ? 'cursor-default' : ''}`}>
+                  <div key={idx} className="group">
                     <a href={`?tab=search_result&sType=main_location&sValue=${encodeURIComponent(loc.area)}`} onClick={(e) => { 
                         if (!e.ctrlKey && !e.metaKey && !e.button) {
                             e.preventDefault(); 
-                            if(!isEditMode && onSelectLocation) onSelectLocation('main_location', loc.area);
+                            if (onSelectLocation) onSelectLocation('main_location', loc.area);
                         }
-                    }} className={`block h-32 sm:h-48 md:h-64 rounded-2xl overflow-hidden relative mb-3 shadow-sm group-hover:shadow-md transition ${isEditMode ? 'pointer-events-none' : 'cursor-pointer'}`}>
+                    }} className="block h-32 sm:h-48 md:h-64 rounded-2xl overflow-hidden relative mb-3 shadow-sm group-hover:shadow-md transition cursor-pointer">
                        <img src={loc.img} className="w-full h-full object-cover group-hover:scale-105 transition duration-700" alt={loc.area} />
                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-4 md:p-6 transition group-hover:bg-black/30">
                           <h3 className="text-lg md:text-2xl font-medium tracking-wide text-white">{loc.area}</h3>
@@ -1601,9 +1601,9 @@
                                if (!e.ctrlKey && !e.metaKey && !e.button) {
                                    e.preventDefault(); 
                                    e.stopPropagation(); 
-                                   if(!isEditMode && onSelectLocation) onSelectLocation('sub_location', sub); 
+                                   if (onSelectLocation) onSelectLocation('sub_location', sub); 
                                }
-                           }} className={`text-[10px] md:text-xs border border-gray-200 text-gray-500 px-2 md:px-3 py-1 md:py-1.5 rounded-full font-light ${isEditMode ? 'pointer-events-none' : 'hover:border-brand-green hover:text-brand-green transition'}`}>
+                           }} className="text-[10px] md:text-xs border border-gray-200 text-gray-500 px-2 md:px-3 py-1 md:py-1.5 rounded-full font-light hover:border-brand-green hover:text-brand-green transition">
                              {sub}
                            </a>
                        ))}
@@ -2201,7 +2201,7 @@
                                                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                                                     <div className="col-span-2 sm:col-span-1">
                                                         <label className="label">ID บ้าน (สร้างอัตโนมัติ)</label>
-                                                        <input className="input-modern bg-gray-100 text-gray-500 cursor-not-allowed" value={formData.custom_id || ''} readOnly disabled title="สร้างอัตโนมัติจากบ้านเลขที่"/>
+                                                        <input className="input-modern bg-gray-100 text-gray-500 cursor-not-allowed outline-none" value={formData.custom_id || ''} readOnly disabled title="สร้างอัตโนมัติจากบ้านเลขที่"/>
                                                     </div>
                                                     <div className="col-span-2 sm:col-span-1">
                                                         <label className="label">บ้านเลขที่</label>

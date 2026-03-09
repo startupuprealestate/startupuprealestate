@@ -518,19 +518,18 @@
             return (
                 <Tag className={`${className} relative group inline-flex items-center`}>
                     <span>{content[fieldKey]}</span>
-                    <button
-                        type="button"
-                        onClick={(e) => { 
+                    <span
+                        onPointerDown={(e) => { 
                             e.preventDefault(); 
                             e.stopPropagation(); 
                             setIsEditing(true); 
                         }}
                         className="ml-2 inline-flex items-center justify-center bg-blue-100 text-blue-600 p-1.5 rounded-full shadow hover:bg-blue-600 hover:text-white transition-colors cursor-pointer align-middle"
                         title="คลิกเพื่อแก้ไขข้อความ"
-                        style={{ zIndex: 50 }}
+                        style={{ zIndex: 50, pointerEvents: 'auto' }}
                     >
                         <Edit size={14} />
-                    </button>
+                    </span>
                 </Tag>
             );
         }
@@ -715,10 +714,10 @@
               let ogImage = companyInfo?.logoUrl || 'https://res.cloudinary.com/dm2wr55r5/image/upload/v1773023427/LOGO_%E0%B9%80%E0%B8%82%E0%B8%B5%E0%B8%A2%E0%B8%A7%E0%B9%82%E0%B8%9B%E0%B8%A3%E0%B9%88%E0%B8%87_vhyhyo.png';
 
               if (selectedProperty) {
-                  const propName = selectedProperty.project_name || '';
-                  const houseNo = selectedProperty.house_number ? `บ้านเลขที่ ${selectedProperty.house_number}` : '';
+                  const propName = selectedProperty?.project_name || '';
+                  const houseNo = selectedProperty?.house_number ? `บ้านเลขที่ ${selectedProperty.house_number}` : '';
                   title = `${propName} ${houseNo} | ${companyInfo?.name || 'STARTUP UP'}`;
-                  ogImage = (selectedProperty.images && selectedProperty.images.length > 0) ? selectedProperty.images[0] : (selectedProperty.imageUrl || ogImage);
+                  ogImage = (selectedProperty?.images && selectedProperty.images.length > 0) ? selectedProperty.images[0] : (selectedProperty?.imageUrl || ogImage);
               } else if (activeTab === 'location' && searchParams.value) {
                   title = `ทำเล ${searchParams.value} | ${companyInfo?.name || 'STARTUP UP'}`;
               } else if (activeTab === 'promo') {
@@ -925,7 +924,7 @@
             }
           };
 
-          const handleLocationSelect = (type, value) => {
+          const handleFilterSelect = (type, value) => {
             setSearchParams({ type, value }); setActiveTab('search_result'); setSelectedProperty(null); window.scrollTo(0, 0);
           };
           const handleGlobalSearch = (query) => {
@@ -942,8 +941,8 @@
               {showPopupModal && (
                   <div className="fixed inset-0 z-[200] bg-black/70 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
                       <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full relative overflow-hidden animate-in zoom-in-95 duration-300 flex flex-col">
-                          <div className="w-full relative flex-1 flex">
-                               <img src={popupData.imageUrl} className="w-full h-auto max-h-[80vh] object-cover block" alt="Promotion Popup" />
+                          <div className="w-full relative flex-1 flex bg-gray-100">
+                               <img src={popupData.imageUrl} className="w-full h-auto max-h-[80vh] object-cover block m-0 p-0" alt="Promotion Popup" />
                           </div>
                           <div className="p-4 bg-white border-t flex items-center justify-between flex-shrink-0">
                               <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none">
@@ -965,11 +964,12 @@
                     <a href="/" onClick={(e) => { 
                         if (!e.ctrlKey && !e.metaKey && !e.button) { 
                             e.preventDefault(); 
+                            if(isVisualEditMode) return;
                             setActiveTab('home'); 
                             setSelectedProperty(null); 
                             window.scrollTo(0,0); 
                         } 
-                    }} className="w-1/3 flex justify-start items-center cursor-pointer block">
+                    }} className={`w-1/3 flex justify-start items-center cursor-pointer block ${isVisualEditMode ? 'pointer-events-none opacity-50' : ''}`}>
                         {companyInfo?.logoUrl ? (
                             <img src={companyInfo.logoUrl} alt="Logo" className="h-10 md:h-12 object-contain" onError={(e) => { e.target.onerror = null; e.target.src = 'https://res.cloudinary.com/dm2wr55r5/image/upload/v1773023427/LOGO_%E0%B9%80%E0%B8%82%E0%B8%B5%E0%B8%A2%E0%B8%A7%E0%B9%82%E0%B8%9B%E0%B8%A3%E0%B9%88%E0%B8%87_vhyhyo.png'; }} />
                         ) : (
@@ -978,19 +978,19 @@
                     </a>
 
                     <div className="hidden lg:flex items-center justify-center space-x-4 xl:space-x-6 w-1/3">
-                      <NavButton href="?tab=home" active={activeTab === 'home' && !selectedProperty} onClick={() => {setActiveTab('home'); setSelectedProperty(null); window.scrollTo(0,0);}}>
+                      <NavButton href="?tab=home" active={activeTab === 'home' && !selectedProperty} isEditMode={isVisualEditMode} onClick={() => {setActiveTab('home'); setSelectedProperty(null); window.scrollTo(0,0);}}>
                           <EditableText tag="span" fieldKey="navHome" content={visualContent} updateContent={updateVisualContent} isEditMode={isVisualEditMode} />
                       </NavButton>
-                      <NavButton href="?tab=promo" active={activeTab === 'promo' && !selectedProperty} onClick={() => {setActiveTab('promo'); setSelectedProperty(null); window.scrollTo(0,0);}}>
+                      <NavButton href="?tab=promo" active={activeTab === 'promo' && !selectedProperty} isEditMode={isVisualEditMode} onClick={() => {setActiveTab('promo'); setSelectedProperty(null); window.scrollTo(0,0);}}>
                           <EditableText tag="span" fieldKey="navPromo" content={visualContent} updateContent={updateVisualContent} isEditMode={isVisualEditMode} />
                       </NavButton>
-                      <NavButton href="?tab=location" active={activeTab === 'location' && !selectedProperty} onClick={() => {setActiveTab('location'); setSelectedProperty(null); window.scrollTo(0,0);}}>
+                      <NavButton href="?tab=location" active={activeTab === 'location' && !selectedProperty} isEditMode={isVisualEditMode} onClick={() => {setActiveTab('location'); setSelectedProperty(null); window.scrollTo(0,0);}}>
                           <EditableText tag="span" fieldKey="navLocation" content={visualContent} updateContent={updateVisualContent} isEditMode={isVisualEditMode} />
                       </NavButton>
-                      <NavButton href="?tab=calculator" active={activeTab === 'calculator' && !selectedProperty} onClick={() => {setActiveTab('calculator'); setSelectedProperty(null); window.scrollTo(0,0);}}>
+                      <NavButton href="?tab=calculator" active={activeTab === 'calculator' && !selectedProperty} isEditMode={isVisualEditMode} onClick={() => {setActiveTab('calculator'); setSelectedProperty(null); window.scrollTo(0,0);}}>
                           <EditableText tag="span" fieldKey="navCalc" content={visualContent} updateContent={updateVisualContent} isEditMode={isVisualEditMode} />
                       </NavButton>
-                      <NavButton href="?tab=portfolio" active={activeTab === 'portfolio' && !selectedProperty} onClick={() => {setActiveTab('portfolio'); setSelectedProperty(null); window.scrollTo(0,0);}}>
+                      <NavButton href="?tab=portfolio" active={activeTab === 'portfolio' && !selectedProperty} isEditMode={isVisualEditMode} onClick={() => {setActiveTab('portfolio'); setSelectedProperty(null); window.scrollTo(0,0);}}>
                           <EditableText tag="span" fieldKey="navPortfolio" content={visualContent} updateContent={updateVisualContent} isEditMode={isVisualEditMode} />
                       </NavButton>
                     </div>
@@ -1044,10 +1044,10 @@
                 ) : (
                   <>
                     {activeTab === 'home' && <HeroSection visualContent={visualContent} updateVisualContent={updateVisualContent} isEditMode={isVisualEditMode} />}
-                    {activeTab === 'home' && <HomeSection properties={properties} loading={loading} onSelectProp={handleSelectProperty} setActiveTab={setActiveTab} onSelectLocation={handleLocationSelect} onSearch={handleGlobalSearch} visualContent={visualContent} updateVisualContent={updateVisualContent} onUpdateLocationImage={handleLocationImageUpdate} onRemoveLocationImage={handleRemoveLocationImage} isEditMode={isVisualEditMode} />}
+                    {activeTab === 'home' && <HomeSection properties={properties} loading={loading} onSelectProp={handleSelectProperty} setActiveTab={setActiveTab} onSearchCategory={handleFilterSelect} onSelectLocation={handleFilterSelect} onSearch={handleGlobalSearch} visualContent={visualContent} updateVisualContent={updateVisualContent} onUpdateLocationImage={handleLocationImageUpdate} onRemoveLocationImage={handleRemoveLocationImage} isEditMode={isVisualEditMode} />}
                     {activeTab === 'promo' && <PropertiesList properties={properties} searchParams={{ type: 'promo' }} onSelectProp={handleSelectProperty} visualContent={visualContent} updateVisualContent={updateVisualContent} isEditMode={isVisualEditMode} />}
                     {activeTab === 'search_result' && <PropertiesList properties={properties} searchParams={searchParams} onSelectProp={handleSelectProperty} visualContent={visualContent} updateVisualContent={updateVisualContent} isEditMode={isVisualEditMode} />}
-                    {activeTab === 'location' && <LocationSection onSelectLocation={handleLocationSelect} visualContent={visualContent} updateVisualContent={updateVisualContent} onUpdateLocationImage={handleLocationImageUpdate} isEditMode={isVisualEditMode} />}
+                    {activeTab === 'location' && <LocationSection onSelectLocation={handleFilterSelect} visualContent={visualContent} updateVisualContent={updateVisualContent} onUpdateLocationImage={handleLocationImageUpdate} isEditMode={isVisualEditMode} />}
                     {activeTab === 'calculator' && <div className="py-16 bg-gray-50"><CalculatorSection visualContent={visualContent} updateVisualContent={updateVisualContent} isEditMode={isVisualEditMode} /></div>}
                     {activeTab === 'portfolio' && <PortfolioSection companyInfo={companyInfo} properties={properties} visualContent={visualContent} updateVisualContent={updateVisualContent} isEditMode={isVisualEditMode} />}
                   </>
@@ -1232,11 +1232,11 @@
                         const infoDiv = document.createElement('div');
                         const name = document.createElement('div');
                         name.className = 'font-medium text-sm text-gray-800 line-clamp-1';
-                        name.innerText = p.project_name;
+                        name.innerText = p?.project_name || 'ไม่ระบุชื่อโครงการ';
                         
                         const price = document.createElement('div');
                         price.className = 'text-brand-green text-xs font-bold mt-1';
-                        price.innerText = `฿ ${Number(p.price).toLocaleString()}`;
+                        price.innerText = `฿ ${Number(p.price || 0).toLocaleString()}`;
                         
                         infoDiv.appendChild(name); infoDiv.appendChild(price);
                         itemDiv.appendChild(img); itemDiv.appendChild(infoDiv);
@@ -1257,7 +1257,7 @@
         }
 
         // --- View Components ---
-        function HomeSection({ properties, loading, onSelectProp, setActiveTab, onSelectLocation, onSearch, visualContent, updateVisualContent, isEditMode, onUpdateLocationImage, onRemoveLocationImage }) {
+        function HomeSection({ properties, loading, onSelectProp, setActiveTab, onSelectLocation, onSearchCategory, onSearch, visualContent, updateVisualContent, isEditMode, onUpdateLocationImage, onRemoveLocationImage }) {
           const [query, setQuery] = useState('');
           const handleSearchSubmit = (e) => { e.preventDefault(); onSearch(query.trim()); };
 
@@ -1282,9 +1282,9 @@
           const singleHouses = padArray(availableProps.filter(p => p.category === 'บ้านเดี่ยว'), 3);
 
           const sections = [
-              { key: 'secTownhouse', title: visualContent?.secTownhouse || DEFAULT_VISUAL_CONTENT.secTownhouse, data: townhouses },
-              { key: 'secTwinhouse', title: visualContent?.secTwinhouse || DEFAULT_VISUAL_CONTENT.secTwinhouse, data: twinHouses },
-              { key: 'secSinglehouse', title: visualContent?.secSinglehouse || DEFAULT_VISUAL_CONTENT.secSinglehouse, data: singleHouses },
+              { key: 'secTownhouse', title: visualContent?.secTownhouse || DEFAULT_VISUAL_CONTENT.secTownhouse, data: townhouses, searchCat: 'ทาวน์เฮาส์' },
+              { key: 'secTwinhouse', title: visualContent?.secTwinhouse || DEFAULT_VISUAL_CONTENT.secTwinhouse, data: twinHouses, searchCat: 'บ้านแฝด' },
+              { key: 'secSinglehouse', title: visualContent?.secSinglehouse || DEFAULT_VISUAL_CONTENT.secSinglehouse, data: singleHouses, searchCat: 'บ้านเดี่ยว' },
           ];
 
           return (
@@ -1319,10 +1319,10 @@
                                     onClick={(e) => { 
                                         if (!e.ctrlKey && !e.metaKey && !e.button) {
                                             e.preventDefault();
-                                            if (onSelectLocation) onSelectLocation('main_location', loc.area); 
+                                            if (onSelectLocation && !isEditMode) onSelectLocation('main_location', loc.area); 
                                         }
                                     }}
-                                    className="block w-full h-full cursor-pointer"
+                                    className={`block w-full h-full ${isEditMode ? 'pointer-events-none cursor-default' : 'cursor-pointer'}`}
                                 >
                                     <img src={loc.img} alt={loc.area} className="w-full h-full object-cover group-hover:scale-110 transition duration-700 pointer-events-none" />
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80 pointer-events-none"></div>
@@ -1344,7 +1344,7 @@
                                             <input type="file" accept="image/*" className="hidden" onChange={(e) => { if(e.target.files[0]) onUpdateLocationImage(idx, e.target.files[0]) }} />
                                         </label>
                                         {loc.img !== DEFAULT_LOCATIONS_DATA[idx]?.img && (
-                                            <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onRemoveLocationImage(idx); }} className="bg-red-600 text-white p-2 rounded-full hover:bg-red-700 shadow-lg" title="ลบรูปภาพ">
+                                            <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onRemoveLocationImage(idx); }} className="bg-red-600 text-white p-2 rounded-full hover:bg-red-700 shadow-lg" title="ลบรูปภาพกลับไปใช้รูปเริ่มต้น">
                                                 <Trash2 size={16} />
                                             </button>
                                         )}
@@ -1373,13 +1373,12 @@
                                      <Home size={30} className="text-brand-green" />
                                      <EditableText tag="h3" fieldKey={section.key} content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-2xl font-bold text-brand-green inline-block" />
                                 </div>
-                                <a href="?tab=search_result" onClick={(e) => { 
+                                <a href={`?tab=search_result&sType=category&sValue=${encodeURIComponent(section.searchCat)}`} onClick={(e) => { 
                                     if (!e.ctrlKey && !e.metaKey && !e.button) { 
                                         e.preventDefault(); 
-                                        setActiveTab('search_result'); 
-                                        window.scrollTo(0,0); 
+                                        if(!isEditMode && onSearchCategory) onSearchCategory('category', section.searchCat); 
                                     } 
-                                }} className={`bg-[#1b5e20] text-white px-4 md:px-5 py-1.5 md:py-2 rounded-full text-[13px] md:text-sm font-light hover:bg-opacity-90 transition flex items-center gap-1 cursor-pointer`}>
+                                }} className={`bg-[#1b5e20] text-white px-4 md:px-5 py-1.5 md:py-2 rounded-full text-[13px] md:text-sm font-light hover:bg-opacity-90 transition flex items-center gap-1 ${isEditMode ? 'pointer-events-none opacity-50' : 'cursor-pointer'}`}>
                                     <EditableText tag="span" fieldKey="btnSeeAll" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="inline-block" />
                                     <ChevronRight size={16} />
                                 </a>
@@ -1399,9 +1398,9 @@
                                         <a href={`?property=${generatePropSlug(p)}`} key={p.id} onClick={(e) => { 
                                             if (!e.ctrlKey && !e.metaKey && !e.button) {
                                                 e.preventDefault(); 
-                                                onSelectProp(p);
+                                                if(!isEditMode) onSelectProp(p);
                                             }
-                                        }} className="block bg-white border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-lg transition-all duration-300 rounded-2xl overflow-hidden flex flex-col w-[300px] min-w-[300px] h-[400px] min-h-[400px] snap-center flex-shrink-0 cursor-pointer" style={{ animation: `fadeUpAnim 0.5s ease forwards ${index * 50}ms`, opacity: 0, transform: 'translateY(20px)' }}>
+                                        }} className={`block bg-white border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-lg transition-all duration-300 rounded-2xl overflow-hidden flex flex-col w-[300px] min-w-[300px] h-[400px] min-h-[400px] snap-center flex-shrink-0 ${isEditMode ? 'pointer-events-none cursor-default' : 'cursor-pointer'}`} style={{ animation: `fadeUpAnim 0.5s ease forwards ${index * 50}ms`, opacity: 0, transform: 'translateY(20px)' }}>
                                             <div className="h-[220px] w-full relative overflow-hidden bg-gray-100 pointer-events-none">
                                                 <img src={p.images?.[0] || p.imageUrl || "https://placehold.co/600x400"} alt={p.project_name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
                                                 <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm text-gray-700 px-3 py-1.5 rounded-full font-medium text-xs shadow-sm z-10 flex items-center gap-1.5"><Home size={14} className="text-brand-green" />{p.category}</div>
@@ -1411,7 +1410,7 @@
                                                 <h4 className="font-bold text-gray-800 text-[18px] mb-2 line-clamp-2 leading-snug">{p.project_name}</h4>
                                                 <div className="text-[13px] text-gray-500 flex items-center gap-1.5 mb-4"><MapPin size={15} className="flex-shrink-0 text-gray-400" /><span className="font-light truncate">{p.main_location || p.district} {p.sub_location || p.subdistrict ? `- ${p.sub_location || p.subdistrict}` : ''}</span></div>
                                                 <div className="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between">
-                                                    <span className="text-[20px] font-bold text-brand-green"><span className="text-[16px] mr-1">฿</span>{Number(p.price).toLocaleString()}</span>
+                                                    <span className="text-[20px] font-bold text-brand-green"><span className="text-[16px] mr-1">฿</span>{Number(p.price || 0).toLocaleString()}</span>
                                                     <div className="flex items-center gap-3 text-gray-500 text-[13px]"><div className="flex items-center gap-1.5" title="พื้นที่"><Maximize size={15} /> {p.area_wah}</div><div className="flex items-center gap-1.5" title="ห้องนอน"><Bed size={15} /> {p.bedrooms}</div><div className="flex items-center gap-1.5" title="ห้องน้ำ"><Bath size={15} /> {p.bathrooms}</div></div>
                                                 </div>
                                             </div>
@@ -1469,24 +1468,24 @@
         function SalePage({ property, companyInfo, onBack, properties, onSelectProp, visualContent, updateVisualContent, isEditMode }) {
           const [activeImg, setActiveImg] = useState(0);
           const [isVideoPlaying, setIsVideoPlaying] = useState(false);
-          const images = property.images && property.images.length > 0 ? property.images : [property.imageUrl || "https://placehold.co/600x400"];
-          const youtubeId = getYoutubeId(property.youtubeUrl);
+          const images = property?.images && property.images.length > 0 ? property.images : [property?.imageUrl || "https://placehold.co/600x400"];
+          const youtubeId = getYoutubeId(property?.youtubeUrl || '');
 
-          const relatedProps = properties.filter(p => p.id !== property.id && p.badge !== 'Sold Out' && (p.sub_location === property.sub_location || p.category === property.category)).slice(0, 6);
+          const relatedProps = properties.filter(p => p.id !== property?.id && p.badge !== 'Sold Out' && (p.sub_location === property?.sub_location || p.category === property?.category)).slice(0, 6);
 
           const renderRelatedProps = () => {
               if (relatedProps.length === 0) return null;
               return (
-                  <div className="mt-12 mb-8 px-4 md:px-0">
+                  <div className="mt-12 mb-8 px-4 md:px-0 w-full">
                       <h3 className="text-xl font-medium text-brand-green mb-6 border-l-4 border-brand-green pl-3">โครงการที่คุณอาจสนใจ</h3>
                       <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 md:gap-6 pb-6 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
                           {relatedProps.map((p, index) => (
                               <a href={`?property=${generatePropSlug(p)}`} key={p.id} onClick={(e) => {
                                   if (!e.ctrlKey && !e.metaKey && !e.button) {
                                       e.preventDefault(); 
-                                      onSelectProp(p);
+                                      if(!isEditMode) onSelectProp(p);
                                   }
-                              }} className="block bg-white border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-lg transition-all duration-300 rounded-2xl overflow-hidden flex flex-col w-[300px] min-w-[300px] h-[400px] min-h-[400px] snap-center flex-shrink-0 cursor-pointer" style={{ animation: `fadeUpAnim 0.5s ease forwards ${index * 50}ms`, opacity: 0, transform: 'translateY(20px)' }}>
+                              }} className={`block bg-white border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-lg transition-all duration-300 rounded-2xl overflow-hidden flex flex-col w-[300px] min-w-[300px] h-[400px] min-h-[400px] snap-center flex-shrink-0 ${isEditMode ? 'pointer-events-none cursor-default' : 'cursor-pointer'}`} style={{ animation: `fadeUpAnim 0.5s ease forwards ${index * 50}ms`, opacity: 0, transform: 'translateY(20px)' }}>
                                   <div className="h-[220px] w-full relative overflow-hidden bg-gray-100 pointer-events-none">
                                       <img src={p.images?.[0] || p.imageUrl || "https://placehold.co/600x400"} alt={p.project_name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
                                       <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm text-gray-700 px-3 py-1.5 rounded-full font-medium text-xs shadow-sm z-10 flex items-center gap-1.5"><Home size={14} className="text-brand-green" />{p.category}</div>
@@ -1496,7 +1495,7 @@
                                       <h4 className="font-bold text-gray-800 text-[18px] mb-2 line-clamp-2 leading-snug">{p.project_name}</h4>
                                       <div className="text-[13px] text-gray-500 flex items-center gap-1.5 mb-4"><MapPin size={15} className="flex-shrink-0 text-gray-400" /><span className="font-light truncate">{p.main_location || p.district} {p.sub_location || p.subdistrict ? `- ${p.sub_location || p.subdistrict}` : ''}</span></div>
                                       <div className="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between">
-                                          <span className="text-[20px] font-bold text-brand-green"><span className="text-[16px] mr-1">฿</span>{Number(p.price).toLocaleString()}</span>
+                                          <span className="text-[20px] font-bold text-brand-green"><span className="text-[16px] mr-1">฿</span>{Number(p.price || 0).toLocaleString()}</span>
                                           <div className="flex items-center gap-3 text-gray-500 text-[13px]"><div className="flex items-center gap-1.5" title="พื้นที่"><Maximize size={15} /> {p.area_wah}</div><div className="flex items-center gap-1.5" title="ห้องนอน"><Bed size={15} /> {p.bedrooms}</div><div className="flex items-center gap-1.5" title="ห้องน้ำ"><Bath size={15} /> {p.bathrooms}</div></div>
                                       </div>
                                   </div>
@@ -1507,28 +1506,30 @@
               );
           };
 
+          if (!property) return null;
+
           return (
-            <div className="bg-gray-50 min-h-screen pb-12 animate-in fade-in duration-300 flex-grow">
-              <div className="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="bg-gray-50 min-h-screen pb-12 animate-in fade-in duration-300 flex-grow w-full max-w-full">
+              <div className="max-w-7xl mx-auto px-4 py-8 flex flex-col lg:flex-row gap-8 w-full max-w-full">
                  
-                 <div className="lg:col-span-2 space-y-8 flex flex-col">
-                    <div className="order-1">
+                 <div className="lg:w-2/3 space-y-8 flex flex-col order-1 w-full max-w-full">
+                    <div>
                         <a href="/" onClick={(e) => { 
                             if (!e.ctrlKey && !e.metaKey && !e.button) { e.preventDefault(); onBack(); }
-                        }} className="flex items-center gap-2 text-gray-500 hover:text-brand-green transition-colors text-sm uppercase tracking-wide inline-flex mb-8">
+                        }} className="flex items-center gap-2 text-gray-500 hover:text-brand-green transition-colors text-sm uppercase tracking-wide inline-flex mb-8 cursor-pointer">
                            <ChevronLeft size={16} /> ย้อนกลับ
                         </a>
                         
                         {/* เปลี่ยนการแสดงรูปให้แสดงเต็มรูป ไม่ครอปและไม่มีกรอบ */}
-                        <div className="w-full overflow-hidden mb-4 relative group bg-gray-100 rounded-2xl shadow-sm">
-                            <img src={images[activeImg]} className="w-full h-auto max-h-[80vh] object-contain transition duration-500" alt="Main" />
+                        <div className="w-full overflow-hidden mb-4 relative group bg-gray-100 rounded-2xl shadow-sm flex items-center justify-center min-h-[300px]">
+                            <img src={images[activeImg] || images[0]} className="w-full h-auto max-h-[80vh] object-contain transition duration-500" alt="Main" />
                             {images.length > 1 && (
                                 <>
                                     <button onClick={() => setActiveImg(prev => (prev === 0 ? images.length - 1 : prev - 1))} className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 text-brand-green p-2 rounded-full hover:bg-white transition shadow-md"><ChevronLeft /></button>
                                     <button onClick={() => setActiveImg(prev => (prev === images.length - 1 ? 0 : prev + 1))} className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 text-brand-green p-2 rounded-full hover:bg-white transition shadow-md"><ChevronRight /></button>
                                 </>
                             )}
-                            {property.badge && <div className={`absolute top-4 right-4 px-4 py-1.5 rounded-full font-medium text-xs shadow-lg z-10 text-white ${property.badge === 'Promotion' ? 'bg-red-600' : p.badge === 'New' ? 'bg-blue-600' : property.badge === 'Sold Out' ? 'bg-gray-600' : 'bg-brand-green'}`}>{property.badge}</div>}
+                            {property.badge && <div className={`absolute top-4 right-4 px-4 py-1.5 rounded-full font-medium text-xs shadow-lg z-10 text-white ${property.badge === 'Promotion' ? 'bg-red-600' : property.badge === 'New' ? 'bg-blue-600' : property.badge === 'Sold Out' ? 'bg-gray-600' : 'bg-brand-green'}`}>{property.badge}</div>}
                         </div>
                         
                         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide mb-8">
@@ -1554,7 +1555,7 @@
                               </div>
                               <div className="text-left md:text-right w-full md:w-auto mt-4 md:mt-0 pt-4 md:pt-0 border-t md:border-t-0 border-gray-100">
                                 <span className="block text-sm text-gray-400 font-light mb-1">ราคาขาย</span>
-                                <span className="text-3xl font-medium text-brand-green">฿ {Number(property.price).toLocaleString()}</span>
+                                <span className="text-3xl font-medium text-brand-green">฿ {Number(property.price || 0).toLocaleString()}</span>
                               </div>
                            </div>
                            
@@ -1607,19 +1608,19 @@
                     </div>
                     
                     {/* Related Props on Desktop */}
-                    <div className="hidden lg:block order-2">
+                    <div className="hidden lg:block">
                         {renderRelatedProps()}
                     </div>
                  </div>
 
                  {/* Right Sidebar */}
-                 <div className="space-y-6 order-2 lg:order-none">
+                 <div className="lg:w-1/3 space-y-6 order-2 w-full max-w-full">
                     <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 sticky top-24 text-center">
                         {companyInfo?.logoUrl && (<img src={companyInfo.logoUrl} alt="Logo" className="h-16 mx-auto mb-4 object-contain" />)}
                         <h3 className="font-medium text-lg mb-6">สนใจติดต่อ</h3>
                         <div className="space-y-3 mb-8">
-                            <a href={`tel:${companyInfo?.phone}`} className="flex items-center justify-center gap-2 w-full bg-brand-green text-white py-3.5 rounded-full font-light hover:bg-opacity-90 transition"><Phone size={18} /> {companyInfo?.phone}</a>
-                            <a href={companyInfo?.line} target="_blank" className="flex items-center justify-center gap-2 w-full bg-[#06C755] text-white py-3.5 rounded-full font-light hover:bg-opacity-90 transition"><MessageCircle size={18} /> ทักไลน์</a>
+                            <a href={isEditMode ? '#' : `tel:${companyInfo?.phone}`} className={`flex items-center justify-center gap-2 w-full bg-brand-green text-white py-3.5 rounded-full font-light hover:bg-opacity-90 transition ${isEditMode ? 'pointer-events-none' : ''}`}><Phone size={18} /> {companyInfo?.phone}</a>
+                            <a href={isEditMode ? '#' : companyInfo?.line} target="_blank" className={`flex items-center justify-center gap-2 w-full bg-[#06C755] text-white py-3.5 rounded-full font-light hover:bg-opacity-90 transition ${isEditMode ? 'pointer-events-none' : ''}`}><MessageCircle size={18} /> ทักไลน์</a>
                         </div>
                         <div className="border-t border-gray-100 pt-6 text-left">
                             <CalculatorSection defaultPrice={property.price} minimalist={true} visualContent={visualContent} updateVisualContent={updateVisualContent} isEditMode={isEditMode} />
@@ -1628,7 +1629,7 @@
                  </div>
 
                  {/* Related Props on Mobile */}
-                 <div className="block lg:hidden order-3 lg:order-none mt-8">
+                 <div className="block lg:hidden order-3 w-full max-w-full">
                      {renderRelatedProps()}
                  </div>
               </div>
@@ -1646,7 +1647,14 @@
           } else if (searchParams?.type === 'main_location' || searchParams?.type === 'sub_location' || searchParams?.type === 'district') {
               displayProps = properties.filter(p => p.main_location === searchParams.value || (!p.main_location && p.district === searchParams.value) || p.sub_location === searchParams.value || (!p.sub_location && p.subdistrict === searchParams.value) || (p.subdistrict === 'คูคต' && searchParams.value === 'ลำลูกกา'));
               title = `ทำเล: ${searchParams.value}`;
-          } else if (searchParams?.type === 'subdistrict' || searchParams?.type === 'keyword') {
+          } else if (searchParams?.type === 'category') {
+              if (searchParams.value === 'ทาวน์เฮาส์') {
+                  displayProps = properties.filter(p => p.category?.includes('ทาวน์เฮาส์'));
+              } else {
+                  displayProps = properties.filter(p => p.category === searchParams.value);
+              }
+              title = `หมวดหมู่: ${searchParams.value}`;
+          } else if (searchParams?.type === 'keyword') {
               const keyword = normalizeThaiSearch(searchParams.value); 
               displayProps = properties.filter(p => {
                   const propString = normalizeThaiSearch(`${p.main_location} ${p.sub_location} ${p.district} ${p.subdistrict} ${p.project_name} ${p.house_number} ${p.soi} ${p.highlights} ${p.category}`);
@@ -1663,9 +1671,9 @@
                    <a href={`?property=${generatePropSlug(p)}`} key={p.id} onClick={(e) => {
                        if (!e.ctrlKey && !e.metaKey && !e.button) {
                            e.preventDefault(); 
-                           onSelectProp(p);
+                           if(!isEditMode) onSelectProp(p);
                        }
-                   }} className="block bg-white border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-lg transition-all duration-300 rounded-2xl overflow-hidden flex flex-col w-[300px] min-w-[300px] h-[400px] min-h-[400px] cursor-pointer" style={{ animation: `fadeUpAnim 0.5s ease forwards`, opacity: 0, transform: 'translateY(20px)' }}>
+                   }} className={`block bg-white border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-lg transition-all duration-300 rounded-2xl overflow-hidden flex flex-col w-[300px] min-w-[300px] h-[400px] min-h-[400px] ${isEditMode ? 'pointer-events-none cursor-default' : 'cursor-pointer'}`} style={{ animation: `fadeUpAnim 0.5s ease forwards`, opacity: 0, transform: 'translateY(20px)' }}>
                        <div className="h-[220px] w-full relative overflow-hidden bg-gray-100 pointer-events-none">
                            <img src={p.images?.[0] || p.imageUrl || "https://placehold.co/600x400"} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
                            <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm text-gray-700 px-3 py-1.5 rounded-full font-medium text-xs shadow-sm z-10 flex items-center gap-1.5"><Home size={14} className="text-brand-green" />{p.category}</div>
@@ -1675,7 +1683,7 @@
                            <h4 className="font-bold text-gray-800 text-[18px] mb-2 line-clamp-2 leading-snug">{p.project_name}</h4>
                            <div className="text-[13px] text-gray-500 flex items-center gap-1.5 mb-4"><MapPin size={15} className="flex-shrink-0 text-gray-400" /><span className="font-light truncate">{p.main_location || p.district} {p.sub_location || p.subdistrict ? `- ${p.sub_location || p.subdistrict}` : ''}</span></div>
                            <div className="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between">
-                               <span className="text-[20px] font-bold text-brand-green"><span className="text-[16px] mr-1">฿</span>{Number(p.price).toLocaleString()}</span>
+                               <span className="text-[20px] font-bold text-brand-green"><span className="text-[16px] mr-1">฿</span>{Number(p.price || 0).toLocaleString()}</span>
                                <div className="flex items-center gap-3 text-gray-500 text-[13px]"><div className="flex items-center gap-1.5" title="พื้นที่"><Maximize size={15} /> {p.area_wah}</div><div className="flex items-center gap-1.5" title="ห้องนอน"><Bed size={15} /> {p.bedrooms}</div><div className="flex items-center gap-1.5" title="ห้องน้ำ"><Bath size={15} /> {p.bathrooms}</div></div>
                            </div>
                        </div>
@@ -1701,9 +1709,9 @@
                        <a href={`?tab=search_result&sType=main_location&sValue=${encodeURIComponent(loc.area)}`} onClick={(e) => { 
                            if (!e.ctrlKey && !e.metaKey && !e.button) {
                                e.preventDefault(); 
-                               if (onSelectLocation) onSelectLocation('main_location', loc.area);
+                               if (onSelectLocation && !isEditMode) onSelectLocation('main_location', loc.area);
                            }
-                       }} className="block w-full h-full cursor-pointer">
+                       }} className={`block w-full h-full ${isEditMode ? 'pointer-events-none cursor-default' : 'cursor-pointer'}`}>
                            <img src={loc.img} className="w-full h-full object-cover group-hover:scale-105 transition duration-700" alt={loc.area} />
                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-4 md:p-6 transition group-hover:bg-black/30">
                               <h3 className="text-lg md:text-2xl font-medium tracking-wide text-white">{loc.area}</h3>
@@ -1725,9 +1733,9 @@
                                if (!e.ctrlKey && !e.metaKey && !e.button) {
                                    e.preventDefault(); 
                                    e.stopPropagation(); 
-                                   if (onSelectLocation) onSelectLocation('sub_location', sub); 
+                                   if (onSelectLocation && !isEditMode) onSelectLocation('sub_location', sub); 
                                }
-                           }} className="text-[10px] md:text-xs border border-gray-200 text-gray-500 px-2 md:px-3 py-1 md:py-1.5 rounded-full font-light hover:border-brand-green hover:text-brand-green transition">
+                           }} className={`text-[10px] md:text-xs border border-gray-200 text-gray-500 px-2 md:px-3 py-1 md:py-1.5 rounded-full font-light transition ${isEditMode ? 'pointer-events-none' : 'hover:border-brand-green hover:text-brand-green'}`}>
                              {sub}
                            </a>
                        ))}
@@ -1740,19 +1748,34 @@
         }
 
         function CalculatorSection({ defaultPrice, minimalist = false, visualContent, updateVisualContent, isEditMode }) {
-          const [loanAmount, setLoanAmount] = useState(defaultPrice || '');
+          const [loanAmount, setLoanAmount] = useState('');
           const [interest, setInterest] = useState(3);
           const [age, setAge] = useState('');
           const [years, setYears] = useState(0);
           const [monthlyPayment, setMonthlyPayment] = useState(null);
 
-          useEffect(() => { if (defaultPrice) setLoanAmount(defaultPrice); }, [defaultPrice]);
+          useEffect(() => { 
+              if (defaultPrice) {
+                  setLoanAmount(Number(defaultPrice).toLocaleString()); 
+              }
+          }, [defaultPrice]);
+          
           useEffect(() => { setYears(age ? Math.max(0, Math.min(40, 70 - parseInt(age))) : 0); }, [age]);
+
+          const handleLoanChange = (e) => {
+              const rawValue = e.target.value.replace(/[^0-9]/g, '');
+              setLoanAmount(rawValue ? Number(rawValue).toLocaleString() : '');
+          };
+
+          const handleSliderChange = (e) => {
+              setLoanAmount(Number(e.target.value).toLocaleString());
+          };
             
           const handleCalculate = () => {
-            if (years <= 0 || !loanAmount) { setMonthlyPayment(0); return; }
+            const rawLoan = Number(String(loanAmount).replace(/,/g, ''));
+            if (years <= 0 || !rawLoan) { setMonthlyPayment(0); return; }
             const r = interest / 100 / 12; const n = years * 12;
-            const payment = (Number(loanAmount) * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+            const payment = (rawLoan * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
             setMonthlyPayment(isNaN(payment) ? 0 : payment.toFixed(0));
           };
 
@@ -1770,8 +1793,8 @@
                             <span>วงเงินกู้ (บาท)</span>
                         </label>
                         <div className="flex flex-col gap-3">
-                            <input type="text" inputMode="numeric" value={loanAmount} onChange={e=>setLoanAmount(e.target.value.replace(/[^0-9.]/g, ''))} className={`input-modern ${isEditMode ? 'pointer-events-none opacity-60' : ''}`} disabled={isEditMode} />
-                            <input type="range" min="100000" max="15000000" step="50000" value={loanAmount || 0} onChange={e=>setLoanAmount(e.target.value)} className={`w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#0b3d1b] ${isEditMode ? 'pointer-events-none opacity-60' : ''}`} disabled={isEditMode} />
+                            <input type="text" inputMode="numeric" value={loanAmount} onChange={handleLoanChange} className={`input-modern font-medium text-brand-green ${isEditMode ? 'pointer-events-none opacity-60' : ''}`} disabled={isEditMode} />
+                            <input type="range" min="100000" max="15000000" step="10000" value={Number(String(loanAmount).replace(/,/g, '')) || 0} onChange={handleSliderChange} className={`w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#0b3d1b] ${isEditMode ? 'pointer-events-none opacity-60' : ''}`} disabled={isEditMode} />
                         </div>
                      </div>
                      <div className={minimalist ? "grid grid-cols-2 gap-4" : ""} >
@@ -1847,11 +1870,12 @@
           );
         }
 
-        function NavButton({ active, onClick, href, children }) {
+        function NavButton({ active, onClick, href, isEditMode, children }) {
           return (
-            <a href={href} onClick={(e) => {
+            <a href={isEditMode ? "#" : href} onClick={(e) => {
+              if (isEditMode) { e.preventDefault(); return; }
               if (!e.ctrlKey && !e.metaKey && !e.button) { e.preventDefault(); onClick(); }
-            }} className={`text-sm tracking-wide transition-colors duration-300 ${active ? 'text-brand-green font-medium' : 'text-gray-500 hover:text-brand-green'}`}>
+            }} className={`text-sm tracking-wide transition-colors duration-300 ${active ? 'text-brand-green font-medium' : 'text-gray-500 hover:text-brand-green'} ${isEditMode ? 'cursor-default' : ''}`}>
               {children}
             </a>
           );
@@ -1983,7 +2007,7 @@
                     .catch(err => console.error('Failed to load thai address data', err));
             }, []);
 
-            const filteredProperties = properties.filter(p => p.project_name.toLowerCase().includes(searchTerm.toLowerCase()));
+            const filteredProperties = properties.filter(p => p?.project_name?.toLowerCase()?.includes(searchTerm.toLowerCase()));
 
             const startEdit = (prop) => {
                 setEditData(prop); setFormData({ ...initialForm, ...prop, facilitiesList: prop.facilitiesList || [] }); setImagesPreview(prop.images || (prop.imageUrl ? [prop.imageUrl] : []));
@@ -2138,7 +2162,7 @@
                         project_name: formData.project_name.trim(),
                         lat: safeLat,
                         lng: safeLng,
-                        price: Number(formData.price) || 0,
+                        price: Number(String(formData.price).replace(/,/g, '')) || 0,
                         bedrooms: Number(formData.bedrooms) || 0,
                         bathrooms: Number(formData.bathrooms) || 0,
                         area_wah: Number(formData.area_wah) || 0,
@@ -2240,6 +2264,8 @@
                 });
             };
 
+            const safeLocations = locations || [];
+
             return (
                 <div className="fixed inset-0 z-[60] bg-gray-50 flex flex-col font-sans">
                     {/* Loaders */}
@@ -2300,7 +2326,7 @@
                                                 <div className="flex-1 w-full text-center sm:text-left">
                                                     <h4 className="font-medium line-clamp-1">{p.project_name}</h4>
                                                     <p className="text-xs text-gray-500 mt-1">{p.category} • {p.subdistrict}</p>
-                                                    <p className="font-medium text-brand-green mt-1">{Number(p.price).toLocaleString()} ฿</p>
+                                                    <p className="font-medium text-brand-green mt-1">{Number(p.price || 0).toLocaleString()} ฿</p>
                                                 </div>
                                                 <div className="flex gap-2 w-full sm:w-auto justify-center">
                                                     <button onClick={() => startEdit(p)} className="p-2 w-full sm:w-auto flex justify-center text-gray-400 hover:text-brand-green bg-gray-50 rounded-lg transition"><Edit size={18}/></button>
@@ -2330,7 +2356,7 @@
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                     <div className="sm:col-span-2"><label className="label">ชื่อโครงการ <span className="text-red-500">*</span></label><input className="input-modern" required value={formData.project_name} onChange={e=>setFormData({...formData, project_name: e.target.value})}/></div>
                                                     <div><label className="label">ประเภท</label><select className="input-modern" value={formData.category} onChange={e=>setFormData({...formData, category: e.target.value})}>{CATEGORIES.map(c=><option key={c} value={c}>{c}</option>)}</select></div>
-                                                    <div><label className="label">ราคา (บาท) <span className="text-red-500">*</span></label><input type="text" inputMode="numeric" required className="input-modern font-medium text-brand-green" value={formData.price} onChange={e=>setFormData({...formData, price: e.target.value.replace(/[^0-9]/g, '')})}/></div>
+                                                    <div><label className="label">ราคา (บาท) <span className="text-red-500">*</span></label><input type="text" inputMode="numeric" required className="input-modern font-medium text-brand-green" value={Number(formData.price || 0).toLocaleString()} onChange={e=>setFormData({...formData, price: e.target.value.replace(/[^0-9]/g, '')})}/></div>
                                                     <div className="sm:col-span-2">
                                                         <label className="label">ป้ายสถานะ (Badge)</label>
                                                         <select className="input-modern" value={formData.badge} onChange={e=>setFormData({...formData, badge: e.target.value})}>
@@ -2349,14 +2375,14 @@
                                                         <label className="label">ทำเล (หลัก)</label>
                                                         <select className="input-modern" value={formData.main_location} onChange={e => setFormData({...formData, main_location: e.target.value, sub_location: ''})}>
                                                             <option value="">- เลือกทำเลหลัก -</option>
-                                                            {locations.map(loc => <option key={loc.area} value={loc.area}>{loc.area}</option>)}
+                                                            {safeLocations.map(loc => <option key={loc.area} value={loc.area}>{loc.area}</option>)}
                                                         </select>
                                                     </div>
                                                     <div>
                                                         <label className="label">ทำเลย่อย</label>
                                                         <select className="input-modern" value={formData.sub_location} onChange={e => setFormData({...formData, sub_location: e.target.value})} disabled={!formData.main_location}>
                                                             <option value="">- เลือกทำเลย่อย -</option>
-                                                            {formData.main_location && locations.find(l => l.area === formData.main_location)?.sub_areas?.map(sub => <option key={sub} value={sub}>{sub}</option>)}
+                                                            {formData.main_location && safeLocations.find(l => l.area === formData.main_location)?.sub_areas?.map(sub => <option key={sub} value={sub}>{sub}</option>)}
                                                         </select>
                                                     </div>
                                                 </div>

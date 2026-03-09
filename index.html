@@ -225,7 +225,7 @@
     <script type="text/babel" data-type="module">
         import { createRoot } from 'react-dom/client';
         import React, { useState, useEffect, useRef } from 'react';
-        import { Home, MapPin, Bed, Bath, Car, Maximize, Phone, MessageCircle, Menu, X, Plus, Trash2, ShieldCheck, CheckCircle, Calculator, Users, FileText, Settings, Edit, Save, Image as ImageIcon, Layout, ChevronLeft, ChevronRight, Upload, Briefcase, XCircle, Tag, Youtube, Loader, Facebook, Instagram, Video, Check, Calendar, FolderPlus, Map as MapIcon, Search, AlertTriangle, AlertCircle, Star, ClipboardCheck, Type } from 'lucide-react';
+        import { Home, MapPin, Bed, Bath, Car, Maximize, Phone, MessageCircle, Menu, X, Plus, Trash2, ShieldCheck, CheckCircle, Calculator, Users, FileText, Settings, Edit, Save, Image as ImageIcon, Layout, ChevronLeft, ChevronRight, Upload, Briefcase, XCircle, Tag, Youtube, Loader, Facebook, Instagram, Video, Check, Calendar, FolderPlus, Map as MapIcon, Search, AlertTriangle, AlertCircle, Star, ClipboardCheck, Type, LayoutTemplate } from 'lucide-react';
         import { initializeApp } from 'firebase/app';
         
         import { 
@@ -283,6 +283,16 @@
           portfolio_years: []
         };
 
+        const DEFAULT_LOCATIONS_DATA = [
+          { area: 'ลำลูกกา', sub_areas: ['คลองหนึ่ง', 'คลองสอง', 'คลองสาม', 'คลองสี่', 'คลองเจ็ด', 'คลองแปด'], img: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
+          { area: 'คลองหลวง', sub_areas: ['คลองหนึ่ง', 'คลองสอง', 'คลองสาม', 'คลองสี่'], img: 'https://images.unsplash.com/photo-1592595896551-12b371d546d5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
+          { area: 'ธัญบุรี', sub_areas: ['คลองหนึ่ง', 'คลองสอง', 'คลองสาม', 'คลองสี่', 'คลองห้า', 'คลองหก', 'คลองเจ็ด', 'คลองแปด', 'คลองเก้า', 'คลองสิบ', 'คลองสิบเอ็ด'], img: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
+          { area: 'เมืองปทุมธานี', sub_areas: ['บ้านใหม่', 'บางพูน', 'บางกะดี'], img: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
+          { area: 'อยุธยา', sub_areas: ['พยอม'], img: 'https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
+          { area: 'กรุงเทพมหานคร', sub_areas: ['ดอนเมือง', 'บางเขน', 'พหลโยธิน 48', 'พหลโยธิน 52', 'สายไหม'], img: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b91d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
+          { area: 'นนทบุรี', sub_areas: ['บางบัวทอง', 'ปากเกร็ด - ติวานนท์'], img: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' }
+        ];
+
         const DEFAULT_VISUAL_CONTENT = {
             heroTitle: 'STARTUP UP',
             heroSubtitle: 'จุดเริ่มต้นของคนอยากมีบ้าน',
@@ -326,6 +336,7 @@
             secTwinhouse: 'บ้านแฝด',
             secSinglehouse: 'บ้านเดี่ยว',
             btnSeeAll: 'ดูทั้งหมด',
+            locations: DEFAULT_LOCATIONS_DATA
         };
 
         const CATEGORIES = ['ทาวน์เฮาส์', 'ทาวน์เฮาส์ชั้นเดียว', 'ทาวน์เฮาส์หลังริม', 'บ้านแฝด', 'บ้านเดี่ยว'];
@@ -337,16 +348,6 @@
         ];
         const DIRECTIONS = ['เหนือ', 'ใต้', 'ตะวันออก', 'ตะวันตก', 'ตะวันออกเฉียงเหนือ', 'ตะวันออกเฉียงใต้', 'ตะวันตกเฉียงเหนือ', 'ตะวันตกเฉียงใต้'];
         const COMMON_FACILITIES = ["รปภ. 24 ชม.", "สระว่ายน้ำ", "ฟิตเนส", "สวนสาธารณะ", "กล้อง CCTV", "เข้า-ออก ระบบคีย์การ์ด", "คลับเฮาส์", "สนามเด็กเล่น", "ใกล้ทางด่วน", "ใกล้รถไฟฟ้า", "ใกล้ห้างสรรพสินค้า", "ใกล้โรงเรียน", "ใกล้โรงพยาบาล", "ที่จอดรถส่วนตัว", "ถนนกว้าง", "รีโนเวทใหม่", "พร้อมอยู่"];
-
-        const LOCATIONS_DATA = [
-          { area: 'ลำลูกกา', sub_areas: ['คลองหนึ่ง', 'คลองสอง', 'คลองสาม', 'คลองสี่', 'คลองเจ็ด', 'คลองแปด'], img: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
-          { area: 'คลองหลวง', sub_areas: ['คลองหนึ่ง', 'คลองสอง', 'คลองสาม', 'คลองสี่'], img: 'https://images.unsplash.com/photo-1592595896551-12b371d546d5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
-          { area: 'ธัญบุรี', sub_areas: ['คลองหนึ่ง', 'คลองสอง', 'คลองสาม', 'คลองสี่', 'คลองห้า', 'คลองหก', 'คลองเจ็ด', 'คลองแปด', 'คลองเก้า', 'คลองสิบ', 'คลองสิบเอ็ด'], img: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
-          { area: 'เมืองปทุมธานี', sub_areas: ['บ้านใหม่', 'บางพูน', 'บางกะดี'], img: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
-          { area: 'อยุธยา', sub_areas: ['พยอม'], img: 'https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
-          { area: 'กรุงเทพมหานคร', sub_areas: ['ดอนเมือง', 'บางเขน', 'พหลโยธิน 48', 'พหลโยธิน 52', 'สายไหม'], img: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b91d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
-          { area: 'นนทบุรี', sub_areas: ['บางบัวทอง', 'ปากเกร็ด - ติวานนท์'], img: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' }
-        ];
 
         const DISTRICT_COORDS = {
             'คลองหลวง': [14.043, 100.655], 
@@ -421,6 +422,27 @@
                     {name: 'มัยลาภ', lat: 13.8580, lng: 100.6405},
                     {name: 'วัชรพล', lat: 13.8540, lng: 100.6448}
                 ]
+            },
+            { 
+                name: 'สายสีม่วง (MRT)', color: '#7e22ce', 
+                stations: [
+                    {name: 'คลองบางไผ่', lat: 13.8906, lng: 100.4035},
+                    {name: 'ตลาดบางใหญ่', lat: 13.8805, lng: 100.4125},
+                    {name: 'สามแยกบางใหญ่', lat: 13.8793, lng: 100.4190},
+                    {name: 'บางพลู', lat: 13.8795, lng: 100.4320},
+                    {name: 'บางรักใหญ่', lat: 13.8778, lng: 100.4435},
+                    {name: 'บางรักน้อยท่าอิฐ', lat: 13.8750, lng: 100.4550},
+                    {name: 'ไทรม้า', lat: 13.8735, lng: 100.4682},
+                    {name: 'สะพานพระนั่งเกล้า', lat: 13.8716, lng: 100.4815},
+                    {name: 'แยกนนทบุรี 1', lat: 13.8680, lng: 100.4950},
+                    {name: 'บางกระสอ', lat: 13.8631, lng: 100.5028},
+                    {name: 'ศูนย์ราชการนนทบุรี', lat: 13.8601, lng: 100.5144},
+                    {name: 'กระทรวงสาธารณสุข', lat: 13.8493, lng: 100.5152},
+                    {name: 'แยกติวานนท์', lat: 13.8395, lng: 100.5150},
+                    {name: 'วงศ์สว่าง', lat: 13.8288, lng: 100.5270},
+                    {name: 'บางซ่อน', lat: 13.8208, lng: 100.5330},
+                    {name: 'เตาปูน', lat: 13.8058, lng: 100.5312}
+                ]
             }
         ];
 
@@ -494,16 +516,17 @@
             }
 
             return (
-                <Tag className={`${className} relative group`}>
-                    {content[fieldKey]}
+                <Tag className={`${className} relative group inline-flex items-center`}>
+                    <span>{content[fieldKey]}</span>
                     <button
+                        type="button"
                         onClick={(e) => { 
                             e.preventDefault(); 
                             e.stopPropagation(); 
                             setIsEditing(true); 
                         }}
                         className="ml-2 inline-flex items-center justify-center bg-blue-100 text-blue-600 p-1.5 rounded-full shadow hover:bg-blue-600 hover:text-white transition-colors cursor-pointer align-middle"
-                        title="แก้ไขข้อความ"
+                        title="คลิกเพื่อแก้ไขข้อความ"
                         style={{ zIndex: 50 }}
                     >
                         <Edit size={14} />
@@ -600,9 +623,14 @@
           const [showLoginModal, setShowLoginModal] = useState(false);
           const [showAdminPanel, setShowAdminPanel] = useState(false);
 
-          // Visual Edit Mode State
+          // Visual Edit Mode & Popup Settings
           const [isVisualEditMode, setIsVisualEditMode] = useState(false);
           const [visualContent, setVisualContent] = useState(DEFAULT_VISUAL_CONTENT);
+          const [popupData, setPopupData] = useState({ imageUrl: '', isActive: false });
+          const [showPopupModal, setShowPopupModal] = useState(false);
+          const [isSnoozeChecked, setIsSnoozeChecked] = useState(false);
+          const hasCheckedPopup = useRef(false);
+
           const [pastVisual, setPastVisual] = useState([]);
           const [futureVisual, setFutureVisual] = useState([]);
           const [isSavingVisual, setIsSavingVisual] = useState(false);
@@ -706,6 +734,19 @@
               return () => window.removeEventListener('wheel', handleWheel);
           }, []);
 
+          // Show Popup Logic (Run once per session when popupData is loaded)
+          useEffect(() => {
+              if (popupData.imageUrl && !hasCheckedPopup.current) {
+                  hasCheckedPopup.current = true;
+                  if (popupData.isActive) {
+                      const hideUntil = localStorage.getItem('hidePopupUntil');
+                      if (!hideUntil || Date.now() > parseInt(hideUntil, 10)) {
+                          setShowPopupModal(true);
+                      }
+                  }
+              }
+          }, [popupData]);
+
           // Visual Edit Mode Logic
           const updateVisualContent = (newContent) => {
               setPastVisual([...pastVisual, visualContent]);
@@ -746,6 +787,24 @@
                   if (pastVisual.length > 0) setVisualContent(pastVisual[0]); // Revert to initial state
                   setPastVisual([]); setFutureVisual([]);
               });
+          };
+
+          // Location Image Updater (from Visual Editor)
+          const handleLocationImageUpdate = async (idx, file) => {
+              try {
+                  const url = await uploadFileToCloudinary(file);
+                  const newLocations = [...(visualContent.locations || DEFAULT_LOCATIONS_DATA)];
+                  newLocations[idx] = { ...newLocations[idx], img: url };
+                  updateVisualContent({ ...visualContent, locations: newLocations });
+              } catch (err) {
+                  showGlobalAlert('อัปโหลดผิดพลาด', err.message, 'error');
+              }
+          };
+
+          const handleRemoveLocationImage = (idx) => {
+              const newLocations = [...(visualContent.locations || DEFAULT_LOCATIONS_DATA)];
+              newLocations[idx] = { ...newLocations[idx], img: DEFAULT_LOCATIONS_DATA[idx].img }; // revert to default
+              updateVisualContent({ ...visualContent, locations: newLocations });
           };
 
           // Ctrl+Z / Ctrl+Y
@@ -794,7 +853,15 @@
 
             const unsubVisual = onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'site_settings', 'visual'), (docSnap) => {
                 if (docSnap.exists()) {
-                    setVisualContent({ ...DEFAULT_VISUAL_CONTENT, ...docSnap.data() });
+                    const data = docSnap.data();
+                    if(!data.locations) data.locations = DEFAULT_LOCATIONS_DATA;
+                    setVisualContent({ ...DEFAULT_VISUAL_CONTENT, ...data });
+                }
+            }, (error) => console.warn(error));
+
+            const unsubPopup = onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'site_settings', 'popup'), (docSnap) => {
+                if (docSnap.exists()) {
+                    setPopupData(docSnap.data());
                 }
             }, (error) => console.warn(error));
 
@@ -809,7 +876,7 @@
                  }
                }, (error) => console.warn(error));
             }
-            return () => { unsubProps(); unsubCompany(); unsubVisual(); unsubUsers(); };
+            return () => { unsubProps(); unsubCompany(); unsubVisual(); unsubPopup(); unsubUsers(); };
           }, [user, userRole]);
 
           const handleLogout = async () => {
@@ -870,6 +937,34 @@
 
           return (
             <div className={`text-gray-800 bg-white min-h-screen flex flex-col font-sans relative ${isVisualEditMode ? 'pb-24 border-4 border-blue-500' : ''}`}>
+              
+              {/* Promotion Popup Modal */}
+              {showPopupModal && (
+                  <div className="fixed inset-0 z-[200] bg-black/70 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+                      <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full relative overflow-hidden animate-in zoom-in-95 duration-300">
+                          <button onClick={() => {
+                              if(isSnoozeChecked) localStorage.setItem('hidePopupUntil', Date.now() + 24*60*60*1000);
+                              setShowPopupModal(false);
+                          }} className="absolute top-3 right-3 bg-white/80 text-gray-800 p-1.5 rounded-full hover:bg-white hover:text-red-500 transition shadow z-10">
+                              <X size={20}/>
+                          </button>
+                          <div className="w-full relative bg-gray-100">
+                               <img src={popupData.imageUrl} className="w-full h-auto max-h-[70vh] object-contain" alt="Promotion Popup" />
+                          </div>
+                          <div className="p-4 bg-white border-t flex items-center justify-between">
+                              <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none">
+                                  <input type="checkbox" className="w-4 h-4 text-brand-green rounded border-gray-300 focus:ring-brand-green" checked={isSnoozeChecked} onChange={e=>setIsSnoozeChecked(e.target.checked)} />
+                                  ไม่แสดงหน้านี้อีกใน 24 ชม.
+                              </label>
+                              <button onClick={() => {
+                                  if(isSnoozeChecked) localStorage.setItem('hidePopupUntil', Date.now() + 24*60*60*1000);
+                                  setShowPopupModal(false);
+                              }} className="text-sm font-medium px-4 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-full transition">ปิดหน้าต่าง</button>
+                          </div>
+                      </div>
+                  </div>
+              )}
+
               <nav className="fixed w-full top-0 z-40 bg-white/90 backdrop-blur-md shadow-sm transition-all duration-300">
                 <div className="max-w-7xl mx-auto px-6 lg:px-12">
                   <div className="flex justify-between items-center h-20">
@@ -955,10 +1050,10 @@
                 ) : (
                   <>
                     {activeTab === 'home' && <HeroSection visualContent={visualContent} updateVisualContent={updateVisualContent} isEditMode={isVisualEditMode} />}
-                    {activeTab === 'home' && <HomeSection properties={properties} loading={loading} onSelectProp={handleSelectProperty} setActiveTab={setActiveTab} onSelectLocation={handleLocationSelect} onSearch={handleGlobalSearch} visualContent={visualContent} updateVisualContent={updateVisualContent} isEditMode={isVisualEditMode} />}
+                    {activeTab === 'home' && <HomeSection properties={properties} loading={loading} onSelectProp={handleSelectProperty} setActiveTab={setActiveTab} onSelectLocation={handleLocationSelect} onSearch={handleGlobalSearch} visualContent={visualContent} updateVisualContent={updateVisualContent} onUpdateLocationImage={handleLocationImageUpdate} onRemoveLocationImage={handleRemoveLocationImage} isEditMode={isVisualEditMode} />}
                     {activeTab === 'promo' && <PropertiesList properties={properties} searchParams={{ type: 'promo' }} onSelectProp={handleSelectProperty} visualContent={visualContent} updateVisualContent={updateVisualContent} isEditMode={isVisualEditMode} />}
                     {activeTab === 'search_result' && <PropertiesList properties={properties} searchParams={searchParams} onSelectProp={handleSelectProperty} visualContent={visualContent} updateVisualContent={updateVisualContent} isEditMode={isVisualEditMode} />}
-                    {activeTab === 'location' && <LocationSection onSelectLocation={handleLocationSelect} visualContent={visualContent} updateVisualContent={updateVisualContent} isEditMode={isVisualEditMode} />}
+                    {activeTab === 'location' && <LocationSection onSelectLocation={handleLocationSelect} visualContent={visualContent} updateVisualContent={updateVisualContent} onUpdateLocationImage={handleLocationImageUpdate} isEditMode={isVisualEditMode} />}
                     {activeTab === 'calculator' && <div className="py-16 bg-gray-50"><CalculatorSection visualContent={visualContent} updateVisualContent={updateVisualContent} isEditMode={isVisualEditMode} /></div>}
                     {activeTab === 'portfolio' && <PortfolioSection companyInfo={companyInfo} properties={properties} visualContent={visualContent} updateVisualContent={updateVisualContent} isEditMode={isVisualEditMode} />}
                   </>
@@ -975,24 +1070,24 @@
                       <p className="text-sm leading-relaxed opacity-80">{companyInfo?.description || 'จุดเริ่มต้นของคนอยากมีบ้าน'}</p>
                     </div>
                     <div>
-                      <h4 className="font-normal mb-4 tracking-wider uppercase text-sm">
+                      <h4 className="font-normal mb-4 tracking-wider uppercase text-sm relative z-50">
                           <EditableText tag="span" fieldKey="contactTitle" content={visualContent} updateContent={updateVisualContent} isEditMode={isVisualEditMode} />
                       </h4>
-                      <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(companyInfo?.address)}`} target="_blank" rel="noopener noreferrer" className="mb-2 text-sm opacity-80 hover:text-white hover:underline block">
+                      <a href={isVisualEditMode ? "#" : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(companyInfo?.address)}`} onClick={(e)=>{if(isVisualEditMode)e.preventDefault()}} target={isVisualEditMode ? "_self" : "_blank"} rel="noopener noreferrer" className={`mb-2 text-sm opacity-80 block ${isVisualEditMode ? 'pointer-events-none opacity-50' : 'hover:text-white hover:underline'}`}>
                           {companyInfo?.address}
                       </a>
-                      <p className="mb-2 text-lg"><a href={`tel:${companyInfo?.phone}`}>โทร: {companyInfo?.phone}</a></p>
+                      <p className="mb-2 text-lg"><a href={isVisualEditMode ? "#" : `tel:${companyInfo?.phone}`} onClick={(e)=>{if(isVisualEditMode)e.preventDefault()}} className={isVisualEditMode ? 'pointer-events-none opacity-50' : 'hover:text-white hover:underline'}>โทร: {companyInfo?.phone}</a></p>
                       <p className="text-sm opacity-80">Email: {companyInfo?.email}</p>
                     </div>
                     <div>
-                       <h4 className="font-normal mb-4 tracking-wider uppercase text-sm">
+                       <h4 className="font-normal mb-4 tracking-wider uppercase text-sm relative z-50">
                           <EditableText tag="span" fieldKey="followTitle" content={visualContent} updateContent={updateVisualContent} isEditMode={isVisualEditMode} />
                        </h4>
                        <div className="flex gap-4">
-                         <a href={companyInfo?.facebook} target="_blank" className="hover:text-white opacity-80 transition"><Facebook size={20}/></a>
-                         <a href={companyInfo?.line} target="_blank" className="hover:text-white opacity-80 transition"><MessageCircle size={20}/></a>
-                         <a href="https://www.instagram.com/startupuprealestate/" target="_blank" className="hover:text-white opacity-80 transition"><Instagram size={20}/></a>
-                         <a href="https://www.tiktok.com/@startupupofficial" target="_blank" className="hover:text-white opacity-80 transition"><Video size={20}/></a>
+                         <a href={isVisualEditMode ? "#" : companyInfo?.facebook} onClick={(e)=>{if(isVisualEditMode)e.preventDefault()}} target={isVisualEditMode ? "_self" : "_blank"} className={`transition ${isVisualEditMode ? 'pointer-events-none opacity-50' : 'hover:text-white opacity-80'}`}><Facebook size={20}/></a>
+                         <a href={isVisualEditMode ? "#" : companyInfo?.line} onClick={(e)=>{if(isVisualEditMode)e.preventDefault()}} target={isVisualEditMode ? "_self" : "_blank"} className={`transition ${isVisualEditMode ? 'pointer-events-none opacity-50' : 'hover:text-white opacity-80'}`}><MessageCircle size={20}/></a>
+                         <a href={isVisualEditMode ? "#" : "https://www.instagram.com/startupuprealestate/"} onClick={(e)=>{if(isVisualEditMode)e.preventDefault()}} target={isVisualEditMode ? "_self" : "_blank"} className={`transition ${isVisualEditMode ? 'pointer-events-none opacity-50' : 'hover:text-white opacity-80'}`}><Instagram size={20}/></a>
+                         <a href={isVisualEditMode ? "#" : "https://www.tiktok.com/@startupupofficial"} onClick={(e)=>{if(isVisualEditMode)e.preventDefault()}} target={isVisualEditMode ? "_self" : "_blank"} className={`transition ${isVisualEditMode ? 'pointer-events-none opacity-50' : 'hover:text-white opacity-80'}`}><Video size={20}/></a>
                        </div>
                     </div>
                   </div>
@@ -1009,7 +1104,7 @@
                         <div className="flex items-center gap-2 bg-blue-600 px-3 py-1.5 rounded-lg text-sm font-medium shadow">
                             <Layout size={16} /> โหมดแก้ไขหน้าตาเว็บไซต์
                         </div>
-                        <span className="text-gray-400 text-sm hidden md:inline"><Type size={14} className="inline mr-1"/> คลิกไอคอนดินสอ เพื่อแก้ไขข้อความ</span>
+                        <span className="text-gray-400 text-sm hidden md:inline"><Type size={14} className="inline mr-1"/> คลิกไอคอนดินสอ เพื่อแก้ไขข้อความ หรือนำเมาส์ชี้ที่รูปทำเลเพื่อเปลี่ยนรูป</span>
                     </div>
                     
                     <div className="flex gap-2 bg-slate-800 p-1 rounded-lg">
@@ -1038,7 +1133,7 @@
               {showAdminPanel && (
                 <AdminPanel 
                     userRole={userRole} userEmail={userEmail} properties={properties} users={authorizedUsers} companyInfo={companyInfo} 
-                    onClose={() => setShowAdminPanel(false)} onLogout={handleLogout} db={db} appId={appId} 
+                    onClose={() => setShowAdminPanel(false)} onLogout={handleLogout} db={db} appId={appId} popupData={popupData}
                     enterVisualEditMode={() => { 
                         setShowAdminPanel(false); 
                         setSelectedProperty(null);
@@ -1129,7 +1224,7 @@
                     
                     const title = document.createElement('h4');
                     title.className = 'font-bold text-brand-green mb-3 border-b pb-2 sticky top-0 bg-white z-10';
-                    title.innerText = `พบบ้าน ${count} รายการในบริเวณนี้`;
+                    title.innerText = `พบบ้าน ${count} โครงการในบริเวณนี้`;
                     popupContent.appendChild(title);
 
                     cluster.items.forEach(p => {
@@ -1168,18 +1263,19 @@
         }
 
         // --- View Components ---
-        function HomeSection({ properties, loading, onSelectProp, setActiveTab, onSelectLocation, onSearch, visualContent, updateVisualContent, isEditMode }) {
+        function HomeSection({ properties, loading, onSelectProp, setActiveTab, onSelectLocation, onSearch, visualContent, updateVisualContent, isEditMode, onUpdateLocationImage, onRemoveLocationImage }) {
           const [query, setQuery] = useState('');
           const handleSearchSubmit = (e) => { e.preventDefault(); onSearch(query.trim()); };
 
           const availableProps = properties.filter(p => p.badge !== 'Sold Out');
           if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader className="animate-spin text-brand-green" size={48} /></div>;
 
-          const locationCards = LOCATIONS_DATA.map(loc => {
+          const locData = visualContent?.locations || DEFAULT_LOCATIONS_DATA;
+          const locationCards = locData.map(loc => {
               const count = availableProps.filter(p => p.main_location === loc.area || (!p.main_location && p.district === loc.area)).length;
               return { ...loc, count };
           });
-          const marqueeItems = [...locationCards, ...locationCards];
+          const marqueeItems = isEditMode ? locationCards : [...locationCards, ...locationCards];
 
           const padArray = (arr, length) => {
               const result = [...arr];
@@ -1209,43 +1305,58 @@
                         <input 
                             type="text" 
                             placeholder={visualContent?.searchPlaceholder || DEFAULT_VISUAL_CONTENT.searchPlaceholder} 
-                            className={`w-full pl-6 pr-14 py-4 rounded-full outline-none shadow-lg border border-gray-100 text-gray-700 font-light text-sm md:text-base focus:ring-4 focus:ring-brand-green/20 transition-all`}
+                            className={`w-full pl-6 pr-14 py-4 rounded-full outline-none shadow-lg border border-gray-100 text-gray-700 font-light text-sm md:text-base focus:ring-4 focus:ring-brand-green/20 transition-all ${isEditMode ? 'pointer-events-none' : ''}`}
                             value={query} 
                             onChange={e => setQuery(e.target.value)} 
                         />
-                        <button type="submit" className="absolute right-2 bg-brand-green text-white p-2.5 rounded-full hover:bg-[#135c2a] transition-colors">
+                        <button type="submit" disabled={isEditMode} className="absolute right-2 bg-brand-green text-white p-2.5 rounded-full hover:bg-[#135c2a] transition-colors disabled:opacity-50">
                             <Search size={20} />
                         </button>
                     </form>
                 </div>
 
-                {/* แถบทำเลเลื่อนอัตโนมัติ (Marquee) ปรับขนาดใหญ่ขึ้น */}
+                {/* แถบทำเลเลื่อนอัตโนมัติ (Marquee) */}
                 <div className="w-full max-w-[100vw] overflow-hidden mb-16 relative py-4">
-                    <div className="animate-marquee">
+                    <div className={isEditMode ? "flex overflow-x-auto gap-4 py-2 px-4 scrollbar-hide" : "animate-marquee"}>
                         {marqueeItems.map((loc, idx) => (
-                            <a 
-                                href={`?tab=search_result&sType=main_location&sValue=${encodeURIComponent(loc.area)}`}
-                                key={idx} 
-                                onClick={(e) => { 
-                                    if (!e.ctrlKey && !e.metaKey && !e.button) {
-                                        e.preventDefault();
-                                        if (onSelectLocation) onSelectLocation('main_location', loc.area); 
-                                    }
-                                }}
-                                className={`block relative rounded-[20px] overflow-hidden w-[240px] md:w-[360px] h-[140px] md:h-[220px] flex-shrink-0 mx-2 md:mx-4 group shadow-md hover:shadow-xl transition-all cursor-pointer`}
-                            >
-                                <img src={loc.img} alt={loc.area} className="w-full h-full object-cover group-hover:scale-110 transition duration-700 pointer-events-none" />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80 pointer-events-none"></div>
-                                <div className="absolute bottom-4 left-4 right-4 md:bottom-6 md:left-6 md:right-6 flex justify-between items-end pointer-events-none">
-                                    <div className="text-white">
-                                        <h4 className="font-medium text-xl md:text-2xl flex items-center gap-1 md:gap-2 mb-1 md:mb-2"><MapPin size={20} className="md:w-6 md:h-6" /> {loc.area}</h4>
-                                        <p className="text-xs md:text-base font-light opacity-90">จำนวน {loc.count} โครงการ</p>
+                            <div key={idx} className="relative rounded-[20px] overflow-hidden w-[240px] md:w-[360px] h-[140px] md:h-[220px] flex-shrink-0 mx-2 md:mx-4 group shadow-md hover:shadow-xl transition-all">
+                                <a 
+                                    href={`?tab=search_result&sType=main_location&sValue=${encodeURIComponent(loc.area)}`}
+                                    onClick={(e) => { 
+                                        if (!e.ctrlKey && !e.metaKey && !e.button) {
+                                            e.preventDefault();
+                                            if (onSelectLocation) onSelectLocation('main_location', loc.area); 
+                                        }
+                                    }}
+                                    className="block w-full h-full cursor-pointer"
+                                >
+                                    <img src={loc.img} alt={loc.area} className="w-full h-full object-cover group-hover:scale-110 transition duration-700 pointer-events-none" />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80 pointer-events-none"></div>
+                                    <div className="absolute bottom-4 left-4 right-4 md:bottom-6 md:left-6 md:right-6 flex justify-between items-end pointer-events-none">
+                                        <div className="text-white">
+                                            <h4 className="font-medium text-xl md:text-2xl flex items-center gap-1 md:gap-2 mb-1 md:mb-2"><MapPin size={20} className="md:w-6 md:h-6" /> {loc.area}</h4>
+                                            <p className="text-xs md:text-base font-light opacity-90">จำนวน {loc.count} โครงการ</p>
+                                        </div>
+                                        <div className="bg-white/20 backdrop-blur-md p-2 md:p-3 rounded-full text-white group-hover:bg-white group-hover:text-brand-green transition-colors shadow-lg">
+                                            <ChevronRight size={20} className="md:w-6 md:h-6" />
+                                        </div>
                                     </div>
-                                    <div className="bg-white/20 backdrop-blur-md p-2 md:p-3 rounded-full text-white group-hover:bg-white group-hover:text-brand-green transition-colors shadow-lg">
-                                        <ChevronRight size={20} className="md:w-6 md:h-6" />
+                                </a>
+                                
+                                {isEditMode && (
+                                    <div className="absolute top-2 right-2 flex gap-2 z-50">
+                                        <label className="bg-blue-600 text-white p-2 rounded-full cursor-pointer hover:bg-blue-700 shadow-lg" title="เปลี่ยนรูปภาพ">
+                                            <Upload size={16} />
+                                            <input type="file" accept="image/*" className="hidden" onChange={(e) => { if(e.target.files[0]) onUpdateLocationImage(idx, e.target.files[0]) }} />
+                                        </label>
+                                        {loc.img !== DEFAULT_LOCATIONS_DATA[idx]?.img && (
+                                            <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onRemoveLocationImage(idx); }} className="bg-red-600 text-white p-2 rounded-full hover:bg-red-700 shadow-lg" title="ลบรูปภาพ">
+                                                <Trash2 size={16} />
+                                            </button>
+                                        )}
                                     </div>
-                                </div>
-                            </a>
+                                )}
+                            </div>
                         ))}
                     </div>
                 </div>
@@ -1415,20 +1526,20 @@
                         </a>
                         
                         {/* เปลี่ยนการแสดงรูปให้แสดงเต็มรูป ไม่ครอปและไม่มีกรอบ */}
-                        <div className="w-full overflow-hidden mb-4 relative group bg-gray-100">
+                        <div className="w-full overflow-hidden mb-4 relative group bg-gray-100 rounded-2xl shadow-sm">
                             <img src={images[activeImg]} className="w-full h-auto max-h-[80vh] object-contain transition duration-500" alt="Main" />
                             {images.length > 1 && (
                                 <>
-                                    <button onClick={() => setActiveImg(prev => (prev === 0 ? images.length - 1 : prev - 1))} className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 text-brand-green p-2 rounded-full hover:bg-white transition"><ChevronLeft /></button>
-                                    <button onClick={() => setActiveImg(prev => (prev === images.length - 1 ? 0 : prev + 1))} className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 text-brand-green p-2 rounded-full hover:bg-white transition"><ChevronRight /></button>
+                                    <button onClick={() => setActiveImg(prev => (prev === 0 ? images.length - 1 : prev - 1))} className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 text-brand-green p-2 rounded-full hover:bg-white transition shadow-md"><ChevronLeft /></button>
+                                    <button onClick={() => setActiveImg(prev => (prev === images.length - 1 ? 0 : prev + 1))} className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 text-brand-green p-2 rounded-full hover:bg-white transition shadow-md"><ChevronRight /></button>
                                 </>
                             )}
-                            {property.badge && <div className={`absolute top-4 right-4 px-4 py-1.5 rounded-full font-medium text-xs shadow-lg z-10 text-white ${property.badge === 'Promotion' ? 'bg-red-600' : property.badge === 'New' ? 'bg-blue-600' : property.badge === 'Sold Out' ? 'bg-gray-600' : 'bg-brand-green'}`}>{property.badge}</div>}
+                            {property.badge && <div className={`absolute top-4 right-4 px-4 py-1.5 rounded-full font-medium text-xs shadow-lg z-10 text-white ${property.badge === 'Promotion' ? 'bg-red-600' : p.badge === 'New' ? 'bg-blue-600' : property.badge === 'Sold Out' ? 'bg-gray-600' : 'bg-brand-green'}`}>{property.badge}</div>}
                         </div>
                         
                         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide mb-8">
                             {images.map((img, idx) => (
-                                <button key={idx} onClick={() => setActiveImg(idx)} className={`w-20 h-20 md:w-24 md:h-24 flex-shrink-0 overflow-hidden border-2 transition-all bg-gray-100 ${activeImg === idx ? 'border-brand-green opacity-100' : 'border-transparent opacity-60 hover:opacity-100'}`}>
+                                <button key={idx} onClick={() => setActiveImg(idx)} className={`w-20 h-20 md:w-24 md:h-24 flex-shrink-0 overflow-hidden border-2 transition-all bg-gray-100 rounded-lg ${activeImg === idx ? 'border-brand-green opacity-100' : 'border-transparent opacity-60 hover:opacity-100'}`}>
                                     <img src={img} className="w-full h-full object-cover" alt={`Thumb ${idx}`} />
                                 </button>
                             ))}
@@ -1523,7 +1634,7 @@
                  </div>
 
                  {/* Related Props on Mobile */}
-                 <div className="block lg:hidden order-3 lg:order-none">
+                 <div className="block lg:hidden order-3 lg:order-none mt-8">
                      {renderRelatedProps()}
                  </div>
               </div>
@@ -1581,26 +1692,39 @@
           );
         }
 
-        function LocationSection({ onSelectLocation, visualContent, updateVisualContent, isEditMode }) {
+        function LocationSection({ onSelectLocation, visualContent, updateVisualContent, onUpdateLocationImage, isEditMode }) {
+          const locData = visualContent?.locations || DEFAULT_LOCATIONS_DATA;
+          
           return (
             <div className="max-w-7xl mx-auto px-4 py-16">
               <div className="text-center mb-12">
                   <EditableText tag="h2" fieldKey="locationTitle" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-3xl font-light text-brand-green inline-block" />
               </div>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
-                {LOCATIONS_DATA.map((loc, idx) => (
+                {locData.map((loc, idx) => (
                   <div key={idx} className="group">
-                    <a href={`?tab=search_result&sType=main_location&sValue=${encodeURIComponent(loc.area)}`} onClick={(e) => { 
-                        if (!e.ctrlKey && !e.metaKey && !e.button) {
-                            e.preventDefault(); 
-                            if (onSelectLocation) onSelectLocation('main_location', loc.area);
-                        }
-                    }} className="block h-32 sm:h-48 md:h-64 rounded-2xl overflow-hidden relative mb-3 shadow-sm group-hover:shadow-md transition cursor-pointer">
-                       <img src={loc.img} className="w-full h-full object-cover group-hover:scale-105 transition duration-700" alt={loc.area} />
-                       <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-4 md:p-6 transition group-hover:bg-black/30">
-                          <h3 className="text-lg md:text-2xl font-medium tracking-wide text-white">{loc.area}</h3>
-                       </div>
-                    </a>
+                    <div className="block h-32 sm:h-48 md:h-64 rounded-2xl overflow-hidden relative mb-3 shadow-sm group-hover:shadow-md transition">
+                       <a href={`?tab=search_result&sType=main_location&sValue=${encodeURIComponent(loc.area)}`} onClick={(e) => { 
+                           if (!e.ctrlKey && !e.metaKey && !e.button) {
+                               e.preventDefault(); 
+                               if (onSelectLocation) onSelectLocation('main_location', loc.area);
+                           }
+                       }} className="block w-full h-full cursor-pointer">
+                           <img src={loc.img} className="w-full h-full object-cover group-hover:scale-105 transition duration-700" alt={loc.area} />
+                           <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-4 md:p-6 transition group-hover:bg-black/30">
+                              <h3 className="text-lg md:text-2xl font-medium tracking-wide text-white">{loc.area}</h3>
+                           </div>
+                       </a>
+                       {isEditMode && (
+                           <div className="absolute top-2 right-2 flex gap-2 z-50">
+                               <label className="bg-blue-600 text-white p-2 rounded-full cursor-pointer hover:bg-blue-700 shadow-lg" title="เปลี่ยนรูปภาพ">
+                                   <Upload size={16} />
+                                   <input type="file" accept="image/*" className="hidden" onChange={(e) => { if(e.target.files[0]) onUpdateLocationImage(idx, e.target.files[0]) }} />
+                               </label>
+                           </div>
+                       )}
+                    </div>
+                    
                     <div className="flex flex-wrap gap-1.5 px-1">
                        {loc.sub_areas.map((sub, i) => (
                            <a href={`?tab=search_result&sType=sub_location&sValue=${encodeURIComponent(sub)}`} key={i} onClick={(e) => { 
@@ -1810,7 +1934,7 @@
         }
 
         // --- FULL ADMIN PANEL ---
-        function AdminPanel({ userRole, userEmail, properties, users, companyInfo, onClose, onLogout, db, appId, enterVisualEditMode, showAlert, showConfirm }) {
+        function AdminPanel({ userRole, userEmail, properties, users, companyInfo, popupData, onClose, onLogout, db, appId, enterVisualEditMode, showAlert, showConfirm }) {
             const [panelTab, setPanelTab] = useState('properties'); 
             const [isEditing, setIsEditing] = useState(false);
             const [editData, setEditData] = useState(null);
@@ -1820,6 +1944,7 @@
             // Uploading states
             const [isUploadingImgs, setIsUploadingImgs] = useState(false);
             const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+            const [isUploadingPopup, setIsUploadingPopup] = useState(false);
             const [isUploadingPortfolio, setIsUploadingPortfolio] = useState({ state: false, index: -1 });
 
             // Forms
@@ -1828,12 +1953,15 @@
             const [imagesPreview, setImagesPreview] = useState([]);
             const [addressOptions, setAddressOptions] = useState([]);
             const [companyForm, setCompanyForm] = useState(companyInfo || DEFAULT_COMPANY_INFO);
+            const [popupForm, setPopupForm] = useState(popupData || { imageUrl: '', isActive: false });
+            
             const [newPortfolioYear, setNewPortfolioYear] = useState('');
             const [inviteEmail, setInviteEmail] = useState(''); const [inviteRole, setInviteRole] = useState('admin');
             const [newFacility, setNewFacility] = useState('');
             const [thaiAddressData, setThaiAddressData] = useState({});
 
             useEffect(() => { if (companyInfo) setCompanyForm(companyInfo); }, [companyInfo]);
+            useEffect(() => { if (popupData) setPopupForm(popupData); }, [popupData]);
 
             useEffect(() => {
                 // Fetch full Thai address database
@@ -1949,6 +2077,34 @@
                     setIsUploadingPortfolio({ state: false, index: -1 });
                     e.target.value = null;
                 }
+            };
+
+            // 4. Popup Images
+            const handlePopupImageUpload = async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                setIsUploadingPopup(true);
+                try {
+                    const url = await uploadFileToCloudinary(file);
+                    setPopupForm(prev => ({...prev, imageUrl: url}));
+                } catch (error) {
+                    showAlert('อัปโหลดผิดพลาด', error.message, 'error');
+                } finally {
+                    setIsUploadingPopup(false);
+                    e.target.value = null;
+                }
+            };
+
+            const handleSavePopup = async () => {
+                setIsSaving(true);
+                try {
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'site_settings', 'popup'), popupForm);
+                    showAlert('สำเร็จ', 'บันทึกตั้งค่าป๊อปอัปเรียบร้อย', 'success');
+                } catch (e) {
+                    showAlert('ผิดพลาด', e.message, 'error');
+                }
+                setIsSaving(false);
             };
 
             const removeImage = (idx) => { const updated = imagesPreview.filter((_, i) => i !== idx); setImagesPreview(updated); setFormData(prev => ({ ...prev, images: updated })); };
@@ -2107,6 +2263,7 @@
                             <button onClick={() => { setPanelTab('properties'); setIsEditing(false); }} className={`px-6 py-3 text-left text-sm flex items-center gap-3 transition ${panelTab === 'properties' ? 'text-brand-green bg-brand-light font-medium border-r-2 border-brand-green' : 'text-gray-500 hover:bg-gray-50'}`}><Home size={18}/> จัดการบ้าน</button>
                             {userRole === 'host' && <button onClick={() => setPanelTab('company')} className={`px-6 py-3 text-left text-sm flex items-center gap-3 transition ${panelTab === 'company' ? 'text-brand-green bg-brand-light font-medium border-r-2 border-brand-green' : 'text-gray-500 hover:bg-gray-50'}`}><Briefcase size={18}/> ข้อมูลบริษัท</button>}
                             {userRole === 'host' && <button onClick={() => setPanelTab('portfolio_images')} className={`px-6 py-3 text-left text-sm flex items-center gap-3 transition ${panelTab === 'portfolio_images' ? 'text-brand-green bg-brand-light font-medium border-r-2 border-brand-green' : 'text-gray-500 hover:bg-gray-50'}`}><ImageIcon size={18}/> จัดการรูปผลงาน</button>}
+                            {userRole === 'host' && <button onClick={() => setPanelTab('popup')} className={`px-6 py-3 text-left text-sm flex items-center gap-3 transition ${panelTab === 'popup' ? 'text-brand-green bg-brand-light font-medium border-r-2 border-brand-green' : 'text-gray-500 hover:bg-gray-50'}`}><LayoutTemplate size={18}/> จัดการป๊อปอัป</button>}
                             {userRole === 'host' && <button onClick={() => setPanelTab('users')} className={`px-6 py-3 text-left text-sm flex items-center gap-3 transition ${panelTab === 'users' ? 'text-brand-green bg-brand-light font-medium border-r-2 border-brand-green' : 'text-gray-500 hover:bg-gray-50'}`}><Users size={18}/> ผู้ดูแลระบบ</button>}
                         </div>
 
@@ -2118,6 +2275,7 @@
                                 <button onClick={() => { setPanelTab('properties'); setIsEditing(false); }} className={`whitespace-nowrap px-4 py-2 text-sm flex items-center gap-2 rounded-full transition ${panelTab === 'properties' ? 'bg-brand-green text-white' : 'bg-white text-gray-600 border'}`}><Home size={14}/> จัดการบ้าน</button>
                                 {userRole === 'host' && <button onClick={() => setPanelTab('company')} className={`whitespace-nowrap px-4 py-2 text-sm flex items-center gap-2 rounded-full transition ${panelTab === 'company' ? 'bg-brand-green text-white' : 'bg-white text-gray-600 border'}`}><Briefcase size={14}/> ข้อมูลบริษัท</button>}
                                 {userRole === 'host' && <button onClick={() => setPanelTab('portfolio_images')} className={`whitespace-nowrap px-4 py-2 text-sm flex items-center gap-2 rounded-full transition ${panelTab === 'portfolio_images' ? 'bg-brand-green text-white' : 'bg-white text-gray-600 border'}`}><ImageIcon size={14}/> รูปผลงาน</button>}
+                                {userRole === 'host' && <button onClick={() => setPanelTab('popup')} className={`whitespace-nowrap px-4 py-2 text-sm flex items-center gap-2 rounded-full transition ${panelTab === 'popup' ? 'bg-brand-green text-white' : 'bg-white text-gray-600 border'}`}><LayoutTemplate size={14}/> จัดการป๊อปอัป</button>}
                                 {userRole === 'host' && <button onClick={() => setPanelTab('users')} className={`whitespace-nowrap px-4 py-2 text-sm flex items-center gap-2 rounded-full transition ${panelTab === 'users' ? 'bg-brand-green text-white' : 'bg-white text-gray-600 border'}`}><Users size={14}/> ผู้ดูแลระบบ</button>}
                             </div>
 
@@ -2207,7 +2365,7 @@
                                                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                                                     <div className="col-span-2 sm:col-span-1">
                                                         <label className="label">ID บ้าน (สร้างอัตโนมัติ)</label>
-                                                        <input className="input-modern bg-gray-100 text-gray-500 cursor-not-allowed outline-none" value={formData.custom_id || ''} readOnly disabled title="สร้างอัตโนมัติจากบ้านเลขที่"/>
+                                                        <input className="input-modern bg-gray-100 text-gray-500 pointer-events-none outline-none select-none" value={formData.custom_id || ''} readOnly title="สร้างอัตโนมัติจากบ้านเลขที่"/>
                                                     </div>
                                                     <div className="col-span-2 sm:col-span-1">
                                                         <label className="label">บ้านเลขที่</label>
@@ -2370,6 +2528,56 @@
                                                 )}
                                             </div>
                                         ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Popup Manager Tab */}
+                            {panelTab === 'popup' && (
+                                <div className="max-w-3xl mx-auto bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100">
+                                    <h3 className="text-2xl font-light mb-8 border-b pb-4">จัดการหน้าต่างป๊อปอัป</h3>
+                                    <div className="space-y-6">
+                                        <div className="flex items-center gap-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
+                                            <label className="relative inline-flex items-center cursor-pointer">
+                                                <input type="checkbox" className="sr-only peer" checked={popupForm.isActive} onChange={e=>setPopupForm({...popupForm, isActive: e.target.checked})} />
+                                                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-green"></div>
+                                                <span className="ml-3 text-sm font-medium text-gray-700">เปิดใช้งานหน้าต่างป๊อปอัป</span>
+                                            </label>
+                                        </div>
+
+                                        <div>
+                                            <label className="label">รูปภาพโปรโมชั่น (แบนเนอร์)</label>
+                                            <div className="w-full max-w-sm h-64 bg-gray-50 rounded-xl relative overflow-hidden group border-2 border-dashed border-gray-300 flex items-center justify-center">
+                                                {isUploadingPopup ? (
+                                                    <Loader className="animate-spin text-brand-green" size={32} />
+                                                ) : popupForm.imageUrl ? (
+                                                    <>
+                                                        <img src={popupForm.imageUrl} className="w-full h-full object-contain" />
+                                                        <label className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white opacity-0 group-hover:opacity-100 cursor-pointer transition">
+                                                            <Upload size={24} className="mb-2"/> เปลี่ยนรูปภาพ
+                                                            <input type="file" accept="image/*" className="hidden" onChange={handlePopupImageUpload} />
+                                                        </label>
+                                                    </>
+                                                ) : (
+                                                    <label className="flex flex-col items-center justify-center w-full h-full cursor-pointer text-gray-400 hover:bg-gray-100 transition">
+                                                        <Upload size={32} className="mb-2"/>
+                                                        <span className="text-sm">คลิกเพื่ออัปโหลดรูปภาพ</span>
+                                                        <input type="file" accept="image/*" className="hidden" onChange={handlePopupImageUpload} />
+                                                    </label>
+                                                )}
+                                            </div>
+                                            <p className="text-xs text-gray-400 mt-2">แนะนำรูปภาพแนวตั้ง หรือสี่เหลี่ยมจัตุรัส</p>
+                                        </div>
+                                        
+                                        {popupForm.imageUrl && (
+                                            <button onClick={() => setPopupForm({...popupForm, imageUrl: ''})} className="mt-4 text-red-500 hover:bg-red-50 px-4 py-2 rounded-lg transition flex items-center gap-2">
+                                                <Trash2 size={16}/> ลบรูปภาพป๊อปอัป
+                                            </button>
+                                        )}
+
+                                        <div className="pt-6 text-right border-t border-gray-100">
+                                            <button onClick={handleSavePopup} className="btn-primary w-full sm:w-auto">บันทึกการตั้งค่า</button>
+                                        </div>
                                     </div>
                                 </div>
                             )}

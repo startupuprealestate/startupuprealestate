@@ -461,6 +461,16 @@
             } catch (error) { throw error; }
         };
 
+        const validateImage = (file) => {
+            if (!file.type.startsWith('image/')) {
+                throw new Error('กรุณาอัปโหลดเฉพาะไฟล์รูปภาพเท่านั้น');
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                throw new Error('ขนาดไฟล์รูปภาพต้องไม่เกิน 5MB');
+            }
+            return true;
+        };
+
         const getYoutubeId = (url) => {
             if (!url) return null;
             let str = url.trim();
@@ -551,6 +561,7 @@
                 const file = e.target.files[0];
                 if(!file) return;
                 try {
+                    validateImage(file);
                     const url = await uploadFileToCloudinary(file);
                     updateVisualContent({ ...visualContent, heroBgs: [...heroBgs, url] });
                 } catch(err) {
@@ -767,6 +778,10 @@
               setFutureVisual(futureVisual.slice(1));
           };
           const saveVisualEdit = () => {
+              if (userRole !== 'host') {
+                  showGlobalAlert('ปฏิเสธการเข้าถึง', 'เฉพาะ Host เท่านั้นที่สามารถบันทึกการแก้ไขหน้าเว็บได้', 'error');
+                  return;
+              }
               showGlobalConfirm('ยืนยันการบันทึก', 'คุณต้องการบันทึกการแก้ไขหน้าตาเว็บไซต์ใช่หรือไม่?', async () => {
                   setIsSavingVisual(true);
                   try {
@@ -791,6 +806,7 @@
           // Location Image Updater (from Visual Editor)
           const handleLocationImageUpdate = async (idx, file) => {
               try {
+                  validateImage(file);
                   const url = await uploadFileToCloudinary(file);
                   const newLocations = [...(visualContent.locations || DEFAULT_LOCATIONS_DATA)];
                   newLocations[idx] = { ...newLocations[idx], img: url };
@@ -801,6 +817,7 @@
           };
 
           const handleRemoveLocationImage = (idx) => {
+              if (userRole !== 'host') return;
               const newLocations = [...(visualContent.locations || DEFAULT_LOCATIONS_DATA)];
               newLocations[idx] = { ...newLocations[idx], img: DEFAULT_LOCATIONS_DATA[idx].img }; // revert to default
               updateVisualContent({ ...visualContent, locations: newLocations });
@@ -819,16 +836,52 @@
 
           // Firebase Data Load
           useEffect(() => {
-            const storedEmail = localStorage.getItem('adminEmail');
-            const storedRole = localStorage.getItem('adminRole');
-            if (storedEmail && storedRole) { setUserEmail(storedEmail); setUserRole(storedRole); }
-
             const initAuth = async () => {
                 try { if (!auth.currentUser) await signInAnonymously(auth); } 
                 catch (error) { console.error(error); }
             };
             initAuth();
-            return onAuthStateChanged(auth, setUser);
+
+            const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+                setUser(currentUser);
+                if (currentUser && !currentUser.isAnonymous) {
+                    const email = currentUser.email.toLowerCase();
+                    
+                    // ป้องกัน Host หลักโดนล็อคออก หากเผลอลบข้อมูลตัวเอง
+                    if (email === HOST_EMAIL.toLowerCase()) {
+                        setUserRole('host');
+                        setUserEmail(email);
+                        return;
+                    }
+
+                    // 1. ดึงสิทธิ์ที่แท้จริงจาก Firestore มายืนยัน (ห้ามเชื่อ localStorage)
+                    try {
+                        const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', email);
+                        const userDocSnap = await getDoc(userDocRef);
+                        
+                        if (userDocSnap.exists()) {
+                            const role = userDocSnap.data().role;
+                            if (role === 'admin' || role === 'host') {
+                                setUserRole(role);
+                                setUserEmail(email);
+                            } else {
+                                setUserRole(null);
+                                setUserEmail('');
+                            }
+                        } else {
+                            setUserRole(null);
+                            setUserEmail('');
+                        }
+                    } catch (e) {
+                        console.error("Error fetching user role:", e);
+                        setUserRole(null);
+                    }
+                } else {
+                    setUserRole(null);
+                    setUserEmail('');
+                }
+            });
+            return () => unsubscribe();
           }, []);
 
           useEffect(() => {
@@ -881,7 +934,6 @@
           const handleLogout = async () => {
             await signOut(auth);
             setUserRole(null); setUserEmail(''); setIsVisualEditMode(false);
-            localStorage.removeItem('adminEmail'); localStorage.removeItem('adminRole');
             setShowAdminPanel(false); setActiveTab('home');
             await signInAnonymously(auth);
           };
@@ -894,7 +946,6 @@
 
                 if (userEmail === HOST_EMAIL.toLowerCase()) {
                     setUserRole('host'); setUserEmail(userEmail);
-                    localStorage.setItem('adminEmail', userEmail); localStorage.setItem('adminRole', 'host');
                     setShowLoginModal(false); setShowAdminPanel(true);
                     try { await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', userEmail), { email: userEmail, role: 'host', name: result.user.displayName || 'Main Host', createdAt: serverTimestamp() }, { merge: true }); } catch (e) {}
                     return;
@@ -908,7 +959,6 @@
                     const finalRole = userData.role || 'pending';
                     if (finalRole === 'admin' || finalRole === 'host') {
                         setUserRole(finalRole); setUserEmail(userEmail);
-                        localStorage.setItem('adminEmail', userEmail); localStorage.setItem('adminRole', finalRole);
                         setShowLoginModal(false); setShowAdminPanel(true);
                     } else {
                         await signOut(auth); await signInAnonymously(auth);
@@ -942,7 +992,7 @@
                   <div className="fixed inset-0 z-[200] bg-black/70 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
                       <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full relative overflow-hidden animate-in zoom-in-95 duration-300 flex flex-col">
                           <div className="w-full relative flex-1 flex bg-gray-100">
-                               <img src={popupData.imageUrl} className="w-full h-auto max-h-[80vh] object-cover block m-0 p-0" alt="Promotion Popup" />
+                               <img src={popupData.imageUrl} className="w-full h-auto max-h-[80vh] object-contain block m-0 p-0" alt="Promotion Popup" />
                           </div>
                           <div className="p-4 bg-white border-t flex items-center justify-between flex-shrink-0">
                               <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none">
@@ -1401,7 +1451,7 @@
                                                 if(!isEditMode) onSelectProp(p);
                                             }
                                         }} className={`block bg-white border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-lg transition-all duration-300 rounded-2xl overflow-hidden flex flex-col w-[300px] min-w-[300px] h-[400px] min-h-[400px] snap-center flex-shrink-0 ${isEditMode ? 'pointer-events-none cursor-default' : 'cursor-pointer'}`} style={{ animation: `fadeUpAnim 0.5s ease forwards ${index * 50}ms`, opacity: 0, transform: 'translateY(20px)' }}>
-                                            <div className="h-[220px] w-full relative overflow-hidden bg-gray-100 pointer-events-none">
+                                            <div className="h-[220px] w-full relative overflow-hidden bg-gray-100 pointer-events-none flex-shrink-0">
                                                 <img src={p.images?.[0] || p.imageUrl || "https://placehold.co/600x400"} alt={p.project_name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
                                                 <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm text-gray-700 px-3 py-1.5 rounded-full font-medium text-xs shadow-sm z-10 flex items-center gap-1.5"><Home size={14} className="text-brand-green" />{p.category}</div>
                                                 {p.badge && <div className={`absolute top-3 right-3 px-3 py-1.5 rounded-full font-medium text-xs shadow-sm z-10 text-white ${p.badge === 'Promotion' ? 'bg-red-600' : p.badge === 'New' ? 'bg-blue-600' : p.badge === 'Sold Out' ? 'bg-gray-600' : 'bg-brand-green'}`}>{p.badge}</div>}
@@ -1486,7 +1536,7 @@
                                       if(!isEditMode) onSelectProp(p);
                                   }
                               }} className={`block bg-white border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-lg transition-all duration-300 rounded-2xl overflow-hidden flex flex-col w-[300px] min-w-[300px] h-[400px] min-h-[400px] snap-center flex-shrink-0 ${isEditMode ? 'pointer-events-none cursor-default' : 'cursor-pointer'}`} style={{ animation: `fadeUpAnim 0.5s ease forwards ${index * 50}ms`, opacity: 0, transform: 'translateY(20px)' }}>
-                                  <div className="h-[220px] w-full relative overflow-hidden bg-gray-100 pointer-events-none">
+                                  <div className="h-[220px] w-full relative overflow-hidden bg-gray-100 pointer-events-none flex-shrink-0">
                                       <img src={p.images?.[0] || p.imageUrl || "https://placehold.co/600x400"} alt={p.project_name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
                                       <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm text-gray-700 px-3 py-1.5 rounded-full font-medium text-xs shadow-sm z-10 flex items-center gap-1.5"><Home size={14} className="text-brand-green" />{p.category}</div>
                                       {p.badge && <div className={`absolute top-3 right-3 px-3 py-1.5 rounded-full font-medium text-xs shadow-sm z-10 text-white ${p.badge === 'Promotion' ? 'bg-red-600' : p.badge === 'New' ? 'bg-blue-600' : p.badge === 'Sold Out' ? 'bg-gray-600' : 'bg-brand-green'}`}>{p.badge}</div>}
@@ -1529,7 +1579,7 @@
                                     <button onClick={() => setActiveImg(prev => (prev === images.length - 1 ? 0 : prev + 1))} className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 text-brand-green p-2 rounded-full hover:bg-white transition shadow-md"><ChevronRight /></button>
                                 </>
                             )}
-                            {property.badge && <div className={`absolute top-4 right-4 px-4 py-1.5 rounded-full font-medium text-xs shadow-lg z-10 text-white ${property.badge === 'Promotion' ? 'bg-red-600' : property.badge === 'New' ? 'bg-blue-600' : property.badge === 'Sold Out' ? 'bg-gray-600' : 'bg-brand-green'}`}>{property.badge}</div>}
+                            {property.badge && <div className={`absolute top-4 right-4 px-4 py-1.5 rounded-full font-medium text-xs shadow-lg z-10 text-white ${property.badge === 'Promotion' ? 'bg-red-600' : p.badge === 'New' ? 'bg-blue-600' : property.badge === 'Sold Out' ? 'bg-gray-600' : 'bg-brand-green'}`}>{property.badge}</div>}
                         </div>
                         
                         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide mb-8">
@@ -1608,7 +1658,7 @@
                     </div>
                     
                     {/* Related Props on Desktop */}
-                    <div className="hidden lg:block">
+                    <div className="hidden lg:block order-2">
                         {renderRelatedProps()}
                     </div>
                  </div>
@@ -1629,7 +1679,7 @@
                  </div>
 
                  {/* Related Props on Mobile */}
-                 <div className="block lg:hidden order-3 w-full max-w-full">
+                 <div className="block lg:hidden order-3 w-full max-w-full mt-8">
                      {renderRelatedProps()}
                  </div>
               </div>
@@ -1674,7 +1724,7 @@
                            if(!isEditMode) onSelectProp(p);
                        }
                    }} className={`block bg-white border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-lg transition-all duration-300 rounded-2xl overflow-hidden flex flex-col w-[300px] min-w-[300px] h-[400px] min-h-[400px] ${isEditMode ? 'pointer-events-none cursor-default' : 'cursor-pointer'}`} style={{ animation: `fadeUpAnim 0.5s ease forwards`, opacity: 0, transform: 'translateY(20px)' }}>
-                       <div className="h-[220px] w-full relative overflow-hidden bg-gray-100 pointer-events-none">
+                       <div className="h-[220px] w-full relative overflow-hidden bg-gray-100 pointer-events-none flex-shrink-0">
                            <img src={p.images?.[0] || p.imageUrl || "https://placehold.co/600x400"} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
                            <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm text-gray-700 px-3 py-1.5 rounded-full font-medium text-xs shadow-sm z-10 flex items-center gap-1.5"><Home size={14} className="text-brand-green" />{p.category}</div>
                            {p.badge && <div className={`absolute top-3 right-3 px-3 py-1.5 rounded-full font-medium text-xs shadow-sm z-10 text-white ${p.badge === 'Promotion' ? 'bg-red-600' : p.badge === 'New' ? 'bg-blue-600' : p.badge === 'Sold Out' ? 'bg-gray-600' : 'bg-brand-green'}`}>{p.badge}</div>}
@@ -1986,6 +2036,18 @@
             const [newFacility, setNewFacility] = useState('');
             const [thaiAddressData, setThaiAddressData] = useState({});
 
+            const checkAccess = (requiredRole) => {
+                if (requiredRole === 'host' && userRole !== 'host') {
+                    showAlert('ปฏิเสธการเข้าถึง', 'เฉพาะ Host เท่านั้นที่สามารถทำรายการนี้ได้', 'error');
+                    return false;
+                }
+                if (requiredRole === 'admin' && userRole !== 'admin' && userRole !== 'host') {
+                    showAlert('ปฏิเสธการเข้าถึง', 'เฉพาะ Admin หรือ Host เท่านั้นที่สามารถทำรายการนี้ได้', 'error');
+                    return false;
+                }
+                return true;
+            };
+
             useEffect(() => { if (companyInfo) setCompanyForm(companyInfo); }, [companyInfo]);
             useEffect(() => { if (popupData) setPopupForm(popupData); }, [popupData]);
 
@@ -2034,6 +2096,7 @@
 
             // 1. Upload Properties Images
             const handlePropertyImageUpload = async (e) => {
+                if (!checkAccess('admin')) return;
                 const files = Array.from(e.target.files);
                 if (!files.length) return;
                 
@@ -2045,6 +2108,7 @@
                 try {
                     const uploadedUrls = [];
                     for (const file of allowedFiles) {
+                        validateImage(file);
                         const url = await uploadFileToCloudinary(file);
                         uploadedUrls.push(url);
                     }
@@ -2064,11 +2128,13 @@
 
             // 2. Upload Logo
             const handleLogoUpload = async (e) => {
+                if (!checkAccess('host')) return;
                 const file = e.target.files[0];
                 if (!file) return;
 
                 setIsUploadingLogo(true);
                 try {
+                    validateImage(file);
                     const url = await uploadFileToCloudinary(file);
                     setCompanyForm(prev => ({...prev, logoUrl: url}));
                 } catch (error) {
@@ -2081,6 +2147,7 @@
 
             // 3. Upload Portfolio Images
             const handlePortfolioUpload = async (e, yearIndex) => {
+                if (!checkAccess('host')) return;
                 const files = Array.from(e.target.files);
                 if (!files.length) return;
 
@@ -2088,6 +2155,7 @@
                 try {
                     const uploadedUrls = [];
                     for (const file of files) {
+                        validateImage(file);
                         const url = await uploadFileToCloudinary(file);
                         uploadedUrls.push(url);
                     }
@@ -2107,11 +2175,13 @@
 
             // 4. Popup Images
             const handlePopupImageUpload = async (e) => {
+                if (!checkAccess('host')) return;
                 const file = e.target.files[0];
                 if (!file) return;
 
                 setIsUploadingPopup(true);
                 try {
+                    validateImage(file);
                     const url = await uploadFileToCloudinary(file);
                     setPopupForm(prev => ({...prev, imageUrl: url}));
                 } catch (error) {
@@ -2123,6 +2193,7 @@
             };
 
             const handleSavePopup = async () => {
+                if (!checkAccess('host')) return;
                 setIsSaving(true);
                 try {
                     await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'site_settings', 'popup'), popupForm);
@@ -2133,7 +2204,10 @@
                 setIsSaving(false);
             };
 
-            const removeImage = (idx) => { const updated = imagesPreview.filter((_, i) => i !== idx); setImagesPreview(updated); setFormData(prev => ({ ...prev, images: updated })); };
+            const removeImage = (idx) => { 
+                if (!checkAccess('admin')) return;
+                const updated = imagesPreview.filter((_, i) => i !== idx); setImagesPreview(updated); setFormData(prev => ({ ...prev, images: updated })); 
+            };
             
             const handleFacilityChange = (e) => { const val = e.target.value; if (val && !formData.facilitiesList?.includes(val)) setFormData(prev => ({ ...prev, facilitiesList: [...(prev.facilitiesList || []), val] })); };
             const addCustomFacility = () => { if(newFacility && !formData.facilitiesList?.includes(newFacility)) { setFormData(prev => ({ ...prev, facilitiesList: [...(prev.facilitiesList || []), newFacility] })); setNewFacility(''); } };
@@ -2142,6 +2216,7 @@
             // Save Property Data (เชื่อมต่อ Firebase)
             const handleSaveProperty = async (e) => {
                 if (e) e.preventDefault();
+                if (!checkAccess('admin')) return;
                 
                 // 1. ตรวจสอบข้อมูลบังคับก่อนบันทึก
                 if (!formData.project_name || !formData.price) {
@@ -2195,6 +2270,7 @@
             };
 
             const handleDeleteProperty = (id) => { 
+                if (!checkAccess('admin')) return;
                 showConfirm('ยืนยันการลบ', 'คุณต้องการลบข้อมูลบ้านหลังนี้ใช่หรือไม่?', async () => {
                     setIsSaving(true); 
                     try {
@@ -2209,6 +2285,7 @@
 
             const handleSaveCompany = async (e) => { 
                 e.preventDefault(); 
+                if (!checkAccess('host')) return;
                 setIsSaving(true); 
                 const companyDataToSave = { ...companyForm }; 
                 await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'company_info', 'main'), companyDataToSave); 
@@ -2217,15 +2294,23 @@
                 showAlert('สำเร็จ', 'บันทึกข้อมูลบริษัทเรียบร้อย', 'success'); 
             };
 
-            const handleAddYear = () => { if(!newPortfolioYear) return; const currentYears = companyForm.portfolio_years || []; if(currentYears.find(y => y.year === newPortfolioYear)) { showAlert('แจ้งเตือน', 'มีปีนี้อยู่แล้ว', 'warning'); return; } setCompanyForm({ ...companyForm, portfolio_years: [...currentYears, { year: newPortfolioYear, images: [] }] }); setNewPortfolioYear(''); };
+            const handleAddYear = () => { 
+                if (!checkAccess('host')) return;
+                if(!newPortfolioYear) return; const currentYears = companyForm.portfolio_years || []; if(currentYears.find(y => y.year === newPortfolioYear)) { showAlert('แจ้งเตือน', 'มีปีนี้อยู่แล้ว', 'warning'); return; } setCompanyForm({ ...companyForm, portfolio_years: [...currentYears, { year: newPortfolioYear, images: [] }] }); setNewPortfolioYear(''); 
+            };
             const handleDeleteYear = (year) => { 
+                if (!checkAccess('host')) return;
                 showConfirm('ยืนยันการลบ', `ยืนยันการลบข้อมูลผลงานปี ${year}?`, () => {
                     setCompanyForm({ ...companyForm, portfolio_years: companyForm.portfolio_years.filter(y => y.year !== year) });
                 });
             };
-            const removePortfolioImageInYear = (yearIndex, imgIndex) => { const updatedYears = [...companyForm.portfolio_years]; updatedYears[yearIndex].images = updatedYears[yearIndex].images.filter((_, i) => i !== imgIndex); setCompanyForm({ ...companyForm, portfolio_years: updatedYears }); };
+            const removePortfolioImageInYear = (yearIndex, imgIndex) => { 
+                if (!checkAccess('host')) return;
+                const updatedYears = [...companyForm.portfolio_years]; updatedYears[yearIndex].images = updatedYears[yearIndex].images.filter((_, i) => i !== imgIndex); setCompanyForm({ ...companyForm, portfolio_years: updatedYears }); 
+            };
             
             const handleSavePortfolio = async () => { 
+                if (!checkAccess('host')) return;
                 setIsSaving(true); 
                 const dataToSave = { ...companyForm }; 
                 await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'company_info', 'main'), dataToSave); 
@@ -2236,6 +2321,7 @@
 
             const handleAddUser = async (e) => { 
                 e.preventDefault(); 
+                if (!checkAccess('host')) return;
                 if (!inviteEmail) return; 
                 try { 
                     await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', inviteEmail.toLowerCase().trim()), { email: inviteEmail.toLowerCase().trim(), role: inviteRole, addedBy: userEmail, createdAt: serverTimestamp() }); 
@@ -2246,18 +2332,21 @@
                 } 
             };
             const handleUpdateRole = (userId, newRole) => { 
+                if (!checkAccess('host')) return;
                 showConfirm('ยืนยันการเปลี่ยนสิทธิ์', `ยืนยันเปลี่ยนสิทธิ์เป็น ${newRole}?`, async () => {
                     try { await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', userId), { role: newRole }); } 
                     catch (err) { showAlert('ผิดพลาด', err.message, 'error'); }
                 });
             };
             const handleApproveUser = (userId, role, email) => { 
+                if (!checkAccess('host')) return;
                 showConfirm('ยืนยันการอนุมัติ', `อนุมัติสิทธิ์ ${role} ให้ ${email}?`, async () => {
                     try { await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', userId), { role: role }); } 
                     catch (err) { showAlert('ผิดพลาด', err.message, 'error'); }
                 });
             };
             const handleRemoveUser = (id) => { 
+                if (!checkAccess('host')) return;
                 showConfirm('ยืนยันการลบ', 'ลบสิทธิ์ผู้ใช้นี้?', async () => {
                     try { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', id)); } 
                     catch (err) { showAlert('ผิดพลาด', err.message, 'error'); }

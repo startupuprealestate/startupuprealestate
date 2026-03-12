@@ -70,23 +70,20 @@
         html, body {
             font-family: 'Prompt', sans-serif;
             background-color: #ffffff;
-            /* ป้องกันการเลื่อนซ้าย-ขวา 100% */
             overflow-x: hidden;
             width: 100%;
             position: relative;
         }
 
-        /* ซ่อนลูกศรขึ้นลงของ input type number อย่างเด็ดขาด */
         input[type="number"]::-webkit-outer-spin-button,
         input[type="number"]::-webkit-inner-spin-button {
             -webkit-appearance: none;
             margin: 0;
         }
         input[type="number"] {
-            -moz-appearance: textfield; /* Firefox */
+            -moz-appearance: textfield;
         }
 
-        /* Forms & Inputs styling */
         .input-modern {
             width: 100%;
             padding: 0.75rem;
@@ -114,7 +111,7 @@
             color: white;
             font-weight: 500;
             padding: 0.75rem 1.5rem;
-            border-radius: 9999px; /* Pill shape */
+            border-radius: 9999px;
             transition: all 0.3s;
             display: inline-flex;
             align-items: center;
@@ -127,39 +124,28 @@
             box-shadow: 0 0 0 1px #0b3d1b;
         }
 
-        /* Grid Image Hover Effects (สำหรับหน้ารวม) */
         .house-card {
             overflow: hidden;
             position: relative;
             cursor: pointer;
             background: #000;
         }
-
         .house-img {
             transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
-
         .house-card:hover .house-img {
             filter: brightness(0.25) contrast(1.2) saturate(0.8);
             transform: scale(1.05);
         }
 
-        /* เพิ่ม Keyframes สำหรับให้บ้านที่โหลดมาแสดงผลได้ตามปกติ */
         @keyframes fadeUpAnim {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        /* --- Animations สำหรับแถบทำเล (Marquee) --- */
         @keyframes scrollMarquee {
             0% { transform: translateX(0); }
             100% { transform: translateX(-50%); }
@@ -169,21 +155,18 @@
             width: max-content;
             animation: scrollMarquee 40s linear infinite;
         }
-        /* เมื่อเอาเมาส์ชี้ให้หยุดวิ่ง */
         .animate-marquee:hover {
             animation-play-state: paused;
         }
 
-        /* ซ่อน Scrollbar สำหรับแนวนอน (Carousel) */
         .scrollbar-hide::-webkit-scrollbar {
             display: none;
         }
         .scrollbar-hide {
-            -ms-overflow-style: none;  /* IE and Edge */
-            scrollbar-width: none;  /* Firefox */
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
 
-        /* Styles สำหรับ Custom Marker ในแผนที่ Leaflet */
         .custom-map-marker {
             background-color: white;
             border: 2px solid #0b3d1b;
@@ -225,7 +208,7 @@
     <script type="text/babel" data-type="module">
         import { createRoot } from 'react-dom/client';
         import React, { useState, useEffect, useRef } from 'react';
-        import { Home, MapPin, Bed, Bath, Car, Maximize, Phone, MessageCircle, Menu, X, Plus, Trash2, ShieldCheck, CheckCircle, Calculator, Users, FileText, Settings, Edit, Save, Image as ImageIcon, Layout, ChevronLeft, ChevronRight, Upload, Briefcase, XCircle, Tag, Youtube, Loader, Facebook, Instagram, Video, Check, Calendar, FolderPlus, Map as MapIcon, Search, AlertTriangle, AlertCircle, Star, ClipboardCheck, Type, LayoutTemplate } from 'lucide-react';
+        import { Home, MapPin, Bed, Bath, Car, Maximize, Phone, MessageCircle, Menu, X, Plus, Trash2, ShieldCheck, CheckCircle, Calculator, Users, FileText, Settings, Edit, Save, Image as ImageIcon, Layout, ChevronLeft, ChevronRight, ChevronDown, Upload, Briefcase, XCircle, Tag, Youtube, Loader, Facebook, Instagram, Video, Check, Calendar, FolderPlus, Map as MapIcon, Search, AlertTriangle, AlertCircle, Star, ClipboardCheck, Type, LayoutTemplate } from 'lucide-react';
         import { initializeApp } from 'firebase/app';
         
         import { 
@@ -252,7 +235,6 @@
             serverTimestamp 
         } from 'firebase/firestore';
 
-        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
         const firebaseConfig = {
           apiKey: "AIzaSyDsEeGxKA90-URCn06F-K3U2dvlISf_2Jo",
           authDomain: "startup-up-realestate.firebaseapp.com",
@@ -267,7 +249,6 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        // --- Constants ---
         const HOST_EMAIL = 'startup.up.real.estate@gmail.com';
         const appId = "startup-up-realestate";
 
@@ -581,14 +562,12 @@
 
             return (
                 <div className="w-full flex flex-col bg-white">
-                    {/* ส่วนข้อความถูกย้ายมาอยู่ด้านบน */}
                     <div className="w-full text-center px-6 py-10 md:py-16 bg-white z-10 relative">
                         <EditableText tag="h1" fieldKey="heroTitle" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-3xl md:text-4xl font-medium text-brand-green tracking-wide mb-3 inline-block" />
                         <br/>
                         <EditableText tag="p" fieldKey="heroSubtitle" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-gray-500 font-light tracking-[0.2em] uppercase text-xs md:text-sm inline-block" />
                     </div>
 
-                    {/* ส่วนรูปภาพสไลด์ */}
                     <div className="relative w-full h-[50vh] md:h-[70vh] flex flex-col items-center justify-center overflow-hidden bg-gray-100">
                         <div className="absolute inset-0 w-full h-full">
                             {heroBgs.map((img, idx) => (
@@ -601,7 +580,6 @@
                             ))}
                         </div>
                         
-                        {/* ปุ่มแก้ไขรูปภาพสไลด์ (เห็นเฉพาะตอน Edit Mode) */}
                         {isEditMode && (
                             <div className="absolute top-4 right-4 z-50 flex gap-2">
                                 <label className="bg-blue-600 text-white px-4 py-2 rounded-lg cursor-pointer flex items-center gap-2 shadow hover:bg-blue-700 transition text-sm">
@@ -634,7 +612,6 @@
           const [showLoginModal, setShowLoginModal] = useState(false);
           const [showAdminPanel, setShowAdminPanel] = useState(false);
 
-          // Visual Edit Mode & Popup Settings
           const [isVisualEditMode, setIsVisualEditMode] = useState(false);
           const [visualContent, setVisualContent] = useState(DEFAULT_VISUAL_CONTENT);
           const [popupData, setPopupData] = useState({ imageUrl: '', isActive: false });
@@ -646,7 +623,6 @@
           const [futureVisual, setFutureVisual] = useState([]);
           const [isSavingVisual, setIsSavingVisual] = useState(false);
 
-          // Global Alert State
           const [globalAlert, setGlobalAlert] = useState({ isOpen: false, type: 'info', title: '', message: '', onConfirm: null, showCancel: false });
 
           const showGlobalAlert = (title, message, type = 'info') => {
@@ -678,7 +654,7 @@
                       setActiveTab(tab);
                       if (sType && sValue) setSearchParams({ type: sType, value: sValue });
                       if (propSlug) setRequestedPropSlug(propSlug); else setSelectedProperty(null);
-                  } catch (e) { console.warn("Cannot read URL parameters in this environment."); }
+                  } catch (e) { console.warn("Cannot read URL parameters."); }
               };
               syncFromUrl();
               window.addEventListener('popstate', syncFromUrl);
@@ -745,7 +721,6 @@
               return () => window.removeEventListener('wheel', handleWheel);
           }, []);
 
-          // Show Popup Logic (Run once per session when popupData is loaded)
           useEffect(() => {
               if (popupData.imageUrl && !hasCheckedPopup.current) {
                   hasCheckedPopup.current = true;
@@ -758,7 +733,6 @@
               }
           }, [popupData]);
 
-          // Visual Edit Mode Logic
           const updateVisualContent = (newContent) => {
               setPastVisual([...pastVisual, visualContent]);
               setVisualContent(newContent);
@@ -799,12 +773,11 @@
           const cancelVisualEdit = () => {
               showGlobalConfirm('ยกเลิกการแก้ไข', 'การแก้ไขที่ยังไม่ได้บันทึกจะสูญหาย ยืนยันยกเลิก?', () => {
                   setIsVisualEditMode(false);
-                  if (pastVisual.length > 0) setVisualContent(pastVisual[0]); // Revert to initial state
+                  if (pastVisual.length > 0) setVisualContent(pastVisual[0]); 
                   setPastVisual([]); setFutureVisual([]);
               });
           };
 
-          // Location Image Updater (from Visual Editor)
           const handleLocationImageUpdate = async (idx, file) => {
               try {
                   validateImage(file);
@@ -820,11 +793,10 @@
           const handleRemoveLocationImage = (idx) => {
               if (userRole !== 'host') return;
               const newLocations = [...(visualContent.locations || DEFAULT_LOCATIONS_DATA)];
-              newLocations[idx] = { ...newLocations[idx], img: DEFAULT_LOCATIONS_DATA[idx].img }; // revert to default
+              newLocations[idx] = { ...newLocations[idx], img: DEFAULT_LOCATIONS_DATA[idx].img };
               updateVisualContent({ ...visualContent, locations: newLocations });
           };
 
-          // Ctrl+Z / Ctrl+Y
           useEffect(() => {
               if (!isVisualEditMode) return;
               const handleKeyDown = (e) => {
@@ -835,7 +807,6 @@
               return () => window.removeEventListener('keydown', handleKeyDown);
           }, [isVisualEditMode, pastVisual, futureVisual, visualContent]);
 
-          // Firebase Data Load
           useEffect(() => {
             const initAuth = async () => {
                 try { if (!auth.currentUser) await signInAnonymously(auth); } 
@@ -848,14 +819,12 @@
                 if (currentUser && !currentUser.isAnonymous) {
                     const email = currentUser.email.toLowerCase();
                     
-                    // ป้องกัน Host หลักโดนล็อคออก หากเผลอลบข้อมูลตัวเอง
                     if (email === HOST_EMAIL.toLowerCase()) {
                         setUserRole('host');
                         setUserEmail(email);
                         return;
                     }
 
-                    // 1. ดึงสิทธิ์ที่แท้จริงจาก Firestore มายืนยัน (ห้ามเชื่อ localStorage)
                     try {
                         const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', email);
                         const userDocSnap = await getDoc(userDocRef);
@@ -988,7 +957,6 @@
           return (
             <div className={`text-gray-800 bg-white min-h-screen flex flex-col font-sans relative ${isVisualEditMode ? 'pb-24 border-4 border-blue-500' : ''}`}>
               
-              {/* Promotion Popup Modal */}
               {showPopupModal && (
                   <div className="fixed inset-0 z-[200] bg-black/70 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
                       <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full relative overflow-hidden animate-in zoom-in-95 duration-300 flex flex-col">
@@ -1145,7 +1113,6 @@
                 </div>
               </footer>
 
-              {/* Visual Edit Mode Toolbar */}
               {isVisualEditMode && (
                 <div className="fixed bottom-0 left-0 w-full bg-slate-900 text-white p-4 z-[9999] flex flex-col md:flex-row justify-between items-center shadow-[0_-10px_40px_rgba(0,0,0,0.3)] animate-in slide-in-from-bottom-full duration-300 gap-4">
                     <div className="flex flex-col md:flex-row gap-4 items-center">
@@ -1170,7 +1137,6 @@
                 </div>
               )}
 
-              {/* Global Alert Modal */}
               <CustomAlertModal 
                   isOpen={globalAlert.isOpen} type={globalAlert.type} title={globalAlert.title} 
                   message={globalAlert.message} showCancel={globalAlert.showCancel} 
@@ -1198,7 +1164,6 @@
           );
         }
 
-        // --- Component: Interactive Property Map ---
         function PropertyMap({ properties, onSelectProp }) {
             const mapRef = useRef(null);
             const mapInstance = useRef(null);
@@ -1310,7 +1275,6 @@
             );
         }
 
-        // --- View Components ---
         function HomeSection({ properties, loading, onSelectProp, setActiveTab, onSelectLocation, onSearchCategory, onSearch, visualContent, updateVisualContent, isEditMode, onUpdateLocationImage, onRemoveLocationImage }) {
           const [query, setQuery] = useState('');
           const handleSearchSubmit = (e) => { e.preventDefault(); onSearch(query.trim()); };
@@ -1348,7 +1312,6 @@
                         <EditableText tag="h2" fieldKey="homeTitle" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-3xl font-light text-brand-green mb-4 inline-block" />
                     </div>
                     
-                    {/* ย้ายช่องค้นหามาตรงนี้ */}
                     <form onSubmit={handleSearchSubmit} className="relative flex items-center w-full max-w-2xl mx-auto transform transition-transform hover:scale-[1.01] mb-12">
                         <input 
                             type="text" 
@@ -1363,7 +1326,6 @@
                     </form>
                 </div>
 
-                {/* แถบทำเลเลื่อนอัตโนมัติ (Marquee) */}
                 <div className="w-full max-w-[100vw] overflow-hidden mb-16 relative py-4">
                     <div className={isEditMode ? "flex overflow-x-auto gap-4 py-2 px-4 scrollbar-hide" : "animate-marquee"}>
                         {marqueeItems.map((loc, idx) => (
@@ -1409,7 +1371,6 @@
                     </div>
                 </div>
                 
-                {/* ส่วนแผนที่ค้นหาบ้าน Interactive Map */}
                 <div className="max-w-6xl mx-auto px-4 md:px-6 w-full mb-20 overflow-hidden relative z-10">
                     <div className="flex flex-col items-center justify-center text-center mb-8">
                         <EditableText tag="h2" fieldKey="mapTitle" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-2xl font-bold text-brand-green mb-2 flex items-center gap-2 inline-flex" />
@@ -1476,7 +1437,6 @@
                     ))}
                 </div>
 
-                {/* --- เพิ่มส่วน Why Us ด้านล่างบ้านเดี่ยว --- */}
                 <div className="bg-gray-50 py-16 mt-8 mb-12 md:py-20 md:mt-12 md:mb-16 rounded-[30px] md:rounded-[40px] px-6 md:px-12 max-w-7xl mx-auto shadow-sm border border-gray-100">
                     <div className="text-center mb-10 md:mb-12">
                         <EditableText tag="h2" fieldKey="whyUsTitle" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-2xl md:text-3xl font-bold text-brand-green inline-block" />
@@ -1579,7 +1539,6 @@
                            <ChevronLeft size={16} /> ย้อนกลับ
                         </a>
                         
-                        {/* เปลี่ยนการแสดงรูปให้แสดงเต็มรูป ไม่ครอปและไม่มีกรอบ */}
                         <div className="w-full overflow-hidden mb-4 relative group bg-gray-100 rounded-2xl shadow-sm flex items-center justify-center min-h-[300px]">
                             <img src={images[activeImg] || images[0] || "https://placehold.co/600x400"} className="w-full h-auto max-h-[80vh] object-contain transition duration-500" alt="Main" />
                             {images.length > 1 && (
@@ -1588,7 +1547,7 @@
                                     <button onClick={() => setActiveImg(prev => (prev === images.length - 1 ? 0 : prev + 1))} className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 text-brand-green p-2 rounded-full hover:bg-white transition shadow-md"><ChevronRight /></button>
                                 </>
                             )}
-                            {property.badge && <div className={`absolute top-4 right-4 px-4 py-1.5 rounded-full font-medium text-xs shadow-lg z-10 text-white ${property.badge === 'Promotion' ? 'bg-red-600' : p.badge === 'New' ? 'bg-blue-600' : property.badge === 'Sold Out' ? 'bg-gray-600' : 'bg-brand-green'}`}>{property.badge}</div>}
+                            {property.badge && <div className={`absolute top-4 right-4 px-4 py-1.5 rounded-full font-medium text-xs shadow-lg z-10 text-white ${property.badge === 'Promotion' ? 'bg-red-600' : property.badge === 'New' ? 'bg-blue-600' : property.badge === 'Sold Out' ? 'bg-gray-600' : 'bg-brand-green'}`}>{property.badge}</div>}
                         </div>
                         
                         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide mb-8">
@@ -1666,13 +1625,11 @@
                         </div>
                     </div>
                     
-                    {/* Related Props on Desktop */}
                     <div className="hidden lg:block order-2">
                         {renderRelatedProps()}
                     </div>
                  </div>
 
-                 {/* Right Sidebar */}
                  <div className="lg:w-1/3 space-y-6 order-2 w-full max-w-full">
                     <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 sticky top-24 text-center">
                         {companyInfo?.logoUrl && (<img src={companyInfo.logoUrl} alt="Logo" className="h-16 mx-auto mb-4 object-contain" />)}
@@ -1687,7 +1644,6 @@
                     </div>
                  </div>
 
-                 {/* Related Props on Mobile */}
                  <div className="block lg:hidden order-3 w-full max-w-full mt-8">
                      {renderRelatedProps()}
                  </div>
@@ -1697,6 +1653,20 @@
         }
 
         function PropertiesList({ properties, searchParams, onSelectProp, visualContent, updateVisualContent, isEditMode }) {
+          const [sortOption, setSortOption] = useState('latest');
+          const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+          const dropdownRef = useRef(null);
+
+          useEffect(() => {
+              function handleClickOutside(event) {
+                  if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                      setIsDropdownOpen(false);
+                  }
+              }
+              document.addEventListener("mousedown", handleClickOutside);
+              return () => document.removeEventListener("mousedown", handleClickOutside);
+          }, [dropdownRef]);
+
           let displayProps = properties.filter(p => p.badge !== 'Sold Out');
           let title = 'รายการทั้งหมด';
 
@@ -1722,11 +1692,47 @@
               title = `ผลการค้นหา: "${searchParams.value}"`;
           }
 
+          let sortedProps = [...displayProps];
+          if (sortOption === 'price_asc') {
+              sortedProps.sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0));
+          } else if (sortOption === 'price_desc') {
+              sortedProps.sort((a, b) => (Number(b.price) || 0) - (Number(a.price) || 0));
+          }
+
           return (
             <div className="max-w-7xl mx-auto px-4 py-16 min-h-screen">
-              <h2 className="text-2xl font-light text-brand-green mb-10">{title} <span className="text-sm text-gray-400 ml-2">({displayProps.length} รายการ)</span></h2>
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-4">
+                  <h2 className="text-2xl font-light text-brand-green">{title} <span className="text-sm text-gray-400 ml-2">({displayProps.length} รายการ)</span></h2>
+                  
+                  {displayProps.length > 0 && (
+                      <div className="relative" ref={dropdownRef}>
+                          <button onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="flex items-center gap-2 text-sm text-gray-600 bg-white border border-gray-200 px-5 py-2.5 rounded-full hover:border-brand-green hover:text-brand-green transition shadow-sm font-light">
+                              เรียงตาม: <span className="font-medium text-brand-green">{sortOption === 'latest' ? 'อัปเดตล่าสุด' : sortOption === 'price_asc' ? 'ราคาต่ำสุด' : 'ราคาสูงสุด'}</span>
+                              <ChevronDown size={16} className={`transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                          </button>
+
+                          {isDropdownOpen && (
+                              <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] border border-gray-100 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                                  <button onClick={() => { setSortOption('latest'); setIsDropdownOpen(false); }} className="w-full text-left px-5 py-2.5 text-sm flex items-center justify-between hover:bg-brand-light transition">
+                                      <span className={sortOption === 'latest' ? 'text-brand-green font-medium' : 'text-gray-600'}>อัปเดตล่าสุด</span>
+                                      {sortOption === 'latest' && <Check size={16} className="text-brand-green" />}
+                                  </button>
+                                  <button onClick={() => { setSortOption('price_asc'); setIsDropdownOpen(false); }} className="w-full text-left px-5 py-2.5 text-sm flex items-center justify-between hover:bg-brand-light transition">
+                                      <span className={sortOption === 'price_asc' ? 'text-brand-green font-medium' : 'text-gray-600'}>ราคาต่ำสุด</span>
+                                      {sortOption === 'price_asc' && <Check size={16} className="text-brand-green" />}
+                                  </button>
+                                  <button onClick={() => { setSortOption('price_desc'); setIsDropdownOpen(false); }} className="w-full text-left px-5 py-2.5 text-sm flex items-center justify-between hover:bg-brand-light transition">
+                                      <span className={sortOption === 'price_desc' ? 'text-brand-green font-medium' : 'text-gray-600'}>ราคาสูงสุด</span>
+                                      {sortOption === 'price_desc' && <Check size={16} className="text-brand-green" />}
+                                  </button>
+                              </div>
+                          )}
+                      </div>
+                  )}
+              </div>
+
               <div className="flex flex-wrap gap-6 justify-center md:justify-start">
-                {displayProps.length > 0 ? displayProps.map(p => (
+                {sortedProps.length > 0 ? sortedProps.map(p => (
                    <a href={`?property=${generatePropSlug(p)}`} key={p.id} onClick={(e) => {
                        if (!e.ctrlKey && !e.metaKey && !e.button) {
                            e.preventDefault(); 
@@ -2061,7 +2067,6 @@
             useEffect(() => { if (popupData) setPopupForm(popupData); }, [popupData]);
 
             useEffect(() => {
-                // Fetch full Thai address database
                 fetch('https://raw.githubusercontent.com/earthchie/jquery.Thailand.js/master/jquery.Thailand.js/database/raw_database/raw_database.json')
                     .then(res => res.json())
                     .then(data => {
@@ -2103,13 +2108,11 @@
             };
             const handleAddressSelect = (e) => { const index = e.target.value; if (index === "") return; const addr = addressOptions[index]; setFormData(prev => ({ ...prev, subdistrict: addr.subdistrict, district: addr.district, province: addr.province, })); };
 
-            // 1. Upload Properties Images
             const handlePropertyImageUpload = async (e) => {
                 if (!checkAccess('admin')) return;
                 const files = Array.from(e.target.files);
                 if (!files.length) return;
                 
-                // Limit max files
                 const allowedFiles = files.slice(0, 10 - imagesPreview.length);
                 if (allowedFiles.length === 0) { showAlert('แจ้งเตือน', 'อัปโหลดได้สูงสุด 10 รูปครับ', 'warning'); return; }
 
@@ -2131,11 +2134,10 @@
                     showAlert('อัปโหลดผิดพลาด', error.message, 'error');
                 } finally {
                     setIsUploadingImgs(false);
-                    e.target.value = null; // reset input
+                    e.target.value = null;
                 }
             };
 
-            // 2. Upload Logo
             const handleLogoUpload = async (e) => {
                 if (!checkAccess('host')) return;
                 const file = e.target.files[0];
@@ -2154,7 +2156,6 @@
                 }
             };
 
-            // 3. Upload Portfolio Images
             const handlePortfolioUpload = async (e, yearIndex) => {
                 if (!checkAccess('host')) return;
                 const files = Array.from(e.target.files);
@@ -2182,7 +2183,6 @@
                 }
             };
 
-            // 4. Popup Images
             const handlePopupImageUpload = async (e) => {
                 if (!checkAccess('host')) return;
                 const file = e.target.files[0];
@@ -2222,21 +2222,18 @@
             const addCustomFacility = () => { if(newFacility && !formData.facilitiesList?.includes(newFacility)) { setFormData(prev => ({ ...prev, facilitiesList: [...(prev.facilitiesList || []), newFacility] })); setNewFacility(''); } };
             const removeFacility = (fac) => { setFormData(prev => ({ ...prev, facilitiesList: prev.facilitiesList.filter(f => f !== fac) })); };
 
-            // Save Property Data (เชื่อมต่อ Firebase)
             const handleSaveProperty = async (e) => {
                 if (e) e.preventDefault();
                 if (!checkAccess('admin')) return;
                 
-                // 1. ตรวจสอบข้อมูลบังคับก่อนบันทึก
                 if (!formData.project_name || !formData.price) {
                     showAlert('ข้อมูลไม่ครบถ้วน', 'กรุณากรอกชื่อโครงการและราคาให้ครบถ้วน', 'warning');
                     return;
                 }
 
-                setIsSaving(true); // เริ่มแสดงหน้าจอโหลด
+                setIsSaving(true); 
                 
                 try {
-                    // 2. เตรียมข้อมูลและจัดการค่า Lat/Lng, ตัวเลข ให้ปลอดภัย (ลบลูกน้ำ และช่องว่างทิ้ง)
                     const safeLat = formData.lat ? String(formData.lat).replace(/,/g, '.').replace(/\s/g, '') : '';
                     const safeLng = formData.lng ? String(formData.lng).replace(/,/g, '.').replace(/\s/g, '') : '';
                     
@@ -2366,10 +2363,8 @@
 
             return (
                 <div className="fixed inset-0 z-[60] bg-gray-50 flex flex-col font-sans">
-                    {/* Loaders */}
                     {isSaving && <div className="absolute inset-0 z-[100] bg-black/60 flex flex-col items-center justify-center text-white backdrop-blur-sm"><Loader size={48} className="animate-spin mb-4"/><h3 className="font-light">กำลังบันทึก...</h3></div>}
 
-                    {/* Admin Header */}
                     <div className="bg-white border-b px-6 py-4 flex justify-between items-center z-10">
                         <div className="flex items-center gap-3">
                             <span className="text-xl font-light text-brand-green tracking-widest uppercase">Admin Panel</span>
@@ -2381,9 +2376,7 @@
                         </div>
                     </div>
 
-                    {/* Admin Body */}
                     <div className="flex flex-1 overflow-hidden">
-                        {/* Sidebar */}
                         <div className="w-64 bg-white border-r py-6 flex flex-col gap-2 hidden md:flex">
                             {userRole === 'host' && <button onClick={enterVisualEditMode} className={`px-6 py-3 text-left text-sm flex items-center gap-3 transition text-blue-600 hover:bg-blue-50 bg-blue-50/50`}><Layout size={18}/> ปรับแก้หน้าตาเว็บไซต์</button>}
                             <button onClick={() => { setPanelTab('properties'); setIsEditing(false); }} className={`px-6 py-3 text-left text-sm flex items-center gap-3 transition ${panelTab === 'properties' ? 'text-brand-green bg-brand-light font-medium border-r-2 border-brand-green' : 'text-gray-500 hover:bg-gray-50'}`}><Home size={18}/> จัดการบ้าน</button>
@@ -2393,9 +2386,7 @@
                             {userRole === 'host' && <button onClick={() => setPanelTab('users')} className={`px-6 py-3 text-left text-sm flex items-center gap-3 transition ${panelTab === 'users' ? 'text-brand-green bg-brand-light font-medium border-r-2 border-brand-green' : 'text-gray-500 hover:bg-gray-50'}`}><Users size={18}/> ผู้ดูแลระบบ</button>}
                         </div>
 
-                        {/* Content */}
                         <div className="flex-1 p-4 md:p-8 overflow-y-auto">
-                            {/* Mobile Sidebar Tabs */}
                             <div className="md:hidden flex gap-2 overflow-x-auto pb-4 mb-4 scrollbar-hide">
                                 {userRole === 'host' && <button onClick={enterVisualEditMode} className={`whitespace-nowrap px-4 py-2 text-sm flex items-center gap-2 rounded-full transition bg-blue-50 text-blue-600 border border-blue-200`}><Layout size={14}/> ปรับแก้หน้าเว็บ</button>}
                                 <button onClick={() => { setPanelTab('properties'); setIsEditing(false); }} className={`whitespace-nowrap px-4 py-2 text-sm flex items-center gap-2 rounded-full transition ${panelTab === 'properties' ? 'bg-brand-green text-white' : 'bg-white text-gray-600 border'}`}><Home size={14}/> จัดการบ้าน</button>
@@ -2405,7 +2396,6 @@
                                 {userRole === 'host' && <button onClick={() => setPanelTab('users')} className={`whitespace-nowrap px-4 py-2 text-sm flex items-center gap-2 rounded-full transition ${panelTab === 'users' ? 'bg-brand-green text-white' : 'bg-white text-gray-600 border'}`}><Users size={14}/> ผู้ดูแลระบบ</button>}
                             </div>
 
-                            {/* Properties List */}
                             {panelTab === 'properties' && !isEditing && (
                                 <div className="max-w-6xl mx-auto">
                                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
@@ -2436,7 +2426,6 @@
                                 </div>
                             )}
 
-                            {/* Property Editor */}
                             {panelTab === 'properties' && isEditing && (
                                 <div className="max-w-6xl mx-auto pb-10">
                                     <div className="flex flex-col sm:flex-row justify-between gap-4 mb-8 border-b pb-4 sticky top-0 bg-gray-50 z-20 py-2">
@@ -2579,7 +2568,6 @@
                                 </div>
                             )}
 
-                            {/* Company Tab */}
                             {panelTab === 'company' && (
                                 <div className="max-w-3xl mx-auto bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100">
                                     <h3 className="text-2xl font-light mb-8 pb-4 border-b">ข้อมูลบริษัท</h3>
@@ -2613,7 +2601,6 @@
                                 </div>
                             )}
 
-                            {/* Portfolio Images Tab */}
                             {panelTab === 'portfolio_images' && (
                                 <div className="max-w-5xl mx-auto">
                                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 border-b pb-4">
@@ -2658,7 +2645,6 @@
                                 </div>
                             )}
 
-                            {/* Popup Manager Tab */}
                             {panelTab === 'popup' && (
                                 <div className="max-w-3xl mx-auto bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100">
                                     <h3 className="text-2xl font-light mb-8 border-b pb-4">จัดการหน้าต่างป๊อปอัป</h3>
@@ -2708,7 +2694,6 @@
                                 </div>
                             )}
 
-                            {/* Users Tab */}
                             {panelTab === 'users' && (
                                 <div className="max-w-4xl mx-auto bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100">
                                     <h3 className="text-2xl font-light mb-8 border-b pb-4">จัดการผู้ดูแลระบบ</h3>

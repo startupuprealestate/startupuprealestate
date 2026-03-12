@@ -462,6 +462,7 @@
         };
 
         const validateImage = (file) => {
+            if (!file || !file.type) return false;
             if (!file.type.startsWith('image/')) {
                 throw new Error('กรุณาอัปโหลดเฉพาะไฟล์รูปภาพเท่านั้น');
             }
@@ -472,7 +473,7 @@
         };
 
         const getYoutubeId = (url) => {
-            if (!url) return null;
+            if (!url || typeof url !== 'string') return null;
             let str = url.trim();
             const srcMatch = str.match(/src=["']([^"']+)["']/);
             if (srcMatch) str = srcMatch[1];
@@ -1011,21 +1012,23 @@
               <nav className="fixed w-full top-0 z-40 bg-white/90 backdrop-blur-md shadow-sm transition-all duration-300">
                 <div className="max-w-7xl mx-auto px-6 lg:px-12">
                   <div className="flex justify-between items-center h-20">
-                    <a href="/" onClick={(e) => { 
-                        if (!e.ctrlKey && !e.metaKey && !e.button) { 
-                            e.preventDefault(); 
-                            if(isVisualEditMode) return;
-                            setActiveTab('home'); 
-                            setSelectedProperty(null); 
-                            window.scrollTo(0,0); 
-                        } 
-                    }} className={`w-1/3 flex justify-start items-center cursor-pointer block ${isVisualEditMode ? 'pointer-events-none opacity-50' : ''}`}>
-                        {companyInfo?.logoUrl ? (
-                            <img src={companyInfo.logoUrl} alt="Logo" className="h-10 md:h-12 object-contain" onError={(e) => { e.target.onerror = null; e.target.src = 'https://res.cloudinary.com/dm2wr55r5/image/upload/v1773023427/LOGO_%E0%B9%80%E0%B8%82%E0%B8%B5%E0%B8%A2%E0%B8%A7%E0%B9%82%E0%B8%9B%E0%B8%A3%E0%B9%88%E0%B8%87_vhyhyo.png'; }} />
-                        ) : (
-                            <span className="text-xl md:text-2xl font-light tracking-[0.2em] text-brand-green uppercase whitespace-nowrap">Startup Up</span>
-                        )}
-                    </a>
+                    <div className="w-1/3 flex justify-start items-center">
+                        <a href="/" onClick={(e) => { 
+                            if (!e.ctrlKey && !e.metaKey && !e.button) { 
+                                e.preventDefault(); 
+                                if(isVisualEditMode) return;
+                                setActiveTab('home'); 
+                                setSelectedProperty(null); 
+                                window.scrollTo(0,0); 
+                            } 
+                        }} className={`cursor-pointer inline-block ${isVisualEditMode ? 'pointer-events-none opacity-50' : ''}`}>
+                            {companyInfo?.logoUrl ? (
+                                <img src={companyInfo.logoUrl} alt="Logo" className="h-10 md:h-12 object-contain" onError={(e) => { e.target.onerror = null; e.target.src = 'https://res.cloudinary.com/dm2wr55r5/image/upload/v1773023427/LOGO_%E0%B9%80%E0%B8%82%E0%B8%B5%E0%B8%A2%E0%B8%A7%E0%B9%82%E0%B8%9B%E0%B8%A3%E0%B9%88%E0%B8%87_vhyhyo.png'; }} />
+                            ) : (
+                                <span className="text-xl md:text-2xl font-light tracking-[0.2em] text-brand-green uppercase whitespace-nowrap">Startup Up</span>
+                            )}
+                        </a>
+                    </div>
 
                     <div className="hidden lg:flex items-center justify-center space-x-4 xl:space-x-6 w-1/3">
                       <NavButton href="?tab=home" active={activeTab === 'home' && !selectedProperty} isEditMode={isVisualEditMode} onClick={() => {setActiveTab('home'); setSelectedProperty(null); window.scrollTo(0,0);}}>
@@ -1129,6 +1132,7 @@
                        </h4>
                        <div className="flex gap-4">
                          <a href={isVisualEditMode ? "#" : companyInfo?.facebook} onClick={(e)=>{if(isVisualEditMode)e.preventDefault()}} target={isVisualEditMode ? "_self" : "_blank"} className={`transition ${isVisualEditMode ? 'pointer-events-none opacity-50' : 'hover:text-white opacity-80'}`}><Facebook size={20}/></a>
+                         <a href={isVisualEditMode ? "#" : "https://youtube.com/@startupupofficial?si=dmoPEcMTw5okXPMn"} onClick={(e)=>{if(isVisualEditMode)e.preventDefault()}} target={isVisualEditMode ? "_self" : "_blank"} className={`transition ${isVisualEditMode ? 'pointer-events-none opacity-50' : 'hover:text-white opacity-80'}`}><Youtube size={20}/></a>
                          <a href={isVisualEditMode ? "#" : companyInfo?.line} onClick={(e)=>{if(isVisualEditMode)e.preventDefault()}} target={isVisualEditMode ? "_self" : "_blank"} className={`transition ${isVisualEditMode ? 'pointer-events-none opacity-50' : 'hover:text-white opacity-80'}`}><MessageCircle size={20}/></a>
                          <a href={isVisualEditMode ? "#" : "https://www.instagram.com/startupuprealestate/"} onClick={(e)=>{if(isVisualEditMode)e.preventDefault()}} target={isVisualEditMode ? "_self" : "_blank"} className={`transition ${isVisualEditMode ? 'pointer-events-none opacity-50' : 'hover:text-white opacity-80'}`}><Instagram size={20}/></a>
                          <a href={isVisualEditMode ? "#" : "https://www.tiktok.com/@startupupofficial"} onClick={(e)=>{if(isVisualEditMode)e.preventDefault()}} target={isVisualEditMode ? "_self" : "_blank"} className={`transition ${isVisualEditMode ? 'pointer-events-none opacity-50' : 'hover:text-white opacity-80'}`}><Video size={20}/></a>
@@ -1518,8 +1522,13 @@
         function SalePage({ property, companyInfo, onBack, properties, onSelectProp, visualContent, updateVisualContent, isEditMode }) {
           const [activeImg, setActiveImg] = useState(0);
           const [isVideoPlaying, setIsVideoPlaying] = useState(false);
-          const images = property?.images && property.images.length > 0 ? property.images : [property?.imageUrl || "https://placehold.co/600x400"];
+          const images = Array.isArray(property?.images) && property.images.length > 0 ? property.images : [property?.imageUrl || "https://placehold.co/600x400"];
           const youtubeId = getYoutubeId(property?.youtubeUrl || '');
+
+          useEffect(() => {
+              setActiveImg(0);
+              setIsVideoPlaying(false);
+          }, [property?.id]);
 
           const relatedProps = properties.filter(p => p.id !== property?.id && p.badge !== 'Sold Out' && (p.sub_location === property?.sub_location || p.category === property?.category)).slice(0, 6);
 
@@ -1572,7 +1581,7 @@
                         
                         {/* เปลี่ยนการแสดงรูปให้แสดงเต็มรูป ไม่ครอปและไม่มีกรอบ */}
                         <div className="w-full overflow-hidden mb-4 relative group bg-gray-100 rounded-2xl shadow-sm flex items-center justify-center min-h-[300px]">
-                            <img src={images[activeImg] || images[0]} className="w-full h-auto max-h-[80vh] object-contain transition duration-500" alt="Main" />
+                            <img src={images[activeImg] || images[0] || "https://placehold.co/600x400"} className="w-full h-auto max-h-[80vh] object-contain transition duration-500" alt="Main" />
                             {images.length > 1 && (
                                 <>
                                     <button onClick={() => setActiveImg(prev => (prev === 0 ? images.length - 1 : prev - 1))} className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 text-brand-green p-2 rounded-full hover:bg-white transition shadow-md"><ChevronLeft /></button>
@@ -1619,7 +1628,7 @@
                            <h3 className="text-lg font-medium text-brand-green mb-4">รายละเอียด</h3>
                            <p className="text-gray-600 leading-relaxed font-light whitespace-pre-line mb-8 text-sm md:text-base">{property.highlights || 'ไม่มีรายละเอียดเพิ่มเติม'}</p>
 
-                           {property.facilitiesList && property.facilitiesList.length > 0 && (
+                           {Array.isArray(property.facilitiesList) && property.facilitiesList.length > 0 && (
                                <>
                                <h3 className="text-lg font-medium text-brand-green mb-4">สิ่งอำนวยความสะดวก</h3>
                                <div className="flex flex-wrap gap-2 mb-8">

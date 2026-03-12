@@ -1284,10 +1284,21 @@
               if (!container) return;
 
               let animationId;
+              let currentScroll = container.scrollLeft;
+              const scrollSpeed = 0.5; // ปรับลดความเร็วลง (ตัวเลขน้อย = ช้าลง)
+
               const scroll = () => {
-                  container.scrollLeft += 1;
+                  // รีเซ็ตค่าทศนิยม หากผู้ใช้งานมีการใช้นิ้วปัด/คลิกเลื่อนเอง
+                  if (Math.abs(currentScroll - container.scrollLeft) > 2) {
+                      currentScroll = container.scrollLeft;
+                  }
+                  
+                  currentScroll += scrollSpeed;
+                  container.scrollLeft = currentScroll;
+
                   if (container.scrollLeft >= container.scrollWidth / 2 && marqueeItems.length > locationCards.length) {
                       container.scrollLeft = 0;
+                      currentScroll = 0;
                   }
                   animationId = requestAnimationFrame(scroll);
               };

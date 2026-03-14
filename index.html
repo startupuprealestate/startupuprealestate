@@ -1522,7 +1522,8 @@
         function SalePage({ property, companyInfo, onBack, properties, onSelectProp, visualContent, updateVisualContent, isEditMode }) {
           const [activeImg, setActiveImg] = useState(0);
           const [isVideoPlaying, setIsVideoPlaying] = useState(false);
-          const scrollRef = useRef(null);
+          const desktopScrollRef = useRef(null);
+          const mobileScrollRef = useRef(null);
           const images = Array.isArray(property?.images) && property.images.length > 0 ? property.images : [property?.imageUrl || "https://placehold.co/600x400"];
           const youtubeId = getYoutubeId(property?.youtubeUrl || '');
 
@@ -1560,25 +1561,25 @@
               .slice(0, 8); // ดึงมาแสดง 8 หลัง
 
           // ฟังก์ชันสำหรับกดเลื่อนไสลด์ซ้าย-ขวา
-          const handleScroll = (direction) => {
-              if (scrollRef.current) {
+          const handleScroll = (refToUse, direction) => {
+              if (refToUse && refToUse.current) {
                   const itemWidth = window.innerWidth < 768 ? 316 : 324; // ความกว้างการ์ด 300px + gap
-                  scrollRef.current.scrollBy({ left: direction * itemWidth, behavior: 'smooth' });
+                  refToUse.current.scrollBy({ left: direction * itemWidth, behavior: 'smooth' });
               }
           };
 
-          const renderRelatedProps = () => {
+          const renderRelatedProps = (refToUse) => {
               if (relatedProps.length === 0) return null;
               return (
                   <div className="mt-12 mb-8 px-4 md:px-0 w-full relative">
                       <div className="flex justify-between items-center mb-6">
                           <h3 className="text-xl font-medium text-brand-green border-l-4 border-brand-green pl-3">โครงการที่คุณอาจสนใจ</h3>
                           <div className="hidden md:flex gap-2">
-                              <button onClick={() => handleScroll(-1)} className="p-2 rounded-full bg-white shadow-sm border border-gray-100 hover:bg-gray-50 text-brand-green transition"><ChevronLeft size={20}/></button>
-                              <button onClick={() => handleScroll(1)} className="p-2 rounded-full bg-white shadow-sm border border-gray-100 hover:bg-gray-50 text-brand-green transition"><ChevronRight size={20}/></button>
+                              <button onClick={() => handleScroll(refToUse, -1)} className="p-2 rounded-full bg-white shadow-sm border border-gray-100 hover:bg-gray-50 text-brand-green transition"><ChevronLeft size={20}/></button>
+                              <button onClick={() => handleScroll(refToUse, 1)} className="p-2 rounded-full bg-white shadow-sm border border-gray-100 hover:bg-gray-50 text-brand-green transition"><ChevronRight size={20}/></button>
                           </div>
                       </div>
-                      <div ref={scrollRef} className="flex overflow-x-auto snap-x snap-mandatory gap-4 md:gap-6 pb-6 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
+                      <div ref={refToUse} className="flex overflow-x-auto snap-x snap-mandatory gap-4 md:gap-6 pb-6 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
                           {relatedProps.map((p, index) => (
                               <a href={`?property=${generatePropSlug(p)}`} key={p.id} onClick={(e) => {
                                   if (!e.ctrlKey && !e.metaKey && !e.button) {
@@ -1709,7 +1710,7 @@
                     
                     {/* Related Props on Desktop */}
                     <div className="hidden lg:block order-2">
-                        {renderRelatedProps()}
+                        {renderRelatedProps(desktopScrollRef)}
                     </div>
                  </div>
 
@@ -1730,7 +1731,7 @@
 
                  {/* Related Props on Mobile */}
                  <div className="block lg:hidden order-3 w-full max-w-full mt-8">
-                     {renderRelatedProps()}
+                     {renderRelatedProps(mobileScrollRef)}
                  </div>
               </div>
             </div>

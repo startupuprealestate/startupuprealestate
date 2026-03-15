@@ -1081,19 +1081,19 @@
                     </div>
 
                     <div className="hidden lg:flex items-center justify-center space-x-4 xl:space-x-6 w-1/3">
-                      <NavButton href="?tab=home" active={activeTab === 'home' && !selectedProperty} isEditMode={isVisualEditMode} onClick={() => {setActiveTab('home'); setSelectedProperty(null); window.scrollTo(0,0);}}>
+                      <NavButton href="/?tab=home" active={activeTab === 'home' && !selectedProperty} isEditMode={isVisualEditMode} onClick={() => {setActiveTab('home'); setSelectedProperty(null); window.scrollTo(0,0);}}>
                           <EditableText tag="span" fieldKey="navHome" content={visualContent} updateContent={updateVisualContent} isEditMode={isVisualEditMode} />
                       </NavButton>
-                      <NavButton href="?tab=promo" active={activeTab === 'promo' && !selectedProperty} isEditMode={isVisualEditMode} onClick={() => {setActiveTab('promo'); setSelectedProperty(null); window.scrollTo(0,0);}}>
+                      <NavButton href="/?tab=promo" active={activeTab === 'promo' && !selectedProperty} isEditMode={isVisualEditMode} onClick={() => {setActiveTab('promo'); setSelectedProperty(null); window.scrollTo(0,0);}}>
                           <EditableText tag="span" fieldKey="navPromo" content={visualContent} updateContent={updateVisualContent} isEditMode={isVisualEditMode} />
                       </NavButton>
-                      <NavButton href="?tab=location" active={activeTab === 'location' && !selectedProperty} isEditMode={isVisualEditMode} onClick={() => {setActiveTab('location'); setSelectedProperty(null); window.scrollTo(0,0);}}>
+                      <NavButton href="/?tab=location" active={activeTab === 'location' && !selectedProperty} isEditMode={isVisualEditMode} onClick={() => {setActiveTab('location'); setSelectedProperty(null); window.scrollTo(0,0);}}>
                           <EditableText tag="span" fieldKey="navLocation" content={visualContent} updateContent={updateVisualContent} isEditMode={isVisualEditMode} />
                       </NavButton>
-                      <NavButton href="?tab=calculator" active={activeTab === 'calculator' && !selectedProperty} isEditMode={isVisualEditMode} onClick={() => {setActiveTab('calculator'); setSelectedProperty(null); window.scrollTo(0,0);}}>
+                      <NavButton href="/?tab=calculator" active={activeTab === 'calculator' && !selectedProperty} isEditMode={isVisualEditMode} onClick={() => {setActiveTab('calculator'); setSelectedProperty(null); window.scrollTo(0,0);}}>
                           <EditableText tag="span" fieldKey="navCalc" content={visualContent} updateContent={updateVisualContent} isEditMode={isVisualEditMode} />
                       </NavButton>
-                      <NavButton href="?tab=portfolio" active={activeTab === 'portfolio' && !selectedProperty} isEditMode={isVisualEditMode} onClick={() => {setActiveTab('portfolio'); setSelectedProperty(null); window.scrollTo(0,0);}}>
+                      <NavButton href="/?tab=portfolio" active={activeTab === 'portfolio' && !selectedProperty} isEditMode={isVisualEditMode} onClick={() => {setActiveTab('portfolio'); setSelectedProperty(null); window.scrollTo(0,0);}}>
                           <EditableText tag="span" fieldKey="navPortfolio" content={visualContent} updateContent={updateVisualContent} isEditMode={isVisualEditMode} />
                       </NavButton>
                     </div>
@@ -1120,11 +1120,11 @@
                 {isMenuOpen && (
                   <div className="lg:hidden bg-white border-t border-gray-100 py-4 absolute w-full shadow-lg">
                     <div className="px-6 space-y-4 flex flex-col">
-                      <MobileNavBtn href="?tab=home" onClick={() => {setActiveTab('home'); setSelectedProperty(null); setIsMenuOpen(false); window.scrollTo(0,0);}}>{visualContent?.navHome || DEFAULT_VISUAL_CONTENT.navHome}</MobileNavBtn>
-                      <MobileNavBtn href="?tab=promo" onClick={() => {setActiveTab('promo'); setSelectedProperty(null); setIsMenuOpen(false); window.scrollTo(0,0);}}>{visualContent?.navPromo || DEFAULT_VISUAL_CONTENT.navPromo}</MobileNavBtn>
-                      <MobileNavBtn href="?tab=location" onClick={() => {setActiveTab('location'); setSelectedProperty(null); setIsMenuOpen(false); window.scrollTo(0,0);}}>{visualContent?.navLocation || DEFAULT_VISUAL_CONTENT.navLocation}</MobileNavBtn>
-                      <MobileNavBtn href="?tab=calculator" onClick={() => {setActiveTab('calculator'); setSelectedProperty(null); setIsMenuOpen(false); window.scrollTo(0,0);}}>{visualContent?.navCalc || DEFAULT_VISUAL_CONTENT.navCalc}</MobileNavBtn>
-                      <MobileNavBtn href="?tab=portfolio" onClick={() => {setActiveTab('portfolio'); setSelectedProperty(null); setIsMenuOpen(false); window.scrollTo(0,0);}}>{visualContent?.navPortfolio || DEFAULT_VISUAL_CONTENT.navPortfolio}</MobileNavBtn>
+                      <MobileNavBtn href="/?tab=home" onClick={() => {setActiveTab('home'); setSelectedProperty(null); setIsMenuOpen(false); window.scrollTo(0,0);}}>{visualContent?.navHome || DEFAULT_VISUAL_CONTENT.navHome}</MobileNavBtn>
+                      <MobileNavBtn href="/?tab=promo" onClick={() => {setActiveTab('promo'); setSelectedProperty(null); setIsMenuOpen(false); window.scrollTo(0,0);}}>{visualContent?.navPromo || DEFAULT_VISUAL_CONTENT.navPromo}</MobileNavBtn>
+                      <MobileNavBtn href="/?tab=location" onClick={() => {setActiveTab('location'); setSelectedProperty(null); setIsMenuOpen(false); window.scrollTo(0,0);}}>{visualContent?.navLocation || DEFAULT_VISUAL_CONTENT.navLocation}</MobileNavBtn>
+                      <MobileNavBtn href="/?tab=calculator" onClick={() => {setActiveTab('calculator'); setSelectedProperty(null); setIsMenuOpen(false); window.scrollTo(0,0);}}>{visualContent?.navCalc || DEFAULT_VISUAL_CONTENT.navCalc}</MobileNavBtn>
+                      <MobileNavBtn href="/?tab=portfolio" onClick={() => {setActiveTab('portfolio'); setSelectedProperty(null); setIsMenuOpen(false); window.scrollTo(0,0);}}>{visualContent?.navPortfolio || DEFAULT_VISUAL_CONTENT.navPortfolio}</MobileNavBtn>
                       <div className="h-px bg-gray-100 my-2"></div>
                       {userRole ? (
                         <button onClick={() => {setShowAdminPanel(true); setIsMenuOpen(false)}} className="w-full text-left py-2 text-brand-green font-medium">เข้าสู่ระบบหลังบ้าน</button>
@@ -1602,7 +1602,7 @@
                         {marqueeItems.map((loc, idx) => (
                             <div key={idx} className="relative rounded-[20px] overflow-hidden w-[240px] md:w-[360px] h-[140px] md:h-[220px] flex-shrink-0 shadow-md hover:shadow-xl transition-all">
                                 <a 
-                                    href={`/api/share?property=${generatePropSlug(loc.area)}`}
+                                    href={`/?tab=search_result&sType=main_location&sValue=${encodeURIComponent(loc.area)}`}
                                     onClick={(e) => { 
                                         if (!e.ctrlKey && !e.metaKey && !e.button) {
                                             e.preventDefault();
@@ -1668,7 +1668,7 @@
                                      <Home size={30} className="text-brand-green" />
                                      <EditableText tag="h3" fieldKey={section.key} content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-2xl font-bold text-brand-green inline-block" />
                                 </div>
-                                <a href={`/api/share?property=${encodeURIComponent(section.searchCat)}`} onClick={(e) => { 
+                                <a href={`/?tab=search_result&sType=category&sValue=${encodeURIComponent(section.searchCat)}`} onClick={(e) => { 
                                     if (!e.ctrlKey && !e.metaKey && !e.button) { 
                                         e.preventDefault(); 
                                         if(!isEditMode && onSearchCategory) onSearchCategory('category', section.searchCat); 
@@ -2168,7 +2168,7 @@
                 {locData.map((loc, idx) => (
                   <div key={idx} className="group animate-pop" style={{ animationDelay: `${idx * 50}ms` }}>
                     <div className="block h-32 sm:h-48 md:h-64 rounded-2xl overflow-hidden relative mb-3 shadow-sm group-hover:shadow-md transition hover:-translate-y-1">
-                       <a href={`/api/share?property=${encodeURIComponent(loc.area)}`} onClick={(e) => { 
+                       <a href={`/?tab=search_result&sType=main_location&sValue=${encodeURIComponent(loc.area)}`} onClick={(e) => { 
                            if (!e.ctrlKey && !e.metaKey && !e.button) {
                                e.preventDefault(); 
                                if (onSelectLocation && !isEditMode) onSelectLocation('main_location', loc.area);
@@ -2191,7 +2191,7 @@
                     
                     <div className="flex flex-wrap gap-1.5 px-1">
                        {loc.sub_areas.map((sub, i) => (
-                           <a href={`/api/share?property=${encodeURIComponent(sub)}`} key={i} onClick={(e) => { 
+                           <a href={`/?tab=search_result&sType=sub_location&sValue=${encodeURIComponent(sub)}`} key={i} onClick={(e) => { 
                                if (!e.ctrlKey && !e.metaKey && !e.button) {
                                    e.preventDefault(); 
                                    e.stopPropagation(); 

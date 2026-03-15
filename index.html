@@ -70,23 +70,20 @@
         html, body {
             font-family: 'Prompt', sans-serif;
             background-color: #ffffff;
-            /* ป้องกันการเลื่อนซ้าย-ขวา 100% */
             overflow-x: hidden;
             width: 100%;
             position: relative;
         }
 
-        /* ซ่อนลูกศรขึ้นลงของ input type number อย่างเด็ดขาด */
         input[type="number"]::-webkit-outer-spin-button,
         input[type="number"]::-webkit-inner-spin-button {
             -webkit-appearance: none;
             margin: 0;
         }
         input[type="number"] {
-            -moz-appearance: textfield; /* Firefox */
+            -moz-appearance: textfield;
         }
 
-        /* Forms & Inputs styling */
         .input-modern {
             width: 100%;
             padding: 0.75rem;
@@ -114,7 +111,7 @@
             color: white;
             font-weight: 500;
             padding: 0.75rem 1.5rem;
-            border-radius: 9999px; /* Pill shape */
+            border-radius: 9999px;
             transition: all 0.3s;
             display: inline-flex;
             align-items: center;
@@ -125,41 +122,49 @@
             background-color: transparent;
             color: #0b3d1b;
             box-shadow: 0 0 0 1px #0b3d1b;
+            transform: translateY(-2px);
         }
 
-        /* Grid Image Hover Effects (สำหรับหน้ารวม) */
         .house-card {
             overflow: hidden;
             position: relative;
             cursor: pointer;
             background: #000;
         }
-
         .house-img {
             transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
-
         .house-card:hover .house-img {
             filter: brightness(0.25) contrast(1.2) saturate(0.8);
             transform: scale(1.05);
         }
 
-        /* เพิ่ม Keyframes สำหรับให้บ้านที่โหลดมาแสดงผลได้ตามปกติ */
-        @keyframes fadeUpAnim {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        /* --- Wow Factor Animations --- */
+        .reveal-on-scroll {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease-out, transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .reveal-on-scroll.is-revealed {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .delay-100 { transition-delay: 100ms; }
+        .delay-200 { transition-delay: 200ms; }
+        .delay-300 { transition-delay: 300ms; }
+
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.8); }
+            70% { transform: scale(1.05); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        .animate-pop {
+            animation: popIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
-        /* --- Animations สำหรับแถบทำเล (Marquee) --- */
         @keyframes scrollMarquee {
             0% { transform: translateX(0); }
             100% { transform: translateX(-50%); }
@@ -169,21 +174,13 @@
             width: max-content;
             animation: scrollMarquee 40s linear infinite;
         }
-        /* เมื่อเอาเมาส์ชี้ให้หยุดวิ่ง */
         .animate-marquee:hover {
             animation-play-state: paused;
         }
 
-        /* ซ่อน Scrollbar สำหรับแนวนอน (Carousel) */
-        .scrollbar-hide::-webkit-scrollbar {
-            display: none;
-        }
-        .scrollbar-hide {
-            -ms-overflow-style: none;  /* IE and Edge */
-            scrollbar-width: none;  /* Firefox */
-        }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* Styles สำหรับ Custom Marker ในแผนที่ Leaflet */
         .custom-map-marker {
             background-color: white;
             border: 2px solid #0b3d1b;
@@ -210,13 +207,8 @@
             z-index: 10;
             font-family: 'Prompt', sans-serif;
         }
-        .leaflet-popup-content-wrapper {
-            border-radius: 12px;
-        }
-        .leaflet-tooltip {
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
+        .leaflet-popup-content-wrapper { border-radius: 12px; }
+        .leaflet-tooltip { border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     </style>
 </head>
 <body class="text-gray-800 antialiased selection:bg-brand-green selection:text-white relative">
@@ -252,7 +244,6 @@
             serverTimestamp 
         } from 'firebase/firestore';
 
-        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
         const firebaseConfig = {
           apiKey: "AIzaSyDsEeGxKA90-URCn06F-K3U2dvlISf_2Jo",
           authDomain: "startup-up-realestate.firebaseapp.com",
@@ -267,7 +258,6 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        // --- Constants ---
         const HOST_EMAIL = 'startup.up.real.estate@gmail.com';
         const appId = "startup-up-realestate";
 
@@ -349,7 +339,6 @@
         const DIRECTIONS = ['เหนือ', 'ใต้', 'ตะวันออก', 'ตะวันตก', 'ตะวันออกเฉียงเหนือ', 'ตะวันออกเฉียงใต้', 'ตะวันตกเฉียงเหนือ', 'ตะวันตกเฉียงใต้'];
         const COMMON_FACILITIES = ["รปภ. 24 ชม.", "สระว่ายน้ำ", "ฟิตเนส", "สวนสาธารณะ", "กล้อง CCTV", "เข้า-ออก ระบบคีย์การ์ด", "คลับเฮาส์", "สนามเด็กเล่น", "ใกล้ทางด่วน", "ใกล้รถไฟฟ้า", "ใกล้ห้างสรรพสินค้า", "ใกล้โรงเรียน", "ใกล้โรงพยาบาล", "ที่จอดรถส่วนตัว", "ถนนกว้าง", "รีโนเวทใหม่", "พร้อมอยู่"];
 
-        // อัปเดตพิกัดทำเลเพื่อให้หมุดบนแผนที่ตรงจุดมากขึ้น
         const DISTRICT_COORDS = {
             'คลองหลวง': [14.043, 100.655], 
             'คลองสาม': [14.043, 100.655],
@@ -376,7 +365,7 @@
             'ปากเกร็ด': [13.912, 100.498],
             'ติวานนท์': [13.884, 100.518],
             'รังสิต': [13.985, 100.615],
-            'พยอม': [14.1401, 100.6402], // ปรับพิกัดพยอมให้แม่นยำขึ้น
+            'พยอม': [14.1401, 100.6402], 
             'อยุธยา': [14.353, 100.568],
             'วังน้อย': [14.225, 100.718],
             'นนทบุรี': [13.859, 100.521],
@@ -518,7 +507,6 @@
             return p.id; 
         };
 
-        // --- Visual Editor Components ---
         function EditableText({ tag: Tag = 'span', fieldKey, content, updateContent, isEditMode, className }) {
             const [isEditing, setIsEditing] = useState(false);
             const [tempVal, setTempVal] = useState('');
@@ -576,7 +564,6 @@
             const nextSlide = () => setCurrentIndex(prev => (prev + 1) % heroBgs.length);
             const prevSlide = () => setCurrentIndex(prev => (prev === 0 ? heroBgs.length - 1 : prev - 1));
 
-            // รีเซ็ต Timer ทุกครั้งที่มีการเปลี่ยน index เพื่อไม่ให้ภาพเลื่อนซ้อนกันถ้าลูกค้ากดเลื่อนเอง
             useEffect(() => {
                 if (heroBgs.length <= 1) return;
                 const interval = setInterval(nextSlide, 5000);
@@ -617,9 +604,9 @@
             return (
                 <div className="w-full flex flex-col bg-white">
                     <div className="w-full text-center px-6 py-10 md:py-16 bg-white z-10 relative">
-                        <EditableText tag="h1" fieldKey="heroTitle" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-3xl md:text-4xl font-medium text-brand-green tracking-wide mb-3 inline-block" />
+                        <EditableText tag="h1" fieldKey="heroTitle" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-3xl md:text-4xl font-medium text-brand-green tracking-wide mb-3 inline-block reveal-on-scroll" />
                         <br/>
-                        <EditableText tag="p" fieldKey="heroSubtitle" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-gray-500 font-light tracking-[0.2em] uppercase text-xs md:text-sm inline-block" />
+                        <EditableText tag="p" fieldKey="heroSubtitle" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-gray-500 font-light tracking-[0.2em] uppercase text-xs md:text-sm inline-block reveal-on-scroll delay-100" />
                     </div>
 
                     <div 
@@ -639,7 +626,6 @@
                             ))}
                         </div>
                         
-                        {/* ปุ่มเลื่อนซ้าย-ขวา */}
                         {heroBgs.length > 1 && !isEditMode && (
                             <>
                                 <button onClick={prevSlide} className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/50 hover:bg-white text-brand-green p-3 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-md z-20">
@@ -719,6 +705,27 @@
 
           const [requestedPropSlug, setRequestedPropSlug] = useState(null);
 
+          // บังคับเลื่อนหน้าจอขึ้นบนสุดเสมอเมื่อเปลี่ยนหน้า ค้นหา หรือเปิดดูบ้าน
+          useEffect(() => {
+              window.scrollTo(0, 0);
+          }, [activeTab, selectedProperty, searchParams]);
+
+          useEffect(() => {
+              const observer = new IntersectionObserver((entries) => {
+                  entries.forEach(entry => {
+                      if (entry.isIntersecting) {
+                          entry.target.classList.add('is-revealed');
+                      }
+                  });
+              }, { threshold: 0.1, rootMargin: "0px 0px -50px 0px" });
+              
+              setTimeout(() => {
+                  document.querySelectorAll('.reveal-on-scroll').forEach(el => observer.observe(el));
+              }, 100);
+
+              return () => observer.disconnect();
+          });
+
           useEffect(() => {
               const syncFromUrl = () => {
                   try {
@@ -749,18 +756,16 @@
               const params = new URLSearchParams();
               let targetPath = window.location.pathname;
 
-              if (activeTab !== 'home') params.set('tab', activeTab);
-              
               if (selectedProperty) {
                   params.set('property', generatePropSlug(selectedProperty));
                   targetPath = '/api/share'; 
               } else {
                   targetPath = '/';
-              }
-
-              if (activeTab === 'search_result' && searchParams.value) {
-                  params.set('sType', searchParams.type);
-                  params.set('sValue', searchParams.value);
+                  if (activeTab !== 'home') params.set('tab', activeTab);
+                  if (activeTab === 'search_result' && searchParams.value) {
+                      params.set('sType', searchParams.type);
+                      params.set('sValue', searchParams.value);
+                  }
               }
               
               const queryString = params.toString() ? `?${params.toString()}` : '';
@@ -1155,13 +1160,13 @@
               <footer className="bg-brand-green text-brand-light py-12 mt-auto relative z-30">
                 <div className="max-w-7xl mx-auto px-6 lg:px-12">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 font-light">
-                    <div>
+                    <div className="reveal-on-scroll">
                       <div className="flex items-center gap-3 mb-4">
                         <span className="text-2xl tracking-[0.2em] font-light uppercase">{companyInfo?.name || 'STARTUP UP'}</span>
                       </div>
                       <p className="text-sm leading-relaxed opacity-80">{companyInfo?.description || 'จุดเริ่มต้นของคนอยากมีบ้าน'}</p>
                     </div>
-                    <div>
+                    <div className="reveal-on-scroll delay-100">
                       <h4 className="font-normal mb-4 tracking-wider uppercase text-sm relative z-50">
                           <EditableText tag="span" fieldKey="contactTitle" content={visualContent} updateContent={updateVisualContent} isEditMode={isVisualEditMode} />
                       </h4>
@@ -1171,16 +1176,16 @@
                       <p className="mb-2 text-lg"><a href={isVisualEditMode ? "#" : `tel:${companyInfo?.phone}`} onClick={(e)=>{if(isVisualEditMode)e.preventDefault()}} className={isVisualEditMode ? 'pointer-events-none opacity-50' : 'hover:text-white hover:underline'}>โทร: {companyInfo?.phone}</a></p>
                       <p className="text-sm opacity-80">Email: {companyInfo?.email}</p>
                     </div>
-                    <div>
+                    <div className="reveal-on-scroll delay-200">
                        <h4 className="font-normal mb-4 tracking-wider uppercase text-sm relative z-50">
                           <EditableText tag="span" fieldKey="followTitle" content={visualContent} updateContent={updateVisualContent} isEditMode={isVisualEditMode} />
                        </h4>
                        <div className="flex gap-4">
-                         <a href={isVisualEditMode ? "#" : companyInfo?.facebook} onClick={(e)=>{if(isVisualEditMode)e.preventDefault()}} target={isVisualEditMode ? "_self" : "_blank"} className={`transition ${isVisualEditMode ? 'pointer-events-none opacity-50' : 'hover:text-white opacity-80'}`}><Facebook size={20}/></a>
-                         <a href={isVisualEditMode ? "#" : "https://youtube.com/@startupupofficial?si=dmoPEcMTw5okXPMn"} onClick={(e)=>{if(isVisualEditMode)e.preventDefault()}} target={isVisualEditMode ? "_self" : "_blank"} className={`transition ${isVisualEditMode ? 'pointer-events-none opacity-50' : 'hover:text-white opacity-80'}`}><Youtube size={20}/></a>
-                         <a href={isVisualEditMode ? "#" : companyInfo?.line} onClick={(e)=>{if(isVisualEditMode)e.preventDefault()}} target={isVisualEditMode ? "_self" : "_blank"} className={`transition ${isVisualEditMode ? 'pointer-events-none opacity-50' : 'hover:text-white opacity-80'}`}><MessageCircle size={20}/></a>
-                         <a href={isVisualEditMode ? "#" : "https://www.instagram.com/startupuprealestate/"} onClick={(e)=>{if(isVisualEditMode)e.preventDefault()}} target={isVisualEditMode ? "_self" : "_blank"} className={`transition ${isVisualEditMode ? 'pointer-events-none opacity-50' : 'hover:text-white opacity-80'}`}><Instagram size={20}/></a>
-                         <a href={isVisualEditMode ? "#" : "https://www.tiktok.com/@startupupofficial"} onClick={(e)=>{if(isVisualEditMode)e.preventDefault()}} target={isVisualEditMode ? "_self" : "_blank"} className={`transition ${isVisualEditMode ? 'pointer-events-none opacity-50' : 'hover:text-white opacity-80'}`}><Video size={20}/></a>
+                         <a href={isVisualEditMode ? "#" : companyInfo?.facebook} onClick={(e)=>{if(isVisualEditMode)e.preventDefault()}} target={isVisualEditMode ? "_self" : "_blank"} className={`transition ${isVisualEditMode ? 'pointer-events-none opacity-50' : 'hover:text-white opacity-80 hover:-translate-y-1'}`}><Facebook size={24}/></a>
+                         <a href={isVisualEditMode ? "#" : "https://youtube.com/@startupupofficial?si=dmoPEcMTw5okXPMn"} onClick={(e)=>{if(isVisualEditMode)e.preventDefault()}} target={isVisualEditMode ? "_self" : "_blank"} className={`transition ${isVisualEditMode ? 'pointer-events-none opacity-50' : 'hover:text-white opacity-80 hover:-translate-y-1'}`}><Youtube size={24}/></a>
+                         <a href={isVisualEditMode ? "#" : companyInfo?.line} onClick={(e)=>{if(isVisualEditMode)e.preventDefault()}} target={isVisualEditMode ? "_self" : "_blank"} className={`transition ${isVisualEditMode ? 'pointer-events-none opacity-50' : 'hover:text-white opacity-80 hover:-translate-y-1'}`}><MessageCircle size={24}/></a>
+                         <a href={isVisualEditMode ? "#" : "https://www.instagram.com/startupuprealestate/"} onClick={(e)=>{if(isVisualEditMode)e.preventDefault()}} target={isVisualEditMode ? "_self" : "_blank"} className={`transition ${isVisualEditMode ? 'pointer-events-none opacity-50' : 'hover:text-white opacity-80 hover:-translate-y-1'}`}><Instagram size={24}/></a>
+                         <a href={isVisualEditMode ? "#" : "https://www.tiktok.com/@startupupofficial"} onClick={(e)=>{if(isVisualEditMode)e.preventDefault()}} target={isVisualEditMode ? "_self" : "_blank"} className={`transition ${isVisualEditMode ? 'pointer-events-none opacity-50' : 'hover:text-white opacity-80 hover:-translate-y-1'}`}><Video size={24}/></a>
                        </div>
                     </div>
                   </div>
@@ -1247,7 +1252,6 @@
             let lat = parseFloat(rawLat);
             let lng = parseFloat(rawLng);
             if (!lat || !lng || isNaN(lat) || isNaN(lng) || lat > 25 || lat < 5 || lng < 90 || lng > 110) {
-                // ดักจับโครงการดังๆ ที่ลืมปักหมุด (Smart Detection)
                 const projName = String(p.project_name || '').toLowerCase();
                 if (projName.includes('พฤกษา') && projName.includes('72')) { return { lat: 14.1428, lng: 100.6475 }; }
                 if (projName.includes('พฤกษา') && projName.includes('109')) { return { lat: 14.1485, lng: 100.6448 }; }
@@ -1558,11 +1562,11 @@
           return (
             <main className="py-16 w-full max-w-full overflow-hidden min-h-screen">
                 <div className="max-w-screen-xl mx-auto px-4 md:px-6">
-                    <div className="text-center mb-4">
+                    <div className="text-center mb-4 reveal-on-scroll">
                         <EditableText tag="h2" fieldKey="homeTitle" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-3xl font-light text-brand-green mb-4 inline-block" />
                     </div>
                     
-                    <form onSubmit={handleSearchSubmit} className="relative flex items-center w-full max-w-2xl mx-auto transform transition-transform hover:scale-[1.01] mb-12">
+                    <form onSubmit={handleSearchSubmit} className="relative flex items-center w-full max-w-2xl mx-auto transform transition-transform hover:scale-[1.01] mb-12 reveal-on-scroll delay-100">
                         <input 
                             type="text" 
                             placeholder={visualContent?.searchPlaceholder || DEFAULT_VISUAL_CONTENT.searchPlaceholder} 
@@ -1576,7 +1580,7 @@
                     </form>
                 </div>
 
-                <div className="w-full max-w-[100vw] overflow-hidden mb-16 relative py-4 group">
+                <div className="w-full max-w-[100vw] overflow-hidden mb-16 relative py-4 group reveal-on-scroll delay-200">
                     <button 
                         onClick={() => handleManualScroll(-1)} 
                         onMouseEnter={() => setIsPaused(true)} 
@@ -1598,7 +1602,7 @@
                         {marqueeItems.map((loc, idx) => (
                             <div key={idx} className="relative rounded-[20px] overflow-hidden w-[240px] md:w-[360px] h-[140px] md:h-[220px] flex-shrink-0 shadow-md hover:shadow-xl transition-all">
                                 <a 
-                                    href={`?tab=search_result&sType=main_location&sValue=${encodeURIComponent(loc.area)}`}
+                                    href={`/api/share?property=${generatePropSlug(loc.area)}`}
                                     onClick={(e) => { 
                                         if (!e.ctrlKey && !e.metaKey && !e.button) {
                                             e.preventDefault();
@@ -1647,7 +1651,7 @@
                     </button>
                 </div>
                 
-                <div className="max-w-6xl mx-auto px-4 md:px-6 w-full mb-20 overflow-hidden relative z-10">
+                <div className="max-w-6xl mx-auto px-4 md:px-6 w-full mb-20 overflow-hidden relative z-10 reveal-on-scroll">
                     <div className="flex flex-col items-center justify-center text-center mb-8">
                         <EditableText tag="h2" fieldKey="mapTitle" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-2xl font-bold text-brand-green mb-2 flex items-center gap-2 inline-flex" />
                         <br/>
@@ -1658,13 +1662,13 @@
 
                 <div className="max-w-screen-xl mx-auto px-4 md:px-6 space-y-16">
                     {sections.map((section, sIdx) => (
-                        <div key={section.key} className="w-full max-w-full overflow-hidden">
+                        <div key={section.key} className="w-full max-w-full overflow-hidden reveal-on-scroll">
                             <div className="flex justify-between items-center mb-6 px-2 md:px-0">
                                 <div className="flex items-center gap-2">
                                      <Home size={30} className="text-brand-green" />
                                      <EditableText tag="h3" fieldKey={section.key} content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-2xl font-bold text-brand-green inline-block" />
                                 </div>
-                                <a href={`?tab=search_result&sType=category&sValue=${encodeURIComponent(section.searchCat)}`} onClick={(e) => { 
+                                <a href={`/api/share?property=${encodeURIComponent(section.searchCat)}`} onClick={(e) => { 
                                     if (!e.ctrlKey && !e.metaKey && !e.button) { 
                                         e.preventDefault(); 
                                         if(!isEditMode && onSearchCategory) onSearchCategory('category', section.searchCat); 
@@ -1686,12 +1690,12 @@
                                         );
                                     }
                                     return (
-                                        <a href={`?property=${generatePropSlug(p)}`} key={p.id} onClick={(e) => { 
+                                        <a href={`/api/share?property=${generatePropSlug(p)}`} key={p.id} onClick={(e) => { 
                                             if (!e.ctrlKey && !e.metaKey && !e.button) {
                                                 e.preventDefault(); 
                                                 if(!isEditMode) onSelectProp(p);
                                             }
-                                        }} className={`block bg-white border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-lg transition-all duration-300 rounded-2xl overflow-hidden flex flex-col w-[300px] min-w-[300px] h-[400px] min-h-[400px] snap-center flex-shrink-0 ${isEditMode ? 'pointer-events-none cursor-default' : 'cursor-pointer'}`} style={{ animation: `fadeUpAnim 0.5s ease forwards ${index * 50}ms`, opacity: 0, transform: 'translateY(20px)' }}>
+                                        }} className={`block bg-white border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-lg transition-all duration-300 rounded-2xl overflow-hidden flex flex-col w-[300px] min-w-[300px] h-[400px] min-h-[400px] snap-center flex-shrink-0 ${isEditMode ? 'pointer-events-none cursor-default' : 'cursor-pointer'}`}>
                                             <div className="h-[220px] w-full relative overflow-hidden bg-gray-100 pointer-events-none flex-shrink-0">
                                                 <img src={p.images?.[0] || p.imageUrl || "https://placehold.co/600x400"} alt={p.project_name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
                                                 <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm text-gray-700 px-3 py-1.5 rounded-full font-medium text-xs shadow-sm z-10 flex items-center gap-1.5"><Home size={14} className="text-brand-green" />{p.category}</div>
@@ -1713,37 +1717,37 @@
                     ))}
                 </div>
 
-                <div className="bg-gray-50 py-16 mt-8 mb-12 md:py-20 md:mt-12 md:mb-16 rounded-[30px] md:rounded-[40px] px-6 md:px-12 max-w-7xl mx-auto shadow-sm border border-gray-100">
+                <div className="bg-gray-50 py-16 mt-8 mb-12 md:py-20 md:mt-12 md:mb-16 rounded-[30px] md:rounded-[40px] px-6 md:px-12 max-w-7xl mx-auto shadow-sm border border-gray-100 reveal-on-scroll">
                     <div className="text-center mb-10 md:mb-12">
                         <EditableText tag="h2" fieldKey="whyUsTitle" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-2xl md:text-3xl font-bold text-brand-green inline-block" />
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-                        <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm hover:shadow-md transition">
+                        <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm hover:shadow-md transition hover:-translate-y-1">
                             <div className="w-12 h-12 md:w-14 md:h-14 bg-brand-light text-brand-green rounded-2xl flex items-center justify-center mb-5 md:mb-6"><Star size={24} className="md:w-7 md:h-7" /></div>
                             <EditableText tag="h3" fieldKey="whyUs1Title" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-lg md:text-xl font-bold text-gray-800 mb-2 md:mb-3 block" />
                             <EditableText tag="p" fieldKey="whyUs1Desc" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-sm md:text-base text-gray-500 font-light leading-relaxed block" />
                         </div>
-                        <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm hover:shadow-md transition">
+                        <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm hover:shadow-md transition hover:-translate-y-1">
                             <div className="w-12 h-12 md:w-14 md:h-14 bg-brand-light text-brand-green rounded-2xl flex items-center justify-center mb-5 md:mb-6"><Home size={24} className="md:w-7 md:h-7" /></div>
                             <EditableText tag="h3" fieldKey="whyUs2Title" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-lg md:text-xl font-bold text-gray-800 mb-2 md:mb-3 block" />
                             <EditableText tag="p" fieldKey="whyUs2Desc" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-sm md:text-base text-gray-500 font-light leading-relaxed block" />
                         </div>
-                        <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm hover:shadow-md transition">
+                        <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm hover:shadow-md transition hover:-translate-y-1">
                             <div className="w-12 h-12 md:w-14 md:h-14 bg-brand-light text-brand-green rounded-2xl flex items-center justify-center mb-5 md:mb-6"><Calculator size={24} className="md:w-7 md:h-7" /></div>
                             <EditableText tag="h3" fieldKey="whyUs3Title" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-lg md:text-xl font-bold text-gray-800 mb-2 md:mb-3 block" />
                             <EditableText tag="p" fieldKey="whyUs3Desc" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-sm md:text-base text-gray-500 font-light leading-relaxed block" />
                         </div>
-                        <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm hover:shadow-md transition">
+                        <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm hover:shadow-md transition hover:-translate-y-1">
                             <div className="w-12 h-12 md:w-14 md:h-14 bg-brand-light text-brand-green rounded-2xl flex items-center justify-center mb-5 md:mb-6"><ClipboardCheck size={24} className="md:w-7 md:h-7" /></div>
                             <EditableText tag="h3" fieldKey="whyUs4Title" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-lg md:text-xl font-bold text-gray-800 mb-2 md:mb-3 block" />
                             <EditableText tag="p" fieldKey="whyUs4Desc" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-sm md:text-base text-gray-500 font-light leading-relaxed block" />
                         </div>
-                        <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm hover:shadow-md transition">
+                        <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm hover:shadow-md transition hover:-translate-y-1">
                             <div className="w-12 h-12 md:w-14 md:h-14 bg-brand-light text-brand-green rounded-2xl flex items-center justify-center mb-5 md:mb-6"><FileText size={24} className="md:w-7 md:h-7" /></div>
                             <EditableText tag="h3" fieldKey="whyUs5Title" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-lg md:text-xl font-bold text-gray-800 mb-2 md:mb-3 block" />
                             <EditableText tag="p" fieldKey="whyUs5Desc" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-sm md:text-base text-gray-500 font-light leading-relaxed block" />
                         </div>
-                        <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm hover:shadow-md transition">
+                        <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm hover:shadow-md transition hover:-translate-y-1">
                             <div className="w-12 h-12 md:w-14 md:h-14 bg-brand-light text-brand-green rounded-2xl flex items-center justify-center mb-5 md:mb-6"><ShieldCheck size={24} className="md:w-7 md:h-7" /></div>
                             <EditableText tag="h3" fieldKey="whyUs6Title" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-lg md:text-xl font-bold text-gray-800 mb-2 md:mb-3 block" />
                             <EditableText tag="p" fieldKey="whyUs6Desc" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-sm md:text-base text-gray-500 font-light leading-relaxed block" />
@@ -1769,6 +1773,7 @@
               setIsVideoPlaying(false);
           }, [property?.id]);
 
+          // กันจอขาวเมื่อ property ไม่มีค่า 
           const safePropName = String(property?.project_name || '').trim();
           const safeSubDist = String(property?.subdistrict || '').trim();
           const safeSubLoc = String(property?.sub_location || '').trim();
@@ -1792,7 +1797,7 @@
                       (pMainLoc && safeMainLoc && pMainLoc === safeMainLoc)) score += 50;
                   if (p.category === property?.category) score += 10;
                   
-                  const priceDiff = Math.abs((Number(String(p.price).replace(/,/g, '')) || 0) - (Number(String(property?.price).replace(/,/g, '')) || 0));
+                  const priceDiff = Math.abs((Number(String(p.price || 0).replace(/,/g, '')) || 0) - (Number(String(property?.price || 0).replace(/,/g, '')) || 0));
                   return { ...p, relevanceScore: score, priceDiff };
               })
               .sort((a, b) => {
@@ -1811,7 +1816,7 @@
           const renderRelatedProps = (refToUse) => {
               if (relatedProps.length === 0) return null;
               return (
-                  <div className="mt-12 mb-8 px-4 md:px-0 w-full relative">
+                  <div className="mt-12 mb-8 px-4 md:px-0 w-full relative reveal-on-scroll">
                       <div className="flex justify-between items-center mb-6">
                           <h3 className="text-xl font-medium text-brand-green border-l-4 border-brand-green pl-3">โครงการที่คุณอาจสนใจ</h3>
                           <div className="hidden md:flex gap-2">
@@ -1821,12 +1826,12 @@
                       </div>
                       <div ref={refToUse} className="flex overflow-x-auto snap-x snap-mandatory gap-4 md:gap-6 pb-6 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
                           {relatedProps.map((p, index) => (
-                              <a href={`?property=${generatePropSlug(p)}`} key={p.id} onClick={(e) => {
+                              <a href={`/api/share?property=${generatePropSlug(p)}`} key={p.id} onClick={(e) => {
                                   if (!e.ctrlKey && !e.metaKey && !e.button) {
                                       e.preventDefault(); 
                                       if(!isEditMode) onSelectProp(p);
                                   }
-                              }} className={`block bg-white border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-lg transition-all duration-300 rounded-2xl overflow-hidden flex flex-col w-[300px] min-w-[300px] h-[400px] min-h-[400px] snap-center flex-shrink-0 ${isEditMode ? 'pointer-events-none cursor-default' : 'cursor-pointer'}`} style={{ animation: `fadeUpAnim 0.5s ease forwards ${index * 50}ms`, opacity: 0, transform: 'translateY(20px)' }}>
+                              }} className={`block bg-white border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-lg transition-all duration-300 rounded-2xl overflow-hidden flex flex-col w-[300px] min-w-[300px] h-[400px] min-h-[400px] snap-center flex-shrink-0 ${isEditMode ? 'pointer-events-none cursor-default' : 'cursor-pointer'}`}>
                                   <div className="h-[220px] w-full relative overflow-hidden bg-gray-100 pointer-events-none flex-shrink-0">
                                       <img src={p.images?.[0] || p.imageUrl || "https://placehold.co/600x400"} alt={p.project_name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
                                       <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm text-gray-700 px-3 py-1.5 rounded-full font-medium text-xs shadow-sm z-10 flex items-center gap-1.5"><Home size={14} className="text-brand-green" />{p.category}</div>
@@ -1853,20 +1858,20 @@
             <div className="bg-gray-50 min-h-screen pb-12 animate-in fade-in duration-300 flex-grow w-full max-w-full">
               <div className="max-w-7xl mx-auto px-4 py-8 flex flex-col lg:flex-row gap-8 w-full max-w-full">
                  
-                 <div className="lg:w-2/3 space-y-8 flex flex-col order-1 w-full max-w-full">
+                 <div className="lg:w-2/3 space-y-8 flex flex-col order-1 w-full max-w-full reveal-on-scroll">
                     <div>
                         <a href="/" onClick={(e) => { 
                             if (!e.ctrlKey && !e.metaKey && !e.button) { e.preventDefault(); onBack(); }
-                        }} className="flex items-center gap-2 text-gray-500 hover:text-brand-green transition-colors text-sm uppercase tracking-wide inline-flex mb-8 cursor-pointer">
+                        }} className="flex items-center gap-2 text-gray-500 hover:text-brand-green transition-colors text-sm uppercase tracking-wide inline-flex mb-8 cursor-pointer hover:-translate-x-2 transition-transform">
                            <ChevronLeft size={16} /> ย้อนกลับ
                         </a>
                         
                         <div className="w-full overflow-hidden mb-4 relative group bg-gray-100 rounded-2xl shadow-sm flex items-center justify-center min-h-[300px]">
-                            <img src={images[activeImg] || images[0] || "https://placehold.co/600x400"} className="w-full h-auto max-h-[80vh] object-contain transition duration-500" alt="Main" />
+                            <img src={images[activeImg] || images[0] || "https://placehold.co/600x400"} className="w-full h-auto max-h-[80vh] object-contain transition duration-500 animate-pop" alt="Main" />
                             {images.length > 1 && (
                                 <>
-                                    <button onClick={() => setActiveImg(prev => (prev === 0 ? images.length - 1 : prev - 1))} className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 text-brand-green p-2 rounded-full hover:bg-white transition shadow-md"><ChevronLeft /></button>
-                                    <button onClick={() => setActiveImg(prev => (prev === images.length - 1 ? 0 : prev + 1))} className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 text-brand-green p-2 rounded-full hover:bg-white transition shadow-md"><ChevronRight /></button>
+                                    <button onClick={() => setActiveImg(prev => (prev === 0 ? images.length - 1 : prev - 1))} className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 text-brand-green p-2 rounded-full hover:bg-white transition shadow-md opacity-0 group-hover:opacity-100"><ChevronLeft /></button>
+                                    <button onClick={() => setActiveImg(prev => (prev === images.length - 1 ? 0 : prev + 1))} className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 text-brand-green p-2 rounded-full hover:bg-white transition shadow-md opacity-0 group-hover:opacity-100"><ChevronRight /></button>
                                 </>
                             )}
                             {property.badge && <div className={`absolute top-4 right-4 px-4 py-1.5 rounded-full font-medium text-xs shadow-lg z-10 text-white ${property.badge === 'Promotion' ? 'bg-red-600' : property.badge === 'New' ? 'bg-blue-600' : property.badge === 'Sold Out' ? 'bg-gray-600' : 'bg-brand-green'}`}>{property.badge}</div>}
@@ -1880,7 +1885,7 @@
                             ))}
                         </div>
                         
-                        <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100">
+                        <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100 reveal-on-scroll delay-100">
                            <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
                               <div className="w-full md:w-auto">
                                 <span className="text-gray-500 text-sm font-light tracking-wide">{property.category}</span>
@@ -1952,13 +1957,13 @@
                     </div>
                  </div>
 
-                 <div className="lg:w-1/3 space-y-6 order-2 w-full max-w-full">
+                 <div className="lg:w-1/3 space-y-6 order-2 w-full max-w-full reveal-on-scroll delay-200">
                     <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 sticky top-24 text-center">
-                        {companyInfo?.logoUrl && (<img src={companyInfo.logoUrl} alt="Logo" loading="eager" fetchPriority="high" className="h-16 mx-auto mb-4 object-contain" />)}
+                        {companyInfo?.logoUrl && (<img src={companyInfo.logoUrl} alt="Logo" className="h-16 mx-auto mb-4 object-contain" />)}
                         <h3 className="font-medium text-lg mb-6">สนใจติดต่อ</h3>
                         <div className="space-y-3 mb-8">
-                            <a href={isEditMode ? '#' : `tel:${companyInfo?.phone}`} className={`flex items-center justify-center gap-2 w-full bg-brand-green text-white py-3.5 rounded-full font-light hover:bg-opacity-90 transition ${isEditMode ? 'pointer-events-none' : ''}`}><Phone size={18} /> {companyInfo?.phone}</a>
-                            <a href={isEditMode ? '#' : companyInfo?.line} target="_blank" className={`flex items-center justify-center gap-2 w-full bg-[#06C755] text-white py-3.5 rounded-full font-light hover:bg-opacity-90 transition ${isEditMode ? 'pointer-events-none' : ''}`}><MessageCircle size={18} /> ทักไลน์</a>
+                            <a href={isEditMode ? '#' : `tel:${companyInfo?.phone}`} className={`flex items-center justify-center gap-2 w-full bg-brand-green text-white py-3.5 rounded-full font-light hover:bg-opacity-90 transition hover:-translate-y-1 ${isEditMode ? 'pointer-events-none' : ''}`}><Phone size={18} /> {companyInfo?.phone}</a>
+                            <a href={isEditMode ? '#' : companyInfo?.line} target="_blank" className={`flex items-center justify-center gap-2 w-full bg-[#06C755] text-white py-3.5 rounded-full font-light hover:bg-opacity-90 transition hover:-translate-y-1 ${isEditMode ? 'pointer-events-none' : ''}`}><MessageCircle size={18} /> ทักไลน์</a>
                         </div>
                         <div className="border-t border-gray-100 pt-6 text-left">
                             <CalculatorSection defaultPrice={property.price} minimalist={true} visualContent={visualContent} updateVisualContent={updateVisualContent} isEditMode={isEditMode} />
@@ -2024,9 +2029,9 @@
 
           let sortedProps = [...displayProps];
           if (sortOption === 'price_asc') {
-              sortedProps.sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0));
+              sortedProps.sort((a, b) => (Number(String(a.price).replace(/,/g,'')) || 0) - (Number(String(b.price).replace(/,/g,'')) || 0));
           } else if (sortOption === 'price_desc') {
-              sortedProps.sort((a, b) => (Number(b.price) || 0) - (Number(a.price) || 0));
+              sortedProps.sort((a, b) => (Number(String(b.price).replace(/,/g,'')) || 0) - (Number(String(a.price).replace(/,/g,'')) || 0));
           }
 
           // --- Pagination Calculation ---
@@ -2036,7 +2041,7 @@
 
           const handlePageChange = (page) => {
               setCurrentPage(page);
-              window.scrollTo({ top: 0, behavior: 'smooth' }); 
+              window.scrollTo(0, 0); 
           };
 
           const renderPageNumbers = () => {
@@ -2067,7 +2072,7 @@
           };
 
           return (
-            <div className="max-w-7xl mx-auto px-4 py-16 min-h-screen flex flex-col">
+            <div className="max-w-7xl mx-auto px-4 py-16 min-h-screen flex flex-col reveal-on-scroll">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-4">
                   <h2 className="text-2xl font-light text-brand-green">{title} <span className="text-sm text-gray-400 ml-2">({displayProps.length} รายการ)</span></h2>
                   
@@ -2099,13 +2104,13 @@
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 justify-items-center flex-grow content-start">
-                {currentProps.length > 0 ? currentProps.map(p => (
-                   <a href={`?property=${generatePropSlug(p)}`} key={p.id} onClick={(e) => {
+                {currentProps.length > 0 ? currentProps.map((p, index) => (
+                   <a href={`/api/share?property=${generatePropSlug(p)}`} key={p.id} onClick={(e) => {
                        if (!e.ctrlKey && !e.metaKey && !e.button) {
                            e.preventDefault(); 
                            if(!isEditMode) onSelectProp(p);
                        }
-                   }} className={`block bg-white border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-lg transition-all duration-300 rounded-2xl overflow-hidden flex flex-col w-[300px] min-w-[300px] h-[400px] min-h-[400px] ${isEditMode ? 'pointer-events-none cursor-default' : 'cursor-pointer'}`} style={{ animation: `fadeUpAnim 0.5s ease forwards`, opacity: 0, transform: 'translateY(20px)' }}>
+                   }} className={`block bg-white border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-lg transition-all duration-300 rounded-2xl overflow-hidden flex flex-col w-[300px] min-w-[300px] h-[400px] min-h-[400px] ${isEditMode ? 'pointer-events-none cursor-default' : 'cursor-pointer'} animate-pop`} style={{ animationDelay: `${index * 50}ms` }}>
                        <div className="h-[220px] w-full relative overflow-hidden bg-gray-100 pointer-events-none flex-shrink-0">
                            <img src={p.images?.[0] || p.imageUrl || "https://placehold.co/600x400"} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
                            <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm text-gray-700 px-3 py-1.5 rounded-full font-medium text-xs shadow-sm z-10 flex items-center gap-1.5"><Home size={14} className="text-brand-green" />{p.category}</div>
@@ -2155,15 +2160,15 @@
           const locData = visualContent?.locations || DEFAULT_LOCATIONS_DATA;
           
           return (
-            <div className="max-w-7xl mx-auto px-4 py-16">
+            <div className="max-w-7xl mx-auto px-4 py-16 reveal-on-scroll">
               <div className="text-center mb-12">
                   <EditableText tag="h2" fieldKey="locationTitle" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-3xl font-light text-brand-green inline-block" />
               </div>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
                 {locData.map((loc, idx) => (
-                  <div key={idx} className="group">
-                    <div className="block h-32 sm:h-48 md:h-64 rounded-2xl overflow-hidden relative mb-3 shadow-sm group-hover:shadow-md transition">
-                       <a href={`?tab=search_result&sType=main_location&sValue=${encodeURIComponent(loc.area)}`} onClick={(e) => { 
+                  <div key={idx} className="group animate-pop" style={{ animationDelay: `${idx * 50}ms` }}>
+                    <div className="block h-32 sm:h-48 md:h-64 rounded-2xl overflow-hidden relative mb-3 shadow-sm group-hover:shadow-md transition hover:-translate-y-1">
+                       <a href={`/api/share?property=${encodeURIComponent(loc.area)}`} onClick={(e) => { 
                            if (!e.ctrlKey && !e.metaKey && !e.button) {
                                e.preventDefault(); 
                                if (onSelectLocation && !isEditMode) onSelectLocation('main_location', loc.area);
@@ -2186,13 +2191,13 @@
                     
                     <div className="flex flex-wrap gap-1.5 px-1">
                        {loc.sub_areas.map((sub, i) => (
-                           <a href={`?tab=search_result&sType=sub_location&sValue=${encodeURIComponent(sub)}`} key={i} onClick={(e) => { 
+                           <a href={`/api/share?property=${encodeURIComponent(sub)}`} key={i} onClick={(e) => { 
                                if (!e.ctrlKey && !e.metaKey && !e.button) {
                                    e.preventDefault(); 
                                    e.stopPropagation(); 
                                    if (onSelectLocation && !isEditMode) onSelectLocation('sub_location', sub); 
                                }
-                           }} className={`text-[10px] md:text-xs border border-gray-200 text-gray-500 px-2 md:px-3 py-1 md:py-1.5 rounded-full font-light transition ${isEditMode ? 'pointer-events-none' : 'hover:border-brand-green hover:text-brand-green'}`}>
+                           }} className={`text-[10px] md:text-xs border border-gray-200 text-gray-500 px-2 md:px-3 py-1 md:py-1.5 rounded-full font-light transition ${isEditMode ? 'pointer-events-none' : 'hover:border-brand-green hover:text-brand-green hover:-translate-y-0.5'}`}>
                              {sub}
                            </a>
                        ))}
@@ -2237,7 +2242,7 @@
           };
 
           return (
-            <div className={minimalist ? "" : "max-w-3xl mx-auto bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-gray-100"}>
+            <div className={`${minimalist ? "" : "max-w-3xl mx-auto bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-gray-100"} reveal-on-scroll`}>
               {!minimalist && (
                   <div className="text-center mb-8">
                       <EditableText tag="h2" fieldKey="calcTitle" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-2xl font-light text-brand-green inline-block" />
@@ -2265,10 +2270,10 @@
                      <div><label className="label">ระยะเวลา (ปี)</label><div className="input-modern bg-gray-50 text-gray-500 border-transparent">{years > 0 ? `${years} ปี` : '-'}</div></div>
                  </div>
 
-                 <button onClick={handleCalculate} className="w-full bg-brand-green text-white py-3.5 rounded-full font-light mt-4 hover:bg-opacity-90 transition disabled:opacity-50" disabled={isEditMode}>คำนวณ</button>
+                 <button onClick={handleCalculate} className="w-full bg-brand-green text-white py-3.5 rounded-full font-light mt-4 hover:bg-opacity-90 hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:hover:scale-100" disabled={isEditMode}>คำนวณ</button>
 
                  {monthlyPayment !== null && (
-                    <div className="mt-6 text-center p-6 bg-brand-light/30 rounded-2xl">
+                    <div className="mt-6 text-center p-6 bg-brand-light/30 rounded-2xl animate-pop">
                        <p className="text-gray-500 text-sm font-light mb-1">ยอดผ่อนชำระต่อเดือนโดยประมาณ</p>
                        <p className="text-3xl font-medium text-brand-green">{Number(monthlyPayment).toLocaleString()} <span className="text-lg">฿</span></p>
                     </div>
@@ -2283,7 +2288,7 @@
           const portfolioYears = companyInfo?.portfolio_years || [];
 
           return (
-            <div className="max-w-7xl mx-auto px-4 py-16">
+            <div className="max-w-7xl mx-auto px-4 py-16 reveal-on-scroll">
               <div className="text-center mb-16">
                  <EditableText tag="h2" fieldKey="portfolioTitle" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-3xl font-light text-brand-green inline-block" />
               </div>
@@ -2298,8 +2303,8 @@
                 <div className="mb-16">
                    <h3 className="text-xl font-light text-gray-500 mb-6 uppercase tracking-widest border-b pb-2">Sold Out</h3>
                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                      {soldOutProperties.map(p => (
-                        <div key={p.id} className="group relative aspect-[4/5] rounded-xl overflow-hidden bg-gray-100">
+                      {soldOutProperties.map((p, idx) => (
+                        <div key={p.id} className="group relative aspect-[4/5] rounded-xl overflow-hidden bg-gray-100 animate-pop" style={{ animationDelay: `${idx * 30}ms` }}>
                            <img src={p.images?.[0] || p.imageUrl || "https://placehold.co/400x500"} className="w-full h-full object-cover grayscale opacity-70 group-hover:grayscale-0 transition duration-500"/>
                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-4">
                               <span className="text-white text-xs tracking-wider mb-1 opacity-70">SOLD</span>
@@ -2316,7 +2321,7 @@
                     <h3 className="text-xl font-light text-gray-500 mb-6 uppercase tracking-widest border-b pb-2">Year {yearGroup.year}</h3>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                        {yearGroup.images.map((img, i) => (
-                          <div key={i} className="aspect-square rounded-xl overflow-hidden bg-gray-100">
+                          <div key={i} className="aspect-square rounded-xl overflow-hidden bg-gray-100 animate-pop" style={{ animationDelay: `${i * 30}ms` }}>
                               <img src={img} className="w-full h-full object-cover hover:scale-105 transition duration-500"/>
                           </div>
                        ))}
@@ -2360,7 +2365,7 @@
 
             return (
                 <div className="fixed inset-0 z-[70] bg-black/50 flex items-center justify-center p-4 backdrop-blur-sm">
-                    <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-8 relative">
+                    <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-8 relative animate-pop">
                         <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><X size={20}/></button>
                         <h3 className="text-xl font-light text-brand-green mb-6 text-center">ระบบจัดการหลังบ้าน</h3>
                         {message.text && <div className={`p-3 rounded-lg mb-6 text-sm font-light ${message.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-brand-light text-brand-green'}`}>{message.text}</div>}
@@ -2368,7 +2373,7 @@
                         <button 
                             onClick={handleLogin} 
                             disabled={loading} 
-                            className="w-full bg-white border border-gray-300 text-gray-700 py-3 rounded-full font-medium hover:bg-gray-50 transition flex items-center justify-center gap-3 disabled:opacity-50"
+                            className="w-full bg-white border border-gray-300 text-gray-700 py-3 rounded-full font-medium hover:bg-gray-50 transition flex items-center justify-center gap-3 disabled:opacity-50 hover:-translate-y-1"
                         >
                             {loading ? (
                                 <Loader className="animate-spin" size={20} />

@@ -225,7 +225,7 @@
     <script type="text/babel" data-type="module">
         import { createRoot } from 'react-dom/client';
         import React, { useState, useEffect, useRef } from 'react';
-        import { Home, MapPin, Bed, Bath, Car, Maximize, Phone, MessageCircle, Menu, X, Plus, Trash2, ShieldCheck, CheckCircle, Calculator, Users, FileText, Settings, Edit, Save, Image as ImageIcon, Layout, ChevronLeft, ChevronRight, Upload, Briefcase, XCircle, Tag, Youtube, Loader, Facebook, Instagram, Video, Check, Calendar, FolderPlus, Map as MapIcon, Search, AlertTriangle, AlertCircle, Star, ClipboardCheck, Type, LayoutTemplate } from 'lucide-react';
+        import { Home, MapPin, Bed, Bath, Car, Maximize, Phone, MessageCircle, Menu, X, Plus, Trash2, ShieldCheck, CheckCircle, Calculator, Users, FileText, Settings, Edit, Save, Image as ImageIcon, Layout, ChevronLeft, ChevronRight, ChevronDown, Upload, Briefcase, XCircle, Tag, Youtube, Loader, Facebook, Instagram, Video, Check, Calendar, FolderPlus, Map as MapIcon, Search, AlertTriangle, AlertCircle, Star, ClipboardCheck, Type, LayoutTemplate } from 'lucide-react';
         import { initializeApp } from 'firebase/app';
         
         import { 
@@ -304,7 +304,7 @@
             ],
             homeTitle: 'ค้นหาบ้านที่ใช่สำหรับคุณ',
             mapTitle: 'ค้นหาทำเลจากแผนที่',
-            mapSubtitle: 'คลิกที่ป้ายจำนวนโครงการ เพื่อดูรายละเอียดบ้านในทำเลนั้นๆ',
+            mapSubtitle: 'คลิกที่ป้ายเพื่อซูมดูรายละเอียดโครงการและบ้านแต่ละหลัง',
             locationTitle: 'ทำเลยอดนิยม',
             calcTitle: 'คำนวณสินเชื่อเบื้องต้น',
             portfolioTitle: 'ผลงานของเรา',
@@ -349,20 +349,41 @@
         const DIRECTIONS = ['เหนือ', 'ใต้', 'ตะวันออก', 'ตะวันตก', 'ตะวันออกเฉียงเหนือ', 'ตะวันออกเฉียงใต้', 'ตะวันตกเฉียงเหนือ', 'ตะวันตกเฉียงใต้'];
         const COMMON_FACILITIES = ["รปภ. 24 ชม.", "สระว่ายน้ำ", "ฟิตเนส", "สวนสาธารณะ", "กล้อง CCTV", "เข้า-ออก ระบบคีย์การ์ด", "คลับเฮาส์", "สนามเด็กเล่น", "ใกล้ทางด่วน", "ใกล้รถไฟฟ้า", "ใกล้ห้างสรรพสินค้า", "ใกล้โรงเรียน", "ใกล้โรงพยาบาล", "ที่จอดรถส่วนตัว", "ถนนกว้าง", "รีโนเวทใหม่", "พร้อมอยู่"];
 
+        // อัปเดตพิกัดทำเลเพื่อให้หมุดบนแผนที่ตรงจุดมากขึ้น
         const DISTRICT_COORDS = {
             'คลองหลวง': [14.043, 100.655], 
             'คลองสาม': [14.043, 100.655],
             'คลองสอง': [13.985, 100.635],
+            'คลองหนึ่ง': [14.015, 100.614],
+            'คลองสี่': [14.045, 100.685],
+            'คลองห้า': [14.045, 100.705],
+            'คลองหก': [14.045, 100.725],
+            'คลองเจ็ด': [14.045, 100.745],
+            'คลองแปด': [14.045, 100.765],
+            'คลองเก้า': [14.045, 100.785],
+            'คลองสิบ': [14.045, 100.805],
+            'คลองสิบเอ็ด': [14.045, 100.825],
             'ธัญบุรี': [14.000, 100.680],
             'ลำลูกกา': [13.935, 100.655],
+            'ลาดสวาย': [13.935, 100.675],
             'เมืองปทุมธานี': [13.990, 100.525],
             'ดอนเมือง': [13.923, 100.597],
             'บางเขน': [13.871, 100.600],
             'สายไหม': [13.921, 100.642],
+            'พหลโยธิน 48': [13.882, 100.606],
+            'พหลโยธิน 52': [13.893, 100.611],
             'บางบัวทอง': [13.915, 100.418],
             'ปากเกร็ด': [13.912, 100.498],
+            'ติวานนท์': [13.884, 100.518],
             'รังสิต': [13.985, 100.615],
-            'คลองสี่': [14.045, 100.685]
+            'พยอม': [14.1401, 100.6402], // ปรับพิกัดพยอมให้แม่นยำขึ้น
+            'อยุธยา': [14.353, 100.568],
+            'วังน้อย': [14.225, 100.718],
+            'นนทบุรี': [13.859, 100.521],
+            'กรุงเทพมหานคร': [13.756, 100.501],
+            'บ้านใหม่': [13.957, 100.545],
+            'บางพูน': [13.978, 100.575],
+            'บางกะดี': [13.984, 100.548]
         };
 
         const TRANSIT_LINES = [
@@ -547,16 +568,30 @@
 
         function HeroSection({ visualContent, updateVisualContent, isEditMode }) {
             const [currentIndex, setCurrentIndex] = useState(0);
+            const [touchStart, setTouchStart] = useState(0);
+            const [touchEnd, setTouchEnd] = useState(0);
             
             const heroBgs = Array.isArray(visualContent?.heroBgs) ? visualContent.heroBgs : (visualContent?.heroBg ? [visualContent.heroBg] : DEFAULT_VISUAL_CONTENT.heroBgs);
 
+            const nextSlide = () => setCurrentIndex(prev => (prev + 1) % heroBgs.length);
+            const prevSlide = () => setCurrentIndex(prev => (prev === 0 ? heroBgs.length - 1 : prev - 1));
+
+            // รีเซ็ต Timer ทุกครั้งที่มีการเปลี่ยน index เพื่อไม่ให้ภาพเลื่อนซ้อนกันถ้าลูกค้ากดเลื่อนเอง
             useEffect(() => {
                 if (heroBgs.length <= 1) return;
-                const interval = setInterval(() => {
-                    setCurrentIndex(prev => (prev + 1) % heroBgs.length);
-                }, 5000);
+                const interval = setInterval(nextSlide, 5000);
                 return () => clearInterval(interval);
-            }, [heroBgs.length]);
+            }, [currentIndex, heroBgs.length]);
+
+            const handleTouchStart = (e) => setTouchStart(e.targetTouches[0].clientX);
+            const handleTouchMove = (e) => setTouchEnd(e.targetTouches[0].clientX);
+            const handleTouchEndAction = () => {
+                if (!touchStart || !touchEnd) return;
+                if (touchStart - touchEnd > 75) nextSlide();
+                if (touchStart - touchEnd < -75) prevSlide();
+                setTouchStart(0);
+                setTouchEnd(0);
+            };
 
             const handleAddFile = async (e) => {
                 const file = e.target.files[0];
@@ -581,15 +616,18 @@
 
             return (
                 <div className="w-full flex flex-col bg-white">
-                    {/* ส่วนข้อความถูกย้ายมาอยู่ด้านบน */}
                     <div className="w-full text-center px-6 py-10 md:py-16 bg-white z-10 relative">
                         <EditableText tag="h1" fieldKey="heroTitle" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-3xl md:text-4xl font-medium text-brand-green tracking-wide mb-3 inline-block" />
                         <br/>
                         <EditableText tag="p" fieldKey="heroSubtitle" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-gray-500 font-light tracking-[0.2em] uppercase text-xs md:text-sm inline-block" />
                     </div>
 
-                    {/* ส่วนรูปภาพสไลด์ */}
-                    <div className="relative w-full h-[50vh] md:h-[70vh] flex flex-col items-center justify-center overflow-hidden bg-gray-100">
+                    <div 
+                        className="relative w-full h-[50vh] md:h-[70vh] flex flex-col items-center justify-center overflow-hidden bg-gray-100 group"
+                        onTouchStart={handleTouchStart}
+                        onTouchMove={handleTouchMove}
+                        onTouchEnd={handleTouchEndAction}
+                    >
                         <div className="absolute inset-0 w-full h-full">
                             {heroBgs.map((img, idx) => (
                                 <img 
@@ -601,7 +639,24 @@
                             ))}
                         </div>
                         
-                        {/* ปุ่มแก้ไขรูปภาพสไลด์ (เห็นเฉพาะตอน Edit Mode) */}
+                        {/* ปุ่มเลื่อนซ้าย-ขวา */}
+                        {heroBgs.length > 1 && !isEditMode && (
+                            <>
+                                <button onClick={prevSlide} className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/50 hover:bg-white text-brand-green p-3 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-md z-20">
+                                    <ChevronLeft size={24} />
+                                </button>
+                                <button onClick={nextSlide} className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/50 hover:bg-white text-brand-green p-3 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-md z-20">
+                                    <ChevronRight size={24} />
+                                </button>
+                                
+                                <div className="absolute bottom-6 flex gap-2 z-20">
+                                    {heroBgs.map((_, idx) => (
+                                        <button key={idx} onClick={() => setCurrentIndex(idx)} className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${idx === currentIndex ? 'bg-white w-6' : 'bg-white/50 hover:bg-white/80'}`} />
+                                    ))}
+                                </div>
+                            </>
+                        )}
+                        
                         {isEditMode && (
                             <div className="absolute top-4 right-4 z-50 flex gap-2">
                                 <label className="bg-blue-600 text-white px-4 py-2 rounded-lg cursor-pointer flex items-center gap-2 shadow hover:bg-blue-700 transition text-sm">
@@ -634,7 +689,6 @@
           const [showLoginModal, setShowLoginModal] = useState(false);
           const [showAdminPanel, setShowAdminPanel] = useState(false);
 
-          // Visual Edit Mode & Popup Settings
           const [isVisualEditMode, setIsVisualEditMode] = useState(false);
           const [visualContent, setVisualContent] = useState(DEFAULT_VISUAL_CONTENT);
           const [popupData, setPopupData] = useState({ imageUrl: '', isActive: false });
@@ -646,7 +700,6 @@
           const [futureVisual, setFutureVisual] = useState([]);
           const [isSavingVisual, setIsSavingVisual] = useState(false);
 
-          // Global Alert State
           const [globalAlert, setGlobalAlert] = useState({ isOpen: false, type: 'info', title: '', message: '', onConfirm: null, showCancel: false });
 
           const showGlobalAlert = (title, message, type = 'info') => {
@@ -745,7 +798,6 @@
               return () => window.removeEventListener('wheel', handleWheel);
           }, []);
 
-          // Show Popup Logic (Run once per session when popupData is loaded)
           useEffect(() => {
               if (popupData.imageUrl && !hasCheckedPopup.current) {
                   hasCheckedPopup.current = true;
@@ -758,7 +810,6 @@
               }
           }, [popupData]);
 
-          // Visual Edit Mode Logic
           const updateVisualContent = (newContent) => {
               setPastVisual([...pastVisual, visualContent]);
               setVisualContent(newContent);
@@ -799,12 +850,11 @@
           const cancelVisualEdit = () => {
               showGlobalConfirm('ยกเลิกการแก้ไข', 'การแก้ไขที่ยังไม่ได้บันทึกจะสูญหาย ยืนยันยกเลิก?', () => {
                   setIsVisualEditMode(false);
-                  if (pastVisual.length > 0) setVisualContent(pastVisual[0]); // Revert to initial state
+                  if (pastVisual.length > 0) setVisualContent(pastVisual[0]); 
                   setPastVisual([]); setFutureVisual([]);
               });
           };
 
-          // Location Image Updater (from Visual Editor)
           const handleLocationImageUpdate = async (idx, file) => {
               try {
                   validateImage(file);
@@ -820,11 +870,10 @@
           const handleRemoveLocationImage = (idx) => {
               if (userRole !== 'host') return;
               const newLocations = [...(visualContent.locations || DEFAULT_LOCATIONS_DATA)];
-              newLocations[idx] = { ...newLocations[idx], img: DEFAULT_LOCATIONS_DATA[idx].img }; // revert to default
+              newLocations[idx] = { ...newLocations[idx], img: DEFAULT_LOCATIONS_DATA[idx].img }; 
               updateVisualContent({ ...visualContent, locations: newLocations });
           };
 
-          // Ctrl+Z / Ctrl+Y
           useEffect(() => {
               if (!isVisualEditMode) return;
               const handleKeyDown = (e) => {
@@ -835,7 +884,6 @@
               return () => window.removeEventListener('keydown', handleKeyDown);
           }, [isVisualEditMode, pastVisual, futureVisual, visualContent]);
 
-          // Firebase Data Load
           useEffect(() => {
             const initAuth = async () => {
                 try { if (!auth.currentUser) await signInAnonymously(auth); } 
@@ -848,14 +896,12 @@
                 if (currentUser && !currentUser.isAnonymous) {
                     const email = currentUser.email.toLowerCase();
                     
-                    // ป้องกัน Host หลักโดนล็อคออก หากเผลอลบข้อมูลตัวเอง
                     if (email === HOST_EMAIL.toLowerCase()) {
                         setUserRole('host');
                         setUserEmail(email);
                         return;
                     }
 
-                    // 1. ดึงสิทธิ์ที่แท้จริงจาก Firestore มายืนยัน (ห้ามเชื่อ localStorage)
                     try {
                         const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', email);
                         const userDocSnap = await getDoc(userDocRef);
@@ -988,7 +1034,6 @@
           return (
             <div className={`text-gray-800 bg-white min-h-screen flex flex-col font-sans relative ${isVisualEditMode ? 'pb-24 border-4 border-blue-500' : ''}`}>
               
-              {/* Promotion Popup Modal */}
               {showPopupModal && (
                   <div className="fixed inset-0 z-[200] bg-black/70 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
                       <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full relative overflow-hidden animate-in zoom-in-95 duration-300 flex flex-col">
@@ -1023,7 +1068,7 @@
                             } 
                         }} className={`cursor-pointer inline-block ${isVisualEditMode ? 'pointer-events-none opacity-50' : ''}`}>
                             {companyInfo?.logoUrl ? (
-                                <img src={companyInfo.logoUrl} alt="Logo" className="h-10 md:h-12 object-contain" onError={(e) => { e.target.onerror = null; e.target.src = 'https://res.cloudinary.com/dm2wr55r5/image/upload/v1773023427/LOGO_%E0%B9%80%E0%B8%82%E0%B8%B5%E0%B8%A2%E0%B8%A7%E0%B9%82%E0%B8%9B%E0%B8%A3%E0%B9%88%E0%B8%87_vhyhyo.png'; }} />
+                                <img src={companyInfo.logoUrl} alt="Logo" className="h-10 md:h-12 object-contain" loading="eager" fetchPriority="high" onError={(e) => { e.target.onerror = null; e.target.src = 'https://res.cloudinary.com/dm2wr55r5/image/upload/v1773023427/LOGO_%E0%B9%80%E0%B8%82%E0%B8%B5%E0%B8%A2%E0%B8%A7%E0%B9%82%E0%B8%9B%E0%B8%A3%E0%B9%88%E0%B8%87_vhyhyo.png'; }} />
                             ) : (
                                 <span className="text-xl md:text-2xl font-light tracking-[0.2em] text-brand-green uppercase whitespace-nowrap">Startup Up</span>
                             )}
@@ -1093,7 +1138,7 @@
                         <p className="text-gray-400 font-light tracking-wider animate-pulse">กำลังโหลดข้อมูล...</p>
                     </div>
                 ) : selectedProperty ? (
-                  <SalePage property={selectedProperty} companyInfo={companyInfo} onBack={() => {setSelectedProperty(null); window.history.pushState({}, '', window.location.pathname);}} properties={properties} onSelectProp={handleSelectProperty} visualContent={visualContent} updateVisualContent={updateVisualContent} isEditMode={isVisualEditMode} />
+                  <SalePage property={selectedProperty} companyInfo={companyInfo} onBack={() => {setSelectedProperty(null); window.scrollTo(0,0);}} properties={properties} onSelectProp={handleSelectProperty} visualContent={visualContent} updateVisualContent={updateVisualContent} isEditMode={isVisualEditMode} />
                 ) : (
                   <>
                     {activeTab === 'home' && <HeroSection visualContent={visualContent} updateVisualContent={updateVisualContent} isEditMode={isVisualEditMode} />}
@@ -1145,7 +1190,6 @@
                 </div>
               </footer>
 
-              {/* Visual Edit Mode Toolbar */}
               {isVisualEditMode && (
                 <div className="fixed bottom-0 left-0 w-full bg-slate-900 text-white p-4 z-[9999] flex flex-col md:flex-row justify-between items-center shadow-[0_-10px_40px_rgba(0,0,0,0.3)] animate-in slide-in-from-bottom-full duration-300 gap-4">
                     <div className="flex flex-col md:flex-row gap-4 items-center">
@@ -1170,7 +1214,6 @@
                 </div>
               )}
 
-              {/* Global Alert Modal */}
               <CustomAlertModal 
                   isOpen={globalAlert.isOpen} type={globalAlert.type} title={globalAlert.title} 
                   message={globalAlert.message} showCancel={globalAlert.showCancel} 
@@ -1198,10 +1241,35 @@
           );
         }
 
-        // --- Component: Interactive Property Map ---
+        const getSafeCoords = (p) => {
+            let rawLat = p.lat ? String(p.lat).replace(/,/g, '.').replace(/\s/g, '') : '';
+            let rawLng = p.lng ? String(p.lng).replace(/,/g, '.').replace(/\s/g, '') : '';
+            let lat = parseFloat(rawLat);
+            let lng = parseFloat(rawLng);
+            if (!lat || !lng || isNaN(lat) || isNaN(lng) || lat > 25 || lat < 5 || lng < 90 || lng > 110) {
+                // ดักจับโครงการดังๆ ที่ลืมปักหมุด (Smart Detection)
+                const projName = String(p.project_name || '').toLowerCase();
+                if (projName.includes('พฤกษา') && projName.includes('72')) { return { lat: 14.1428, lng: 100.6475 }; }
+                if (projName.includes('พฤกษา') && projName.includes('109')) { return { lat: 14.1485, lng: 100.6448 }; }
+
+                const subLoc = String(p.sub_location || '').trim();
+                const subDist = String(p.subdistrict || '').trim();
+                const mainLoc = String(p.main_location || '').trim();
+                const dist = String(p.district || '').trim();
+
+                const fallback = DISTRICT_COORDS[subLoc] || DISTRICT_COORDS[subDist] || DISTRICT_COORDS[mainLoc] || DISTRICT_COORDS[dist] || [14.020, 100.650];
+                lat = fallback[0] + (Math.random() - 0.5) * 0.005; 
+                lng = fallback[1] + (Math.random() - 0.5) * 0.005;
+            }
+            return { lat, lng };
+        };
+
         function PropertyMap({ properties, onSelectProp }) {
             const mapRef = useRef(null);
             const mapInstance = useRef(null);
+            const markersLayer = useRef(null);
+            const expandedZone = useRef(null);
+            const expandedProject = useRef(null);
 
             useEffect(() => {
                 if (!mapRef.current) return;
@@ -1229,78 +1297,187 @@
                             });
                         }
                     });
+
+                    markersLayer.current = L.layerGroup().addTo(mapInstance.current);
+
+                    const BackControl = L.Control.extend({
+                        options: { position: 'topright' },
+                        onAdd: function () {
+                            const div = L.DomUtil.create('div', 'bg-white px-4 py-2 mt-4 mr-4 rounded-xl shadow-lg cursor-pointer text-brand-green font-bold text-[13px] border-2 border-brand-green hover:bg-brand-green hover:text-white transition');
+                            div.id = 'map-back-btn';
+                            div.style.display = 'none';
+                            div.innerHTML = '← ย้อนกลับดูโครงการทั้งหมด';
+                            return div;
+                        }
+                    });
+                    mapInstance.current.addControl(new BackControl());
                 }
 
                 const map = mapInstance.current;
-                map.eachLayer(layer => {
-                    if (layer instanceof L.Marker && !(layer instanceof L.CircleMarker)) map.removeLayer(layer);
-                });
+                const layerGroup = markersLayer.current;
 
-                const validProps = properties.filter(p => p.badge !== 'Sold Out');
-                const clusters = {};
-                
-                validProps.forEach(p => {
-                    let rawLat = p.lat ? String(p.lat).replace(/,/g, '.').replace(/\s/g, '') : '';
-                    let rawLng = p.lng ? String(p.lng).replace(/,/g, '.').replace(/\s/g, '') : '';
+                const createPopupItem = (p) => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'flex items-start gap-3 mb-3 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition';
                     
-                    let lat = parseFloat(rawLat);
-                    let lng = parseFloat(rawLng);
+                    const img = document.createElement('img');
+                    img.src = p.images?.[0] || p.imageUrl || "https://placehold.co/100x100";
+                    img.className = 'w-16 h-16 object-cover rounded-md flex-shrink-0';
                     
-                    if (!lat || !lng || isNaN(lat) || isNaN(lng) || lat > 25 || lat < 5 || lng < 90 || lng > 110) {
-                        const fallback = DISTRICT_COORDS[p.district] || DISTRICT_COORDS[p.main_location] || DISTRICT_COORDS[p.subdistrict] || [14.020, 100.650];
-                        lat = fallback[0] + (Math.random() - 0.5) * 0.02;
-                        lng = fallback[1] + (Math.random() - 0.5) * 0.02;
+                    const infoDiv = document.createElement('div');
+                    const name = document.createElement('div');
+                    name.className = 'font-medium text-sm text-gray-800 line-clamp-1';
+                    name.innerText = p.house_number ? `เลขที่ ${p.house_number}` : (p.project_name || 'ไม่ระบุชื่อโครงการ');
+                    
+                    const price = document.createElement('div');
+                    price.className = 'text-brand-green text-xs font-bold mt-1';
+                    price.innerText = `฿ ${Number(String(p.price || 0).replace(/,/g, '')).toLocaleString()}`;
+                    
+                    infoDiv.appendChild(name); infoDiv.appendChild(price);
+                    itemDiv.appendChild(img); itemDiv.appendChild(infoDiv);
+
+                    itemDiv.onclick = () => { map.closePopup(); onSelectProp(p); };
+                    return itemDiv;
+                };
+
+                const drawMap = () => {
+                    layerGroup.clearLayers();
+                    const validProps = properties.filter(p => p.badge !== 'Sold Out');
+                    const backBtn = document.getElementById('map-back-btn');
+
+                    if (expandedProject.current) {
+                        if (backBtn) {
+                            backBtn.style.display = 'block';
+                            backBtn.innerHTML = '← ย้อนกลับดูชื่อโครงการ';
+                            backBtn.onclick = (e) => {
+                                L.DomEvent.stopPropagation(e);
+                                expandedProject.current = null;
+                                drawMap();
+                            };
+                        }
+                    } else if (expandedZone.current) {
+                        if (backBtn) {
+                            backBtn.style.display = 'block';
+                            backBtn.innerHTML = '← ย้อนกลับดูแผนที่รวม';
+                            backBtn.onclick = (e) => {
+                                L.DomEvent.stopPropagation(e);
+                                expandedZone.current = null;
+                                drawMap();
+                            };
+                        }
+                    } else {
+                        if (backBtn) backBtn.style.display = 'none';
                     }
 
-                    const key = `${lat.toFixed(4)}_${lng.toFixed(4)}`;
-                    if (!clusters[key]) clusters[key] = { lat: lat, lng: lng, items: [] };
-                    clusters[key].items.push(p);
-                });
+                    const bounds = [];
 
-                Object.values(clusters).forEach(cluster => {
-                    const count = cluster.items.length;
-                    const customIcon = L.divIcon({
-                        className: '', 
-                        html: `<div class="custom-map-marker shadow-lg border-2 hover:scale-105 transition">${count} โครงการ</div>`,
-                        iconSize: null, iconAnchor: [45, 15] 
-                    });
+                    if (expandedZone.current && expandedProject.current) {
+                        const houses = validProps.filter(p => 
+                            (p.main_location || p.district || 'พื้นที่อื่นๆ') === expandedZone.current &&
+                            ((p.project_name || '').trim() || 'ไม่ระบุชื่อโครงการ') === expandedProject.current
+                        );
 
-                    const marker = L.marker([cluster.lat, cluster.lng], { icon: customIcon }).addTo(map);
+                        houses.forEach((p, index) => {
+                            let { lat, lng } = getSafeCoords(p);
+                            lat += (Math.random() - 0.5) * 0.0002; 
+                            lng += (Math.random() - 0.5) * 0.0002;
+                            bounds.push([lat, lng]);
 
-                    const popupContent = document.createElement('div');
-                    popupContent.className = 'w-64 max-h-64 overflow-y-auto pr-2 py-2';
-                    
-                    const title = document.createElement('h4');
-                    title.className = 'font-bold text-brand-green mb-3 border-b pb-2 sticky top-0 bg-white z-10';
-                    title.innerText = `พบบ้าน ${count} โครงการในบริเวณนี้`;
-                    popupContent.appendChild(title);
+                            const markerText = p.house_number ? `เลขที่ ${p.house_number}` : `หลังที่ ${index + 1}`;
+                            const customIcon = L.divIcon({
+                                className: '', 
+                                html: `<div class="custom-map-marker shadow-lg border-2 hover:scale-105 transition max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap bg-brand-green text-white" style="border-color: white;">${markerText}</div>`,
+                                iconSize: null, iconAnchor: [45, 15] 
+                            });
 
-                    cluster.items.forEach(p => {
-                        const itemDiv = document.createElement('div');
-                        itemDiv.className = 'flex items-start gap-3 mb-3 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition';
-                        
-                        const img = document.createElement('img');
-                        img.src = p.images?.[0] || p.imageUrl || "https://placehold.co/100x100";
-                        img.className = 'w-16 h-16 object-cover rounded-md flex-shrink-0';
-                        
-                        const infoDiv = document.createElement('div');
-                        const name = document.createElement('div');
-                        name.className = 'font-medium text-sm text-gray-800 line-clamp-1';
-                        name.innerText = p?.project_name || 'ไม่ระบุชื่อโครงการ';
-                        
-                        const price = document.createElement('div');
-                        price.className = 'text-brand-green text-xs font-bold mt-1';
-                        price.innerText = `฿ ${Number(p.price || 0).toLocaleString()}`;
-                        
-                        infoDiv.appendChild(name); infoDiv.appendChild(price);
-                        itemDiv.appendChild(img); itemDiv.appendChild(infoDiv);
+                            const marker = L.marker([lat, lng], { icon: customIcon }).addTo(layerGroup);
+                            const popupContent = document.createElement('div');
+                            popupContent.className = 'w-64 py-2';
+                            popupContent.appendChild(createPopupItem(p));
+                            marker.bindPopup(popupContent);
+                        });
+                    } 
+                    else if (expandedZone.current) {
+                        const zoneProps = validProps.filter(p => (p.main_location || p.district || 'พื้นที่อื่นๆ') === expandedZone.current);
+                        const projectClusters = {};
 
-                        itemDiv.onclick = () => { map.closePopup(); onSelectProp(p); };
-                        popupContent.appendChild(itemDiv);
-                    });
+                        zoneProps.forEach(p => {
+                            const projName = (p.project_name || '').trim() || 'ไม่ระบุชื่อโครงการ';
+                            if (!projectClusters[projName]) {
+                                let { lat, lng } = getSafeCoords(p);
+                                projectClusters[projName] = { lat, lng, name: projName, items: [] };
+                            }
+                            projectClusters[projName].items.push(p);
+                        });
 
-                    marker.bindPopup(popupContent);
-                });
+                        Object.values(projectClusters).forEach(cluster => {
+                            const count = cluster.items.length;
+                            bounds.push([cluster.lat, cluster.lng]);
+                            const markerText = count > 1 ? `${cluster.name} (${count} หลัง)` : cluster.name;
+                            
+                            const customIcon = L.divIcon({
+                                className: '', 
+                                html: `<div class="custom-map-marker shadow-lg border-2 hover:scale-105 transition max-w-[250px] overflow-hidden text-ellipsis bg-white text-brand-green">${markerText}</div>`,
+                                iconSize: null, iconAnchor: [45, 15] 
+                            });
+
+                            const marker = L.marker([cluster.lat, cluster.lng], { icon: customIcon }).addTo(layerGroup);
+                            marker.on('click', () => {
+                                if (count > 1 && cluster.name !== 'ไม่ระบุชื่อโครงการ') {
+                                    expandedProject.current = cluster.name;
+                                    drawMap();
+                                } else {
+                                    const popupContent = document.createElement('div');
+                                    popupContent.className = 'w-64 max-h-64 overflow-y-auto pr-2 py-2';
+                                    const title = document.createElement('h4');
+                                    title.className = 'font-bold text-brand-green mb-3 border-b pb-2 sticky top-0 bg-white z-10';
+                                    title.innerText = cluster.name;
+                                    popupContent.appendChild(title);
+                                    cluster.items.forEach(p => popupContent.appendChild(createPopupItem(p)));
+                                    marker.bindPopup(popupContent);
+                                }
+                            });
+                        });
+                    } 
+                    else {
+                        const zoneClusters = {};
+                        validProps.forEach(p => {
+                            const zoneName = p.main_location || p.district || 'พื้นที่อื่นๆ';
+                            if (!zoneClusters[zoneName]) {
+                                let { lat, lng } = getSafeCoords(p);
+                                zoneClusters[zoneName] = { lat, lng, name: zoneName, items: [] };
+                            }
+                            zoneClusters[zoneName].items.push(p);
+                        });
+
+                        Object.values(zoneClusters).forEach(cluster => {
+                            const uniqueProjects = new Set(cluster.items.map(p => (p.project_name || '').trim() || p.id)).size;
+                            bounds.push([cluster.lat, cluster.lng]);
+                            const markerText = `${uniqueProjects} โครงการ`;
+                            
+                            const customIcon = L.divIcon({
+                                className: '', 
+                                html: `<div class="custom-map-marker shadow-lg border-2 hover:scale-105 transition max-w-[250px] overflow-hidden text-ellipsis bg-[#eef3f0] text-brand-green font-bold px-4 py-2">${markerText}</div>`,
+                                iconSize: null, iconAnchor: [45, 15] 
+                            });
+
+                            const marker = L.marker([cluster.lat, cluster.lng], { icon: customIcon }).addTo(layerGroup);
+                            marker.on('click', () => {
+                                expandedZone.current = cluster.name;
+                                drawMap();
+                            });
+                        });
+                    }
+
+                    if (bounds.length > 0) {
+                        map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+                    } else if (!expandedZone.current && !expandedProject.current) {
+                        map.setView([13.980, 100.615], 11);
+                    }
+                };
+
+                drawMap();
+
             }, [properties]);
 
             return (
@@ -1310,10 +1487,12 @@
             );
         }
 
-        // --- View Components ---
         function HomeSection({ properties, loading, onSelectProp, setActiveTab, onSelectLocation, onSearchCategory, onSearch, visualContent, updateVisualContent, isEditMode, onUpdateLocationImage, onRemoveLocationImage }) {
           const [query, setQuery] = useState('');
           const handleSearchSubmit = (e) => { e.preventDefault(); onSearch(query.trim()); };
+
+          const scrollContainerRef = useRef(null);
+          const [isPaused, setIsPaused] = useState(false);
 
           const availableProps = properties.filter(p => p.badge !== 'Sold Out');
           if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader className="animate-spin text-brand-green" size={48} /></div>;
@@ -1324,6 +1503,41 @@
               return { ...loc, count };
           });
           const marqueeItems = isEditMode ? locationCards : [...locationCards, ...locationCards];
+
+          useEffect(() => {
+              if (isEditMode || isPaused) return;
+              const container = scrollContainerRef.current;
+              if (!container) return;
+
+              let animationId;
+              let currentScroll = container.scrollLeft;
+              const scrollSpeed = 0.5;
+
+              const scroll = () => {
+                  if (Math.abs(currentScroll - container.scrollLeft) > 2) {
+                      currentScroll = container.scrollLeft;
+                  }
+                  
+                  currentScroll += scrollSpeed;
+                  container.scrollLeft = currentScroll;
+
+                  if (container.scrollLeft >= container.scrollWidth / 2 && marqueeItems.length > locationCards.length) {
+                      container.scrollLeft = 0;
+                      currentScroll = 0;
+                  }
+                  animationId = requestAnimationFrame(scroll);
+              };
+              animationId = requestAnimationFrame(scroll);
+
+              return () => cancelAnimationFrame(animationId);
+          }, [isPaused, isEditMode, marqueeItems.length, locationCards.length]);
+
+          const handleManualScroll = (direction) => {
+              if (scrollContainerRef.current) {
+                  const itemWidth = window.innerWidth < 768 ? 240 + 16 : 360 + 32;
+                  scrollContainerRef.current.scrollBy({ left: direction * itemWidth, behavior: 'smooth' });
+              }
+          };
 
           const padArray = (arr, length) => {
               const result = [...arr];
@@ -1348,7 +1562,6 @@
                         <EditableText tag="h2" fieldKey="homeTitle" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-3xl font-light text-brand-green mb-4 inline-block" />
                     </div>
                     
-                    {/* ย้ายช่องค้นหามาตรงนี้ */}
                     <form onSubmit={handleSearchSubmit} className="relative flex items-center w-full max-w-2xl mx-auto transform transition-transform hover:scale-[1.01] mb-12">
                         <input 
                             type="text" 
@@ -1363,11 +1576,27 @@
                     </form>
                 </div>
 
-                {/* แถบทำเลเลื่อนอัตโนมัติ (Marquee) */}
-                <div className="w-full max-w-[100vw] overflow-hidden mb-16 relative py-4">
-                    <div className={isEditMode ? "flex overflow-x-auto gap-4 py-2 px-4 scrollbar-hide" : "animate-marquee"}>
+                <div className="w-full max-w-[100vw] overflow-hidden mb-16 relative py-4 group">
+                    <button 
+                        onClick={() => handleManualScroll(-1)} 
+                        onMouseEnter={() => setIsPaused(true)} 
+                        onMouseLeave={() => setIsPaused(false)}
+                        className="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 z-20 bg-white/90 text-brand-green p-3 rounded-full shadow-lg hover:bg-white hover:scale-110 transition-all opacity-0 group-hover:opacity-100 hidden md:block"
+                    >
+                        <ChevronLeft size={24} />
+                    </button>
+
+                    <div 
+                        ref={scrollContainerRef}
+                        onMouseEnter={() => setIsPaused(true)}
+                        onMouseLeave={() => setIsPaused(false)}
+                        onTouchStart={() => setIsPaused(true)}
+                        onTouchEnd={() => setIsPaused(false)}
+                        className="flex overflow-x-auto py-2 px-4 scrollbar-hide gap-4 md:gap-8"
+                        style={{ scrollBehavior: isPaused || isEditMode ? 'smooth' : 'auto' }}
+                    >
                         {marqueeItems.map((loc, idx) => (
-                            <div key={idx} className="relative rounded-[20px] overflow-hidden w-[240px] md:w-[360px] h-[140px] md:h-[220px] flex-shrink-0 mx-2 md:mx-4 group shadow-md hover:shadow-xl transition-all">
+                            <div key={idx} className="relative rounded-[20px] overflow-hidden w-[240px] md:w-[360px] h-[140px] md:h-[220px] flex-shrink-0 shadow-md hover:shadow-xl transition-all">
                                 <a 
                                     href={`?tab=search_result&sType=main_location&sValue=${encodeURIComponent(loc.area)}`}
                                     onClick={(e) => { 
@@ -1376,7 +1605,7 @@
                                             if (onSelectLocation && !isEditMode) onSelectLocation('main_location', loc.area); 
                                         }
                                     }}
-                                    className={`block w-full h-full ${isEditMode ? 'pointer-events-none cursor-default' : 'cursor-pointer'}`}
+                                    className={`block w-full h-full ${isEditMode ? 'cursor-default' : 'cursor-pointer'}`}
                                 >
                                     <img src={loc.img} alt={loc.area} className="w-full h-full object-cover group-hover:scale-110 transition duration-700 pointer-events-none" />
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80 pointer-events-none"></div>
@@ -1407,9 +1636,17 @@
                             </div>
                         ))}
                     </div>
+
+                    <button 
+                        onClick={() => handleManualScroll(1)} 
+                        onMouseEnter={() => setIsPaused(true)} 
+                        onMouseLeave={() => setIsPaused(false)}
+                        className="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 z-20 bg-white/90 text-brand-green p-3 rounded-full shadow-lg hover:bg-white hover:scale-110 transition-all opacity-0 group-hover:opacity-100 hidden md:block"
+                    >
+                        <ChevronRight size={24} />
+                    </button>
                 </div>
                 
-                {/* ส่วนแผนที่ค้นหาบ้าน Interactive Map */}
                 <div className="max-w-6xl mx-auto px-4 md:px-6 w-full mb-20 overflow-hidden relative z-10">
                     <div className="flex flex-col items-center justify-center text-center mb-8">
                         <EditableText tag="h2" fieldKey="mapTitle" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-2xl font-bold text-brand-green mb-2 flex items-center gap-2 inline-flex" />
@@ -1464,7 +1701,7 @@
                                                 <h4 className="font-bold text-gray-800 text-[18px] mb-2 line-clamp-2 leading-snug">{p.project_name}</h4>
                                                 <div className="text-[13px] text-gray-500 flex items-center gap-1.5 mb-4"><MapPin size={15} className="flex-shrink-0 text-gray-400" /><span className="font-light truncate">{p.main_location || p.district} {p.sub_location || p.subdistrict ? `- ${p.sub_location || p.subdistrict}` : ''}</span></div>
                                                 <div className="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between">
-                                                    <span className="text-[20px] font-bold text-brand-green"><span className="text-[16px] mr-1">฿</span>{Number(p.price || 0).toLocaleString()}</span>
+                                                    <span className="text-[20px] font-bold text-brand-green"><span className="text-[16px] mr-1">฿</span>{Number(String(p.price || 0).replace(/,/g, '')).toLocaleString()}</span>
                                                     <div className="flex items-center gap-3 text-gray-500 text-[13px]"><div className="flex items-center gap-1.5" title="พื้นที่"><Maximize size={15} /> {p.area_wah}</div><div className="flex items-center gap-1.5" title="ห้องนอน"><Bed size={15} /> {p.bedrooms}</div><div className="flex items-center gap-1.5" title="ห้องน้ำ"><Bath size={15} /> {p.bathrooms}</div></div>
                                                 </div>
                                             </div>
@@ -1476,7 +1713,6 @@
                     ))}
                 </div>
 
-                {/* --- เพิ่มส่วน Why Us ด้านล่างบ้านเดี่ยว --- */}
                 <div className="bg-gray-50 py-16 mt-8 mb-12 md:py-20 md:mt-12 md:mb-16 rounded-[30px] md:rounded-[40px] px-6 md:px-12 max-w-7xl mx-auto shadow-sm border border-gray-100">
                     <div className="text-center mb-10 md:mb-12">
                         <EditableText tag="h2" fieldKey="whyUsTitle" content={visualContent} updateContent={updateVisualContent} isEditMode={isEditMode} className="text-2xl md:text-3xl font-bold text-brand-green inline-block" />
@@ -1524,6 +1760,7 @@
           const [isVideoPlaying, setIsVideoPlaying] = useState(false);
           const desktopScrollRef = useRef(null);
           const mobileScrollRef = useRef(null);
+          
           const images = Array.isArray(property?.images) && property.images.length > 0 ? property.images : [property?.imageUrl || "https://placehold.co/600x400"];
           const youtubeId = getYoutubeId(property?.youtubeUrl || '');
 
@@ -1532,38 +1769,41 @@
               setIsVideoPlaying(false);
           }, [property?.id]);
 
-          // จัดเรียงลำดับ โครงการเดียวกัน -> ทำเลเดียวกัน -> ราคาใกล้เคียงกัน
+          const safePropName = String(property?.project_name || '').trim();
+          const safeSubDist = String(property?.subdistrict || '').trim();
+          const safeSubLoc = String(property?.sub_location || '').trim();
+          const safeDist = String(property?.district || '').trim();
+          const safeMainLoc = String(property?.main_location || '').trim();
+
           const relatedProps = properties
-              .filter(p => p.id !== property?.id && p.badge !== 'Sold Out')
+              .filter(p => p && p.id && p.id !== property?.id && p.badge !== 'Sold Out')
               .map(p => {
                   let score = 0;
-                  // 1. โครงการเดียวกัน
-                  if (p.project_name && property.project_name && p.project_name.trim() === property.project_name.trim()) score += 1000;
-                  // 2. ทำเลเดียวกัน
-                  if ((p.subdistrict && property.subdistrict && p.subdistrict === property.subdistrict) || 
-                      (p.sub_location && property.sub_location && p.sub_location === property.sub_location)) score += 100;
-                  if ((p.district && property.district && p.district === property.district) || 
-                      (p.main_location && property.main_location && p.main_location === property.main_location)) score += 50;
-                  // ประเภทบ้านเดียวกัน
-                  if (p.category === property.category) score += 10;
+                  const pName = String(p.project_name || '').trim();
+                  const pSubDist = String(p.subdistrict || '').trim();
+                  const pSubLoc = String(p.sub_location || '').trim();
+                  const pDist = String(p.district || '').trim();
+                  const pMainLoc = String(p.main_location || '').trim();
+
+                  if (pName && safePropName && pName === safePropName) score += 1000;
+                  if ((pSubDist && safeSubDist && pSubDist === safeSubDist) || 
+                      (pSubLoc && safeSubLoc && pSubLoc === safeSubLoc)) score += 100;
+                  if ((pDist && safeDist && pDist === safeDist) || 
+                      (pMainLoc && safeMainLoc && pMainLoc === safeMainLoc)) score += 50;
+                  if (p.category === property?.category) score += 10;
                   
-                  // 3. ราคาใกล้เคียงกัน
-                  const priceDiff = Math.abs((Number(p.price) || 0) - (Number(property.price) || 0));
-                  
+                  const priceDiff = Math.abs((Number(String(p.price).replace(/,/g, '')) || 0) - (Number(String(property?.price).replace(/,/g, '')) || 0));
                   return { ...p, relevanceScore: score, priceDiff };
               })
               .sort((a, b) => {
-                  // เรียงตามคะแนนความเกี่ยวข้องก่อน
                   if (b.relevanceScore !== a.relevanceScore) return b.relevanceScore - a.relevanceScore;
-                  // ถ้าคะแนนเท่ากัน ให้เรียงจากส่วนต่างราคาที่น้อยที่สุด (ใกล้เคียงที่สุด)
                   return a.priceDiff - b.priceDiff;
               })
-              .slice(0, 8); // ดึงมาแสดง 8 หลัง
+              .slice(0, 8);
 
-          // ฟังก์ชันสำหรับกดเลื่อนไสลด์ซ้าย-ขวา
           const handleScroll = (refToUse, direction) => {
               if (refToUse && refToUse.current) {
-                  const itemWidth = window.innerWidth < 768 ? 316 : 324; // ความกว้างการ์ด 300px + gap
+                  const itemWidth = window.innerWidth < 768 ? 316 : 324;
                   refToUse.current.scrollBy({ left: direction * itemWidth, behavior: 'smooth' });
               }
           };
@@ -1596,7 +1836,7 @@
                                       <h4 className="font-bold text-gray-800 text-[18px] mb-2 line-clamp-2 leading-snug">{p.project_name}</h4>
                                       <div className="text-[13px] text-gray-500 flex items-center gap-1.5 mb-4"><MapPin size={15} className="flex-shrink-0 text-gray-400" /><span className="font-light truncate">{p.main_location || p.district} {p.sub_location || p.subdistrict ? `- ${p.sub_location || p.subdistrict}` : ''}</span></div>
                                       <div className="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between">
-                                          <span className="text-[20px] font-bold text-brand-green"><span className="text-[16px] mr-1">฿</span>{Number(p.price || 0).toLocaleString()}</span>
+                                          <span className="text-[20px] font-bold text-brand-green"><span className="text-[16px] mr-1">฿</span>{Number(String(p.price || 0).replace(/,/g, '')).toLocaleString()}</span>
                                           <div className="flex items-center gap-3 text-gray-500 text-[13px]"><div className="flex items-center gap-1.5" title="พื้นที่"><Maximize size={15} /> {p.area_wah}</div><div className="flex items-center gap-1.5" title="ห้องนอน"><Bed size={15} /> {p.bedrooms}</div><div className="flex items-center gap-1.5" title="ห้องน้ำ"><Bath size={15} /> {p.bathrooms}</div></div>
                                       </div>
                                   </div>
@@ -1621,7 +1861,6 @@
                            <ChevronLeft size={16} /> ย้อนกลับ
                         </a>
                         
-                        {/* เปลี่ยนการแสดงรูปให้แสดงเต็มรูป ไม่ครอปและไม่มีกรอบ */}
                         <div className="w-full overflow-hidden mb-4 relative group bg-gray-100 rounded-2xl shadow-sm flex items-center justify-center min-h-[300px]">
                             <img src={images[activeImg] || images[0] || "https://placehold.co/600x400"} className="w-full h-auto max-h-[80vh] object-contain transition duration-500" alt="Main" />
                             {images.length > 1 && (
@@ -1630,13 +1869,13 @@
                                     <button onClick={() => setActiveImg(prev => (prev === images.length - 1 ? 0 : prev + 1))} className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 text-brand-green p-2 rounded-full hover:bg-white transition shadow-md"><ChevronRight /></button>
                                 </>
                             )}
-                            {property.badge && <div className={`absolute top-4 right-4 px-4 py-1.5 rounded-full font-medium text-xs shadow-lg z-10 text-white ${property.badge === 'Promotion' ? 'bg-red-600' : p.badge === 'New' ? 'bg-blue-600' : property.badge === 'Sold Out' ? 'bg-gray-600' : 'bg-brand-green'}`}>{property.badge}</div>}
+                            {property.badge && <div className={`absolute top-4 right-4 px-4 py-1.5 rounded-full font-medium text-xs shadow-lg z-10 text-white ${property.badge === 'Promotion' ? 'bg-red-600' : property.badge === 'New' ? 'bg-blue-600' : property.badge === 'Sold Out' ? 'bg-gray-600' : 'bg-brand-green'}`}>{property.badge}</div>}
                         </div>
                         
                         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide mb-8">
                             {images.map((img, idx) => (
                                 <button key={idx} onClick={() => setActiveImg(idx)} className={`w-20 h-20 md:w-24 md:h-24 flex-shrink-0 overflow-hidden border-2 transition-all bg-gray-100 rounded-lg ${activeImg === idx ? 'border-brand-green opacity-100' : 'border-transparent opacity-60 hover:opacity-100'}`}>
-                                    <img src={img} className="w-full h-full object-cover" alt={`Thumb ${idx}`} />
+                                    <img src={img || "https://placehold.co/100x100"} className="w-full h-full object-cover" alt={`Thumb ${idx}`} />
                                 </button>
                             ))}
                         </div>
@@ -1656,7 +1895,7 @@
                               </div>
                               <div className="text-left md:text-right w-full md:w-auto mt-4 md:mt-0 pt-4 md:pt-0 border-t md:border-t-0 border-gray-100">
                                 <span className="block text-sm text-gray-400 font-light mb-1">ราคาขาย</span>
-                                <span className="text-3xl font-medium text-brand-green">฿ {Number(property.price || 0).toLocaleString()}</span>
+                                <span className="text-3xl font-medium text-brand-green">฿ {Number(String(property.price || 0).replace(/,/g, '')).toLocaleString()}</span>
                               </div>
                            </div>
                            
@@ -1708,16 +1947,14 @@
                         </div>
                     </div>
                     
-                    {/* Related Props on Desktop */}
                     <div className="hidden lg:block order-2">
                         {renderRelatedProps(desktopScrollRef)}
                     </div>
                  </div>
 
-                 {/* Right Sidebar */}
                  <div className="lg:w-1/3 space-y-6 order-2 w-full max-w-full">
                     <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 sticky top-24 text-center">
-                        {companyInfo?.logoUrl && (<img src={companyInfo.logoUrl} alt="Logo" className="h-16 mx-auto mb-4 object-contain" />)}
+                        {companyInfo?.logoUrl && (<img src={companyInfo.logoUrl} alt="Logo" loading="eager" fetchPriority="high" className="h-16 mx-auto mb-4 object-contain" />)}
                         <h3 className="font-medium text-lg mb-6">สนใจติดต่อ</h3>
                         <div className="space-y-3 mb-8">
                             <a href={isEditMode ? '#' : `tel:${companyInfo?.phone}`} className={`flex items-center justify-center gap-2 w-full bg-brand-green text-white py-3.5 rounded-full font-light hover:bg-opacity-90 transition ${isEditMode ? 'pointer-events-none' : ''}`}><Phone size={18} /> {companyInfo?.phone}</a>
@@ -1729,7 +1966,6 @@
                     </div>
                  </div>
 
-                 {/* Related Props on Mobile */}
                  <div className="block lg:hidden order-3 w-full max-w-full mt-8">
                      {renderRelatedProps(mobileScrollRef)}
                  </div>
@@ -1739,6 +1975,28 @@
         }
 
         function PropertiesList({ properties, searchParams, onSelectProp, visualContent, updateVisualContent, isEditMode }) {
+          const [sortOption, setSortOption] = useState('latest');
+          const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+          const dropdownRef = useRef(null);
+
+          // --- Pagination State ---
+          const [currentPage, setCurrentPage] = useState(1);
+          const ITEMS_PER_PAGE = 20;
+
+          useEffect(() => {
+              setCurrentPage(1);
+          }, [searchParams, sortOption]);
+
+          useEffect(() => {
+              function handleClickOutside(event) {
+                  if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                      setIsDropdownOpen(false);
+                  }
+              }
+              document.addEventListener("mousedown", handleClickOutside);
+              return () => document.removeEventListener("mousedown", handleClickOutside);
+          }, [dropdownRef]);
+
           let displayProps = properties.filter(p => p.badge !== 'Sold Out');
           let title = 'รายการทั้งหมด';
 
@@ -1764,11 +2022,84 @@
               title = `ผลการค้นหา: "${searchParams.value}"`;
           }
 
+          let sortedProps = [...displayProps];
+          if (sortOption === 'price_asc') {
+              sortedProps.sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0));
+          } else if (sortOption === 'price_desc') {
+              sortedProps.sort((a, b) => (Number(b.price) || 0) - (Number(a.price) || 0));
+          }
+
+          // --- Pagination Calculation ---
+          const totalPages = Math.ceil(sortedProps.length / ITEMS_PER_PAGE);
+          const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+          const currentProps = sortedProps.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+          const handlePageChange = (page) => {
+              setCurrentPage(page);
+              window.scrollTo({ top: 0, behavior: 'smooth' }); 
+          };
+
+          const renderPageNumbers = () => {
+              const pages = [];
+              let startPage = Math.max(1, currentPage - 2);
+              let endPage = Math.min(totalPages, startPage + 4);
+
+              if (endPage - startPage < 4) {
+                  startPage = Math.max(1, endPage - 4);
+              }
+
+              for (let i = startPage; i <= endPage; i++) {
+                  pages.push(
+                      <button
+                          key={i}
+                          onClick={() => handlePageChange(i)}
+                          className={`w-10 h-10 rounded-full flex items-center justify-center text-sm transition ${
+                              currentPage === i
+                                  ? 'bg-brand-green text-white font-medium shadow-md'
+                                  : 'bg-white border border-gray-200 text-gray-600 hover:border-brand-green hover:text-brand-green'
+                          }`}
+                      >
+                          {i}
+                      </button>
+                  );
+              }
+              return pages;
+          };
+
           return (
-            <div className="max-w-7xl mx-auto px-4 py-16 min-h-screen">
-              <h2 className="text-2xl font-light text-brand-green mb-10">{title} <span className="text-sm text-gray-400 ml-2">({displayProps.length} รายการ)</span></h2>
-              <div className="flex flex-wrap gap-6 justify-center md:justify-start">
-                {displayProps.length > 0 ? displayProps.map(p => (
+            <div className="max-w-7xl mx-auto px-4 py-16 min-h-screen flex flex-col">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-4">
+                  <h2 className="text-2xl font-light text-brand-green">{title} <span className="text-sm text-gray-400 ml-2">({displayProps.length} รายการ)</span></h2>
+                  
+                  {displayProps.length > 0 && (
+                      <div className="relative" ref={dropdownRef}>
+                          <button onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="flex items-center gap-2 text-sm text-gray-600 bg-white border border-gray-200 px-5 py-2.5 rounded-full hover:border-brand-green hover:text-brand-green transition shadow-sm font-light">
+                              เรียงตาม: <span className="font-medium text-brand-green">{sortOption === 'latest' ? 'อัปเดตล่าสุด' : sortOption === 'price_asc' ? 'ราคาต่ำสุด' : 'ราคาสูงสุด'}</span>
+                              <ChevronDown size={16} className={`transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                          </button>
+
+                          {isDropdownOpen && (
+                              <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] border border-gray-100 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                                  <button onClick={() => { setSortOption('latest'); setIsDropdownOpen(false); }} className="w-full text-left px-5 py-2.5 text-sm flex items-center justify-between hover:bg-brand-light transition">
+                                      <span className={sortOption === 'latest' ? 'text-brand-green font-medium' : 'text-gray-600'}>อัปเดตล่าสุด</span>
+                                      {sortOption === 'latest' && <Check size={16} className="text-brand-green" />}
+                                  </button>
+                                  <button onClick={() => { setSortOption('price_asc'); setIsDropdownOpen(false); }} className="w-full text-left px-5 py-2.5 text-sm flex items-center justify-between hover:bg-brand-light transition">
+                                      <span className={sortOption === 'price_asc' ? 'text-brand-green font-medium' : 'text-gray-600'}>ราคาต่ำสุด</span>
+                                      {sortOption === 'price_asc' && <Check size={16} className="text-brand-green" />}
+                                  </button>
+                                  <button onClick={() => { setSortOption('price_desc'); setIsDropdownOpen(false); }} className="w-full text-left px-5 py-2.5 text-sm flex items-center justify-between hover:bg-brand-light transition">
+                                      <span className={sortOption === 'price_desc' ? 'text-brand-green font-medium' : 'text-gray-600'}>ราคาสูงสุด</span>
+                                      {sortOption === 'price_desc' && <Check size={16} className="text-brand-green" />}
+                                  </button>
+                              </div>
+                          )}
+                      </div>
+                  )}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 justify-items-center flex-grow content-start">
+                {currentProps.length > 0 ? currentProps.map(p => (
                    <a href={`?property=${generatePropSlug(p)}`} key={p.id} onClick={(e) => {
                        if (!e.ctrlKey && !e.metaKey && !e.button) {
                            e.preventDefault(); 
@@ -1784,13 +2115,38 @@
                            <h4 className="font-bold text-gray-800 text-[18px] mb-2 line-clamp-2 leading-snug">{p.project_name}</h4>
                            <div className="text-[13px] text-gray-500 flex items-center gap-1.5 mb-4"><MapPin size={15} className="flex-shrink-0 text-gray-400" /><span className="font-light truncate">{p.main_location || p.district} {p.sub_location || p.subdistrict ? `- ${p.sub_location || p.subdistrict}` : ''}</span></div>
                            <div className="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between">
-                               <span className="text-[20px] font-bold text-brand-green"><span className="text-[16px] mr-1">฿</span>{Number(p.price || 0).toLocaleString()}</span>
+                               <span className="text-[20px] font-bold text-brand-green"><span className="text-[16px] mr-1">฿</span>{Number(String(p.price || 0).replace(/,/g, '')).toLocaleString()}</span>
                                <div className="flex items-center gap-3 text-gray-500 text-[13px]"><div className="flex items-center gap-1.5" title="พื้นที่"><Maximize size={15} /> {p.area_wah}</div><div className="flex items-center gap-1.5" title="ห้องนอน"><Bed size={15} /> {p.bedrooms}</div><div className="flex items-center gap-1.5" title="ห้องน้ำ"><Bath size={15} /> {p.bathrooms}</div></div>
                            </div>
                        </div>
                    </a>
                 )) : <p className="text-gray-400 col-span-full text-center py-20 font-light w-full">ไม่พบรายการในหมวดหมู่นี้</p>}
               </div>
+
+              {/* --- Pagination Controls --- */}
+              {totalPages > 1 && (
+                  <div className="flex justify-center items-center mt-16 gap-2 w-full">
+                      <button
+                          onClick={() => handlePageChange(currentPage - 1)}
+                          disabled={currentPage === 1}
+                          className="w-10 h-10 rounded-full flex items-center justify-center bg-white border border-gray-200 text-gray-600 hover:text-brand-green hover:border-brand-green disabled:opacity-50 disabled:cursor-not-allowed transition shadow-sm"
+                      >
+                          <ChevronLeft size={20} />
+                      </button>
+
+                      <div className="flex gap-2 mx-2">
+                          {renderPageNumbers()}
+                      </div>
+
+                      <button
+                          onClick={() => handlePageChange(currentPage + 1)}
+                          disabled={currentPage === totalPages}
+                          className="w-10 h-10 rounded-full flex items-center justify-center bg-white border border-gray-200 text-gray-600 hover:text-brand-green hover:border-brand-green disabled:opacity-50 disabled:cursor-not-allowed transition shadow-sm"
+                      >
+                          <ChevronRight size={20} />
+                      </button>
+                  </div>
+              )}
             </div>
           );
         }
@@ -1857,7 +2213,7 @@
 
           useEffect(() => { 
               if (defaultPrice) {
-                  setLoanAmount(Number(defaultPrice).toLocaleString()); 
+                  setLoanAmount(Number(String(defaultPrice).replace(/,/g, '')).toLocaleString()); 
               }
           }, [defaultPrice]);
           
@@ -1944,7 +2300,7 @@
                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
                       {soldOutProperties.map(p => (
                         <div key={p.id} className="group relative aspect-[4/5] rounded-xl overflow-hidden bg-gray-100">
-                           <img src={p.images?.[0] || p.imageUrl} className="w-full h-full object-cover grayscale opacity-70 group-hover:grayscale-0 transition duration-500"/>
+                           <img src={p.images?.[0] || p.imageUrl || "https://placehold.co/400x500"} className="w-full h-full object-cover grayscale opacity-70 group-hover:grayscale-0 transition duration-500"/>
                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-4">
                               <span className="text-white text-xs tracking-wider mb-1 opacity-70">SOLD</span>
                               <p className="text-white text-sm font-light truncate">{p.project_name}</p>
@@ -2428,7 +2784,7 @@
                         {/* Sidebar */}
                         <div className="w-64 bg-white border-r py-6 flex flex-col gap-2 hidden md:flex">
                             {userRole === 'host' && <button onClick={enterVisualEditMode} className={`px-6 py-3 text-left text-sm flex items-center gap-3 transition text-blue-600 hover:bg-blue-50 bg-blue-50/50`}><Layout size={18}/> ปรับแก้หน้าตาเว็บไซต์</button>}
-                            <button onClick={() => { setPanelTab('properties'); setIsEditing(false); }} className={`px-6 py-3 text-left text-sm flex items-center gap-3 transition ${panelTab === 'properties' ? 'text-brand-green bg-brand-light font-medium border-r-2 border-brand-green' : 'text-gray-500 hover:bg-gray-50'}`}><Home size={18}/> จัดการบ้าน</button>
+                            <button onClick={() => { setPanelTab('properties'); setIsEditing(false); }} className={`px-6 py-3 text-left text-sm flex items-center gap-3 transition ${panelTab === 'properties' ? 'text-brand-green bg-brand-light font-medium border-r-2 border-brand-green' : 'text-gray-500 hover:bg-gray-50'}`}><Home size={18}/> จัดการบ้าน <span className="text-xs bg-gray-200 px-2 py-0.5 rounded-full text-gray-600 ml-1">{properties.length}</span></button>
                             {userRole === 'host' && <button onClick={() => setPanelTab('company')} className={`px-6 py-3 text-left text-sm flex items-center gap-3 transition ${panelTab === 'company' ? 'text-brand-green bg-brand-light font-medium border-r-2 border-brand-green' : 'text-gray-500 hover:bg-gray-50'}`}><Briefcase size={18}/> ข้อมูลบริษัท</button>}
                             {userRole === 'host' && <button onClick={() => setPanelTab('portfolio_images')} className={`px-6 py-3 text-left text-sm flex items-center gap-3 transition ${panelTab === 'portfolio_images' ? 'text-brand-green bg-brand-light font-medium border-r-2 border-brand-green' : 'text-gray-500 hover:bg-gray-50'}`}><ImageIcon size={18}/> จัดการรูปผลงาน</button>}
                             {userRole === 'host' && <button onClick={() => setPanelTab('popup')} className={`px-6 py-3 text-left text-sm flex items-center gap-3 transition ${panelTab === 'popup' ? 'text-brand-green bg-brand-light font-medium border-r-2 border-brand-green' : 'text-gray-500 hover:bg-gray-50'}`}><LayoutTemplate size={18}/> จัดการป๊อปอัป</button>}
@@ -2466,7 +2822,7 @@
                                                 <div className="flex-1 w-full text-center sm:text-left">
                                                     <h4 className="font-medium line-clamp-1">{p.project_name}</h4>
                                                     <p className="text-xs text-gray-500 mt-1">{p.category} • {p.subdistrict}</p>
-                                                    <p className="font-medium text-brand-green mt-1">{Number(p.price || 0).toLocaleString()} ฿</p>
+                                                    <p className="font-medium text-brand-green mt-1">{Number(String(p.price).replace(/,/g, '') || 0).toLocaleString()} ฿</p>
                                                 </div>
                                                 <div className="flex gap-2 w-full sm:w-auto justify-center">
                                                     <button onClick={() => startEdit(p)} className="p-2 w-full sm:w-auto flex justify-center text-gray-400 hover:text-brand-green bg-gray-50 rounded-lg transition"><Edit size={18}/></button>
@@ -2496,7 +2852,7 @@
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                     <div className="sm:col-span-2"><label className="label">ชื่อโครงการ <span className="text-red-500">*</span></label><input className="input-modern" required value={formData.project_name} onChange={e=>setFormData({...formData, project_name: e.target.value})}/></div>
                                                     <div><label className="label">ประเภท</label><select className="input-modern" value={formData.category} onChange={e=>setFormData({...formData, category: e.target.value})}>{CATEGORIES.map(c=><option key={c} value={c}>{c}</option>)}</select></div>
-                                                    <div><label className="label">ราคา (บาท) <span className="text-red-500">*</span></label><input type="text" inputMode="numeric" required className="input-modern font-medium text-brand-green" value={Number(formData.price || 0).toLocaleString()} onChange={e=>setFormData({...formData, price: e.target.value.replace(/[^0-9]/g, '')})}/></div>
+                                                    <div><label className="label">ราคา (บาท) <span className="text-red-500">*</span></label><input type="text" inputMode="numeric" required className="input-modern font-medium text-brand-green" value={Number(String(formData.price).replace(/,/g, '') || 0).toLocaleString()} onChange={e=>setFormData({...formData, price: e.target.value.replace(/[^0-9]/g, '')})}/></div>
                                                     <div className="sm:col-span-2">
                                                         <label className="label">ป้ายสถานะ (Badge)</label>
                                                         <select className="input-modern" value={formData.badge} onChange={e=>setFormData({...formData, badge: e.target.value})}>
